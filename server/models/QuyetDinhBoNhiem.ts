@@ -1,7 +1,10 @@
 export interface QuyetDinhBoNhiem {
     id: number;
     ma_bo_nhiem: string;
-    ma_ho_so: string;
-    ma_dot_bo_nhiem: string;
-    
+    so_quyet_dinh: string;
+    ngay_quyet_dinh: Date;
+    ngay_co_hieu_luc: Date;
+    thoi_han: number;
+    loai_bo_nhiem: string;
+    ho_so_bn_id: number;
 }
