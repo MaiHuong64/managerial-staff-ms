@@ -1,4 +1,4 @@
-export interface KetQuaQuyHoach {
+export interface KetQuaBieuQuyet {
     id: number;
     buoc_hoi_nghi: number;
     so_nguoi_trieu_tap: number;
@@ -9,5 +9,5 @@ export interface KetQuaQuyHoach {
     so_phieu_dong_y: number;
     so_phieu_khong_dong_y: number;
     ket_qua: number;
-    chi_tiet_qh_id: number;
+    chi_tiet_bn_id: number;
 }
