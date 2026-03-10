@@ -1,23 +1,27 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
+import jwt from'jsonwebtoken';
 import pool from "../config/db";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const authController = {
     registerUser: async (req: Request, res: Response) => {
         try{
-            const {ma_vien_chuc, mat_khau, vai_tro} = req.body;
+            const {ten_dang_nhap, mat_khau, vai_tro, vien_chuc_id} = req.body;
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(mat_khau, salt);
-            
-            const existingUser = await pool.query("SELECT * FROM tai_khoan WHERE ma_vien_chuc = $1", [ma_vien_chuc]);
+
+            const existingUser = await pool.query("SELECT * FROM tai_khoan WHERE ten_dang_nhap = $1", [ten_dang_nhap]);
             if(existingUser.rows.length > 0){
                 return res.status(400).json({ success: false, message: "User already exists" })
             }
             const newUser = await pool.query(
-                `INSERT INTO tai_khoan (ma_vien_chuc, mat_khau, vai_tro) 
-                VALUES ($1, $2, $3) 
-                RETURNING id, ma_vien_chuc, vai_tro, ngay_tao`,
-                [ma_vien_chuc, hashedPassword, vai_tro]
+                `INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai, vien_chuc_id) 
+                VALUES ($1, $2, $3, $4, $5) 
+                RETURNING id, ten_dang_nhap, vai_tro, vien_chuc_id`,
+                [ten_dang_nhap, hashedPassword, vai_tro, 1, vien_chuc_id]
             );
             return res.status(201).json(newUser.rows[0]);
 
@@ -29,8 +33,8 @@ const authController = {
     },
     loginUser: async (req: Request, res: Response) => {
         try{
-            const {ma_vien_chuc, mat_khau} = req.body;
-            const user = await pool.query("SELECT * FROM tai_khoan WHERE ma_vien_chuc = $1", [ma_vien_chuc]);
+            const {ten_dang_nhap, mat_khau} = req.body;
+            const user = await pool.query("SELECT * FROM tai_khoan WHERE ten_dang_nhap = $1", [ten_dang_nhap]);
             if(user.rows.length === 0){
                 return res.status(400).json({ success: false, message: "Invalid credentials" });
             }
@@ -38,11 +42,13 @@ const authController = {
             if(!validPass){
                 return res.status(400).json({ success: false, message: "Invalid credentials" });
             }
+            const token = jwt.sign({ id: user.rows[0].id, ten_dang_nhap: user.rows[0].ten_dang_nhap, vai_tro: user.rows[0].vai_tro }, process.env.JWT_SECRET as string, { expiresIn: "1h"});
             return res.json({ success: true, message: "Login successful", user: {
                 id: user.rows[0].id,
-                ma_vien_chuc: user.rows[0].ma_vien_chuc,
+                ten_dang_nhap: user.rows[0].ten_dang_nhap,
                 vai_tro: user.rows[0].vai_tro,
-            } });
+                token: token
+            }});
 
         }
         catch(error){
