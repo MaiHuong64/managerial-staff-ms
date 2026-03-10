@@ -1,19 +1,24 @@
 import { Request, Response } from "express";
-import { Jwt } from "jsonwebtoken";
-import { verify } from "node:crypto";
+import jwt  from "jsonwebtoken";
 
 const secretKey = process.env.JWT_SECRET;
-const tokenExpiry = process.env.JWT_EXPIRY;
-
-export const verifyToken = async (req: Request, res: Response, next: Function) => {
-    const header = await req.headers['authorization'];
+interface AuthRequest extends Request {
+    user?: any;
+}
+export const verifyToken = (req: AuthRequest, res: Response, next: Function) => {
+    const header = req.headers['authorization'];
+    // console.log("Headers:", header);
     const token = header && header.split(' ')[1];
-    if (!token) return res.status(401).json({ success: false, message: "Access denied" });
-    try{
-
+    if(!token){
+        return res.status(401).json({ success: false, message: "Access denied. No token provided." });
     }
-    catch(error){
-        console.error("Error verifying token:", error);
-        res.status(400).json({ success: false, message: "Invalid token" });
+    else{
+         jwt.verify(token as string, secretKey as string, (err, user) => {
+        if (err) {
+            return res.status(403).json({ success: false, message: "Invalid token" });
+        }
+        req.user = user;
+        next();
+    });
     }
 };
