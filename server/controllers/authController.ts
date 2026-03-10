@@ -13,7 +13,7 @@ const authController = {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(mat_khau, salt);
 
-            const existingUser = await pool.query("SELECT * FROM tai_khoan WHERE ten_dang_nhap = $1", [ten_dang_nhap]);
+            const existingUser = await pool.query("SELECT id, ten_dang_nhap, mat_khau, vai_tro FROM tai_khoan WHERE ten_dang_nhap = $1", [ten_dang_nhap]);
             if(existingUser.rows.length > 0){
                 return res.status(400).json({ success: false, message: "User already exists" })
             }
@@ -34,6 +34,7 @@ const authController = {
     loginUser: async (req: Request, res: Response) => {
         try{
             const {ten_dang_nhap, mat_khau} = req.body;
+            console.log(req.body)
             const user = await pool.query("SELECT * FROM tai_khoan WHERE ten_dang_nhap = $1", [ten_dang_nhap]);
             if(user.rows.length === 0){
                 return res.status(400).json({ success: false, message: "Invalid credentials" });
