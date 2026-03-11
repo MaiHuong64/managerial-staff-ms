@@ -1,4 +1,4 @@
-import type { ThemeConfig } from "antd";
+import { type ThemeConfig } from "antd";
 
 export const customTheme: ThemeConfig = {
   token: {
@@ -15,5 +15,5 @@ export const customTheme: ThemeConfig = {
     Input: { controlHeight: 44, hoverBorderColor: "#6366f1", activeBorderColor: "#6366f1" },
     Button: { controlHeight: 44, fontWeight: 600 },
     Form: { labelFontSize: 12, labelColor: "#6b7280" },
-  },
+  }
 };
