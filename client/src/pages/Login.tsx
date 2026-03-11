@@ -6,7 +6,7 @@ import LoginForm from "../components/LoginForm";
 const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-[780px] bg-white rounded-[20px] overflow-hidden grid grid-cols-1 md:grid-cols-2">
+      <div className="w-full max-w-195 bg-white rounded-[20px] overflow-hidden grid grid-cols-1 md:grid-cols-2">
 
         {/* Cột trái – ảnh */}
         <div className="hidden md:flex bg-[#eef2ff] flex-col items-center justify-center p-12 gap-2 border-r border-indigo-50">
