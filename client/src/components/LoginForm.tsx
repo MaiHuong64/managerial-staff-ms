@@ -2,14 +2,14 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "../utils/AxiosClient";
 import { Form, Input, Button, message, Checkbox } from 'antd';
-import type User from '../types/auth';
+import type LoginType from '../types/auth';
 
 const Login: React.FC = () => {
     const [loading, setLoading] = React.useState(false);
     const navigate = useNavigate();
     const [form] = Form.useForm();
 
-    const onFinish = async (values: User) => {
+    const onFinish = async (values: LoginType) => {
         setLoading(true);
         console.log("Gửi lên API:", {
         username: values.ten_dang_nhap,
