@@ -7,30 +7,30 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const authController = {
-    registerUser: async (req: Request, res: Response) => {
-        try{
-            const {ten_dang_nhap, mat_khau, vai_tro, vien_chuc_id} = req.body;
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(mat_khau, salt);
+    // registerUser: async (req: Request, res: Response) => {
+    //     try{
+    //         const {ten_dang_nhap, mat_khau, vai_tro, vien_chuc_id} = req.body;
+    //         const salt = await bcrypt.genSalt(10);
+    //         const hashedPassword = await bcrypt.hash(mat_khau, salt);
 
-            const existingUser = await pool.query("SELECT id, ten_dang_nhap, mat_khau, vai_tro FROM tai_khoan WHERE ten_dang_nhap = $1", [ten_dang_nhap]);
-            if(existingUser.rows.length > 0){
-                return res.status(400).json({ success: false, message: "User already exists" })
-            }
-            const newUser = await pool.query(
-                `INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai, vien_chuc_id) 
-                VALUES ($1, $2, $3, $4, $5) 
-                RETURNING id, ten_dang_nhap, vai_tro, vien_chuc_id`,
-                [ten_dang_nhap, hashedPassword, vai_tro, 1, vien_chuc_id]
-            );
-            return res.status(201).json(newUser.rows[0]);
+    //         const existingUser = await pool.query("SELECT id, ten_dang_nhap, mat_khau, vai_tro FROM tai_khoan WHERE ten_dang_nhap = $1", [ten_dang_nhap]);
+    //         if(existingUser.rows.length > 0){
+    //             return res.status(400).json({ success: false, message: "User already exists" })
+    //         }
+    //         const newUser = await pool.query(
+    //             `INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai, vien_chuc_id) 
+    //             VALUES ($1, $2, $3, $4, $5) 
+    //             RETURNING id, ten_dang_nhap, vai_tro, vien_chuc_id`,
+    //             [ten_dang_nhap, hashedPassword, vai_tro, 1, vien_chuc_id]
+    //         );
+    //         return res.status(201).json(newUser.rows[0]);
 
-        }
-        catch(error){
-            console.error("Error registering user:", error);
-            res.status(500).send("Internal server error");
-        }
-    },
+    //     }
+    //     catch(error){
+    //         console.error("Error registering user:", error);
+    //         res.status(500).send("Internal server error");
+    //     }
+    // },
     loginUser: async (req: Request, res: Response) => {
         try{
             const {ten_dang_nhap, mat_khau} = req.body;

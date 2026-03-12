@@ -4,6 +4,7 @@ import router from "./routes/auth";
 import staffRouter from "./routes/staff";
 import dotenv from "dotenv";
 import cors from "cors";
+import profileRouter from "./routes/profile";
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ app.use(express.json());
 
 app.use("/api", router);
 app.use("/api/staff", staffRouter)
-
+app.use("/api/me", profileRouter);
 
 pool.query("SELECT NOW()")
     .then(res => console.log("Database connected:", res.rows[0]))
@@ -23,6 +24,6 @@ pool.query("SELECT NOW()")
 
 
 
-app.listen(3000, () => {
+app.listen(3001, () => {
   console.log("Server running on port 3000");
 });
