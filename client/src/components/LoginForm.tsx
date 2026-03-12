@@ -21,9 +21,9 @@ const Login: React.FC = () => {
         try{
             const response = await axios.post('/login', values);
             const token = response.data.user.token;
-            console.log("Toàn bộ response.data:", response.data)
+            // console.log("Toàn bộ response.data:", response.data)
             localStorage.setItem('token', token);
-            console.log("Token trong localStorage:", localStorage.getItem('token'));
+            // console.log("Token trong localStorage:", localStorage.getItem('token'));
             // console.log( "Token: ", response.data);
         
             // get profile user when user login
