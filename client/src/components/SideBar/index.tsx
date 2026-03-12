@@ -1,17 +1,21 @@
 import { useLocation, useNavigate } from "react-router-dom"
 import { NAV_ITEMS } from "./SideBar";
 import { NavItem } from "./NavItem";
-import { useAuth } from "../../context/AuthContext"
+import { useAuth } from "../../hook/useAuth";
 
 export const SideBar = () => {
     const {user, logout} = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
+    console.log(user?.ho_va_ten);
+    console.log(`"${user?.vai_tro}"`);
+
     const filteredItems = NAV_ITEMS.filter(item =>{
-        if (item.section) return true;
-        if(!user || item.roles) return false;
-        // return item.roles.includes(user.vai_tro);
+    if (!item.roles) return true;
+    if (!user) return false;
+    const hasRole = item.roles.includes(user.vai_tro);
+    return hasRole;
     })
 
     const isActive = (path: string) => location.pathname === path;
