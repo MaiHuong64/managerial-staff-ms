@@ -2,14 +2,16 @@ import { useLocation, useNavigate } from "react-router-dom"
 import { NAV_ITEMS } from "./SideBar";
 import { NavItem } from "./NavItem";
 import { useAuth } from "../../hook/useAuth";
+import { Avatar } from "antd";
+import { UserOutlined } from '@ant-design/icons';
 
 export const SideBar = () => {
     const {user, logout} = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
-    console.log(user?.ho_va_ten);
-    console.log(`"${user?.vai_tro}"`);
+    // console.log( `${user}`)
+    // console.log(`"${user?.vai_tro}"`);
 
     const filteredItems = NAV_ITEMS.filter(item =>{
     if (!item.roles) return true;
@@ -55,16 +57,14 @@ export const SideBar = () => {
         <div className="px-2 pb-3 pt-2 border-t border-white/5">
             <div className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-white/5 text-white transition-all cursor-pointer">
             <div className="flex items-center justify-center rounded-md bg-[#4f46e5] text-white font-bold w-7 h-7 text-[10px]">
-               {user?.ho_va_ten}
+              <Avatar src={user?.avatar} icon={<UserOutlined />} />
             </div>
             <div className="flex-1 min-w-0">
                 <div className="text-xs font-semibold truncate">{user?.ho_va_ten}</div>
-                <div className="text-xs text-white/30 truncate">{user?.vai_tro}</div>
             </div>
             <button 
                 onClick={() => { logout(); navigate('/login'); }}
-                className="text-white/25 hover:text-white transition-colors"
-            >
+                className="text-white/25 hover:text-white transition-colors">
                 ⏻
             </button>
             </div>
