@@ -3,29 +3,42 @@ import { useNavigate } from 'react-router-dom';
 import axios from "../utils/AxiosClient";
 import { Form, Input, Button, message, Checkbox } from 'antd';
 import type LoginType from '../types/auth';
+import { useAuth } from '../hook/useAuth';
 
 const Login: React.FC = () => {
     const [loading, setLoading] = React.useState(false);
     const navigate = useNavigate();
     const [form] = Form.useForm();
-
+    
+    const {login} = useAuth();
+  
     const onFinish = async (values: LoginType) => {
         setLoading(true);
-        console.log("Gửi lên API:", {
-        username: values.ten_dang_nhap,
-        password: values.mat_khau,
-        });
+        // console.log("Gửi lên API:", {
+        // username: values.ten_dang_nhap,
+        // password: values.mat_khau
+        // });
         try{
-            const response = await axios.post('/login', {
-            ten_dang_nhap: values.ten_dang_nhap,
-            mat_khau: values.mat_khau,
-            
-        });
-        if(response.status === 200){
-            localStorage.setItem('token', response.data.user.token);
+            const response = await axios.post('/login', values);
+            const token = response.data.token;
+            localStorage.setItem('token', token);
+            // console.log( "Token: ", response.data);
+        
+            // get profile user when user login
+            const profile = await axios.get('/me');
+            const fullData = profile.data.user;
+
+            await login(fullData, token)
+            console.log(`User: ${fullData.ho_va_ten}`);
             message.success("Login successful!");
-            navigate("/dashboard");
-            }
+            navigate("/dashboard", {replace: true});
+        // if(response.status === 200){
+        //     const userData = response.data.user;
+        //     const token = response.data.token;
+        //     login(userData, token);
+        //     message.success("Login successful!");
+        //     navigate("/dashboard");
+        //     }
         }
         catch(error: unknown){
             const err = (error as { response?: { data?: { message?: string } } }).response?.data?.message ||"Đăng nhập thất bại.";
