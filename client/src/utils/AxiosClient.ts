@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: "http://localhost:3001/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -19,11 +19,12 @@ axiosClient.interceptors.response.use(
     return response
   },
   function handleError(error){
-    const status = error.response.status;
-    if(status === 401 || status === 40)
+    const status = error.response?.status;
+    if(status === 401 || status === 403)
     {
        localStorage.removeItem("token");
-       window.location.href = "/login";
+       localStorage.removeItem("user");
+      //  window.location.href = "/login";
     }
   return Promise.reject(error);
   }
