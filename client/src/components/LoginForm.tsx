@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "../utils/AxiosClient";
 import { Form, Input, Button, message, Checkbox } from 'antd';
-import type LoginType from '../types/auth';
+import type { LoginType } from '../types/auth';
 import { useAuth } from '../hook/useAuth';
 
 const Login: React.FC = () => {
@@ -20,8 +20,10 @@ const Login: React.FC = () => {
         // });
         try{
             const response = await axios.post('/login', values);
-            const token = response.data.token;
+            const token = response.data.user.token;
+            console.log("Toàn bộ response.data:", response.data)
             localStorage.setItem('token', token);
+            console.log("Token trong localStorage:", localStorage.getItem('token'));
             // console.log( "Token: ", response.data);
         
             // get profile user when user login
