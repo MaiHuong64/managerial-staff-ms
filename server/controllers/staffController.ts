@@ -1,5 +1,5 @@
 // import { Router  } from "express";
-import { json, Request, Response } from "express";
+import { json, query, Request, Response } from "express";
 import pool from "../config/db";
 import bcrypt from "bcryptjs";
 
@@ -75,8 +75,30 @@ const staffController = {
     },
     updateStaff: async (req: Request, res: Response) => {
         try{
+            const id = (req as any).user.id;
+            // console.log("uid: ", id)
+            const fields = req.body;
 
-        }
+            // console.log("fields: ",fields);
+
+            if(Object.keys(fields).length === 0){
+                return res.status(400).json({ error: 'No fields provided for update' });
+            }
+
+            const result =  Object.keys(fields).map((key, i) => `${key} = $${i + 1}`);
+            // console.log("result: ",result);
+            result.join (', ');
+            // console.log("after join: ",result.join (', '));
+            const values = Object.values(fields);
+
+            const query = await pool.query(`UPDATE vien_chuc
+                                            SET ${result}
+                                            WHERE id = $${values.length+1} RETURNING id, ma_vien_chuc, ho_va_ten`, [...values, id]);
+            if(query.rows.length === 0){
+                return res.status(404).json({sucess: false, message: "Không tìm thấy viên chức"});
+            }
+            return res.status(200).json ({sucess: true, message: "Cập nhật thành công", data: query.rows[0]})
+           }
         catch(error){
             console.error("Error fetching staff by ID:", error);
             res.status(500).send("Internal server error");
