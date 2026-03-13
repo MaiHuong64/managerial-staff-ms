@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 const secretKey = process.env.JWT_SECRET;
 interface AuthRequest extends Request {
-    user?:{id: number, ten_dang_nhap: string, vai_tro: string}
+    user?:{id: number, ten_dang_nhap: string, vai_tro: string, don_vi_id: number}
 }
 
 export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -15,7 +15,9 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
     }
     try {
         const decode = jwt.verify(token, secretKey as string) as AuthRequest["user"]
+        console.log("Decode: ", decode);
         req.user = decode;
+      
         next();
     } catch (error) {
         return res.status(403).json({
@@ -24,3 +26,14 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
         })
     }
 };
+export const checkRole = (roles: string[]) => {
+        return (req:AuthRequest, res:Response, next:NextFunction) => {
+            const user = req.user;
+            if(!user)
+                return res.status(401).json({ success: false, message: "Chưa xác thực" });
+            if(!roles.includes(user?.vai_tro)){
+                return res.status(403).json({ success: false, message: "Không có quyền truy cập" });
+            }
+            next();
+        }
+}
