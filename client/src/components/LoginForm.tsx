@@ -27,7 +27,7 @@ const Login: React.FC = () => {
             // console.log( "Token: ", response.data);
         
             // get profile user when user login
-            const profile = await axios.get('/me');
+            const profile = await axios.get('/profile');
             const fullData = profile.data.user;
 
             await login(fullData, token)
