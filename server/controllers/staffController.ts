@@ -123,11 +123,13 @@ const staffController = {
 
             console.log("uid: ", uid);
 
-            const queryProfile = ` SELECT vc.*, dv.ten_don_vi, cd.ten_chuc_danh, nk.ngay_bat_dau, nk.ngay_ket_thuc, qd.so_quyet_dinh 
-                            FROM vien_chuc vc LEFT JOIN don_vi dv on vc.don_vi_id = dv.id	
+            const queryProfile = ` SELECT vc.*, dv.ten_don_vi, cd.ten_chuc_danh, nk.ngay_bat_dau, nk.ngay_ket_thuc, qd.so_quyet_dinh, tk.vai_tro
+
+                                FROM vien_chuc vc LEFT JOIN don_vi dv on vc.don_vi_id = dv.id	
                                 LEFT JOIN nhiem_ky_chuc_vu nk on vc.id = nk.vien_chuc_id AND nk.trang_thai = 1
                                 LEFT JOIN chuc_danh_quan_ly cd on cd.id = nk.chuc_danh_id
                                 LEFT JOIN qd_bo_nhiem qd on qd.id = nk.qd_bo_nhiem_id
+                                LEFT JOIN tai_khoan tk ON tk.vien_chuc_id = vc.id
                             WHERE vc.id = $1`
             
             const querylichSuChucvu = `
