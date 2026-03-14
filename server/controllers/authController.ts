@@ -35,7 +35,7 @@ const authController = {
         try{
             const {ten_dang_nhap, mat_khau} = req.body;
 
-            const query = ` SELECT t.id, t.ten_dang_nhap, t.mat_khau, t.vai_tro, v.don_vi_id
+            const query = ` SELECT t.id, t.ten_dang_nhap, t.mat_khau, t.vai_tro, v.don_vi_id, v.ho_va_ten
                             FROM tai_khoan t
                             JOIN vien_chuc v ON v.id = t.vien_chuc_id
                             WHERE t.ten_dang_nhap = $1`;
@@ -49,7 +49,7 @@ const authController = {
                 return res.status(400).json({ success: false, message: "Invalid credentials" });
             }
             const token = jwt.sign({ id: user.rows[0].id, ten_dang_nhap: user.rows[0].ten_dang_nhap, vai_tro: user.rows[0].vai_tro , don_vi_id: user.rows[0].don_vi_id}, process.env.JWT_SECRET as string, { expiresIn: "1h"});
-            return res.json({ success: true, message: "Login successful", user: {
+            return res.json({ success: true, message: "Login successful", data: {
                 id: user.rows[0].id,
                 ten_dang_nhap: user.rows[0].ten_dang_nhap,
                 vai_tro: user.rows[0].vai_tro,
