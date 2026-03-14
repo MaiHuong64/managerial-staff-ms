@@ -8,23 +8,21 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
     { section: 'Tổng quan' },
-    { icon: '🏠', label: 'Dashboard', path: '/dashboard', roles: ['VC','VCQL','BGH','PTCCT'] },
-    { icon: '🔔', label: 'Thông báo', path: '/thong-bao', roles: ['VC','VCQL','BGH','PTCCT'] },
+    { icon: 'dashboard', label: 'Dashboard', path: '/dashboard', roles: ['VC','VCQL','BGH','PTCCT'] },
+    { icon: 'bell', label: 'Thông báo', path: '/thong-bao', roles: ['VC','VCQL','BGH','PTCCT'] },
     { section: 'Hồ sơ' },
-    { icon: '👤', label: 'Hồ sơ của tôi', path: '/profile', roles: ['VC','VCQL','BGH','PTCCT']},
-    { icon: '👥', label: 'Danh sách viên chức', path: '/vien-chuc', roles: ['VCQL','BGH','PTCCT'] },
-    { icon: '✅', label: 'Xét duyệt hồ sơ', path: '/xet-duyet', roles: ['VCQL'] },
+    { icon: 'user', label: 'Hồ sơ của tôi', path: '/profile', roles: ['VC','VCQL','BGH','PTCCT'] },
+    { icon: 'users', label: 'Danh sách viên chức', path: '/vien-chuc', roles: ['VCQL','BGH','PTCCT'] },
     { section: 'Phê duyệt' },
-    { icon: '📊', label: 'Duyệt quy hoạch', path: '/duyet-quy-hoach', roles: ['BGH'] },
-    { icon: '📄', label: 'Duyệt bổ nhiệm', path: '/duyet-bo-nhiem', roles: ['BGH'] },
+    { icon: 'check', label: 'Duyệt quy hoạch', path: '/duyet-quy-hoach', roles: ['BGH'] },
+    { icon: 'doc', label: 'Duyệt bổ nhiệm', path: '/duyet-bo-nhiem', roles: ['BGH'] },
     { section: 'Danh mục' },
-    { icon: '🏷️', label: 'Quản lý chức danh', path: '/chuc-danh', roles: ['PTCCT'] },
-    { icon: '🏢', label: 'Quản lý đơn vị', path: '/don-vi', roles: ['PTCCT'] },
+    { icon: 'tag', label: 'Quản lý chức danh', path: '/chuc-danh', roles: ['PTCCT'] },
+    { icon: 'building', label: 'Quản lý đơn vị', path: '/don-vi', roles: ['PTCCT'] },
     { section: 'Nghiệp vụ' },
-    { icon: '📊', label: 'Quy hoạch cán bộ', path: '/quy-hoach', roles: ['PTCCT'] },
-    { icon: '📄', label: 'Bổ nhiệm viên chức', path: '/bo-nhiem', roles: ['PTCCT'] },
+    { icon: 'chart', label: 'Quy hoạch cán bộ', path: '/quy-hoach', roles: ['PTCCT'] },
+    { icon: 'plus', label: 'Bổ nhiệm viên chức', path: '/bo-nhiem', roles: ['PTCCT'] },
 ];
-
 export const ROLE_LABEL: Record<string, string> = {
     VC: 'Viên Chức',
     VCQL: 'Viên Chức Quản Lý',
