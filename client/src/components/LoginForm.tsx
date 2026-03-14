@@ -14,24 +14,20 @@ const Login: React.FC = () => {
   
     const onFinish = async (values: LoginType) => {
         setLoading(true);
-        // console.log("Gửi lên API:", {
-        // username: values.ten_dang_nhap,
-        // password: values.mat_khau
-        // });
+      
         try{
             const response = await axios.post('/login', values);
-            const token = response.data.user.token;
-            // console.log("Toàn bộ response.data:", response.data)
+            const token = response.data.data.token;
             localStorage.setItem('token', token);
-            // console.log("Token trong localStorage:", localStorage.getItem('token'));
-            // console.log( "Token: ", response.data);
         
             // get profile user when user login
-            const profile = await axios.get('/profile');
-            const fullData = profile.data.user;
+            const profile = await axios.get('/staff/profile');
+
+            const fullData = profile.data.data;
 
             await login(fullData, token)
-            console.log(`User: ${fullData.ho_va_ten}`);
+            // console.log("User",fullData);
+            // console.log(`Role: ${fullData.vai_tro}`)
             message.success("Login successful!");
             navigate("/dashboard", {replace: true});
         // if(response.status === 200){
@@ -43,6 +39,7 @@ const Login: React.FC = () => {
         //     }
         }
         catch(error: unknown){
+            console.log("Full error:", error);
             const err = (error as { response?: { data?: { message?: string } } }).response?.data?.message ||"Đăng nhập thất bại.";
             message.error(err);
         }
@@ -56,7 +53,7 @@ const Login: React.FC = () => {
         </Form.Item>
 
         <Form.Item label="Mật khẩu" name="mat_khau" rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}>
-            <Input.Password placeholder="••••••••••"/>
+            <Input.Password placeholder="••••••••••" autoComplete="current-password" />
         </Form.Item>
 
         <div className="flex justify-between items-center mb-6">

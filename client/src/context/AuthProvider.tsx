@@ -4,11 +4,15 @@ import type { ReactNode } from "react";
 import { AuthContext } from "./AuthContext";
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<AuthUser | null>(() =>
-    {
+    const [user, setUser] = useState<AuthUser | null>(() => {
+    try {
         const saveUser = localStorage.getItem("user");
-        return saveUser? JSON.parse(saveUser): null;
-    });
+        return saveUser ? JSON.parse(saveUser) : null;
+    } catch {
+        // localStorage.removeItem("user"); // ← xóa data lỗi
+        return null;
+    }
+});
 
     //Lưu trữ token 
     const [token, setToken] = useState<string | null>(

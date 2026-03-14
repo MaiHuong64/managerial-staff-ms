@@ -5,4 +5,5 @@ export interface ChiTietHoSoBoNhiem {
     file_dinh_kem: string;
     ngay_cap_nhat: Date;
     trang_thai: number;
+    ho_so_bn_id: number;
 }
