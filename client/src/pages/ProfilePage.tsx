@@ -42,9 +42,7 @@ const ProfilePage: React.FC = () => {
             Đang tải dữ liệu hồ sơ...
         </div>
     );
-
-    // const colorRole: Record<string, string> = { BGH: 'magenta', PTCCT: 'blue', VCQL: 'orange', VC: 'default' };
-
+    
     return (
         <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8">
             <div className="max-w-4xl mx-auto space-y-6">

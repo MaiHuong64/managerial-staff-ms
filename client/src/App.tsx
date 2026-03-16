@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import { SideBar } from './components/SideBar'
 import ProfilePage from './pages/ProfilePage'
 import type React from 'react'
+import { StaffPage } from './pages/StaffListPage'
 // const Dashboard = () => <div className="p-10 text-2xl">Chào mừng bạn đến với Dashboard AGU!</div>
 
 // Chặn route nếu chưa có token
@@ -36,6 +37,7 @@ function App() {
           {/*All Pages to render */}
           <Route path='dashboard' element={<div>Dashboard</div>}></Route>
           <Route path='profile' element={<ProfilePage />}></Route>
+          <Route path='getAllStaff' element={<StaffPage />}></Route>
           {/* <Route path='dashboard' element={<div>Dashboard</div>}></Route> */}
            <Route index element={<Navigate to="/dashboard" replace />} />
         </Route>       

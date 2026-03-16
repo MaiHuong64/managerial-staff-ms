@@ -12,7 +12,7 @@ export const NAV_ITEMS: NavItem[] = [
     { icon: 'bell', label: 'Thông báo', path: '/thong-bao', roles: ['VC','VCQL','BGH','PTCCT'] },
     { section: 'Hồ sơ' },
     { icon: 'user', label: 'Hồ sơ của tôi', path: '/profile', roles: ['VC','VCQL','BGH','PTCCT'] },
-    { icon: 'users', label: 'Danh sách viên chức', path: '/vien-chuc', roles: ['VCQL','BGH','PTCCT'] },
+    { icon: 'users', label: 'Danh sách viên chức', path: '/getAllStaff', roles: ['VCQL','BGH','PTCCT'] },
     { section: 'Phê duyệt' },
     { icon: 'check', label: 'Duyệt quy hoạch', path: '/duyet-quy-hoach', roles: ['BGH'] },
     { icon: 'doc', label: 'Duyệt bổ nhiệm', path: '/duyet-bo-nhiem', roles: ['BGH'] },
