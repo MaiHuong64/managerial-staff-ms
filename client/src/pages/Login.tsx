@@ -34,7 +34,7 @@ const Login: React.FC = () => {
           </ConfigProvider>
 
           <div className="mt-8 text-xs text-slate-300 text-center">
-            © 2026 AGU - Hệ thống quản lý nhân sự
+            © 2026 AGU - Hệ thống quản lý viên chức quản lý
           </div>
         </div>
 

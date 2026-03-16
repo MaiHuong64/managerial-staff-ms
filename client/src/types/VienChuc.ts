@@ -21,3 +21,10 @@ export interface VienChuc {
     ngay_tao: string,
     ngay_cap_nhat: string,
 };
+
+export interface DanhSachVienChuc extends  VienChuc{
+    ten_don_vi: string;
+    chuc_vu_hien_tai: string;
+    vai_tro: string;
+    trang_thai: number;
+}   
