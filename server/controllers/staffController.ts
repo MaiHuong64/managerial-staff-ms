@@ -7,8 +7,16 @@ import bcrypt from "bcryptjs";
 const staffController = {
     getAllStaff: async (req: Request, res: Response) => {
         try{
-            const vienchucList = await pool.query("SELECT * FROM vien_chuc");
-            res.status(200).json(vienchucList);
+            const vienchucList = await pool.query(` SELECT vc.id, vc.ma_vien_chuc, vc.ho_va_ten, vc.ngay_sinh, vc.ngach, vc.trinh_do_chuyen_mon,
+                                        dv.ten_don_vi, nk.ten_chuc_vu AS chuc_vu_hien_tai
+                                        FROM vien_chuc vc
+                                        JOIN don_vi dv ON vc.don_vi_id = dv.id
+                                        LEFT JOIN (
+                                        SELECT nkcv.vien_chuc_id, cd.ten_chuc_danh AS ten_chuc_vu
+                                        FROM nhiem_ky_chuc_vu nkcv
+                                        JOIN chuc_danh_quan_ly cd ON nkcv.chuc_danh_id = cd.id
+                                        WHERE nkcv.trang_thai = 1) nk ON nk.vien_chuc_id = vc.id;`);
+            res.status(200).json({ success: true, data: vienchucList.rows });
         }
         catch(error){
             console.error("Error fetching staff:", error);
