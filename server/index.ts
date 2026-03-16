@@ -3,6 +3,7 @@ import pool from "./config/db";
 import router from "./routes/auth";
 import staffRouter from "./routes/staff";
 import ptcRouter from "./routes/pct"
+import planningRouter from "./routes/planning"
 import dotenv from "dotenv";
 import cors from "cors";
 
@@ -16,14 +17,12 @@ app.use(express.json());
 app.use("/api", router);
 app.use("/api/staff", staffRouter)
 app.use("/api/pct", ptcRouter)
+app.use("/api/planning", planningRouter)
 
 pool.query("SELECT NOW()")
     .then(res => console.log("Database connected:", res.rows[0]))
     .catch(err => console.error("Database connection error:", err));
 
-
-
-
-app.listen(5000, () => {
+app.listen(3000, () => {
   console.log("Server running on port 5000");
 });
