@@ -1,43 +1,34 @@
-import { Card, Col, Row, Statistic, Table } from 'antd';
-import { UserOutlined, DeploymentUnitOutlined, NotificationOutlined } from '@ant-design/icons';
+import { useAuth } from '../hook/useAuth';
+import { VCDashboard } from '../components/DashBoard/VCDashboard';
+import { VCQLDashboard } from '../components/DashBoard/VCQLDashboard';
+import { BGHDashboard } from '../components/DashBoard/BGHDashboard';
+import { PTCCTDashboard } from '../components/DashBoard/PTCCTDashboard';
 
 export const DashboardPage = () => {
-  return (
-    <div className="p-6 space-y-6 bg-[#F8FAFC] min-h-screen">
-      <h1 className="text-2xl font-bold text-slate-800">Bảng điều khiển</h1>
-      
-      <Row gutter={16}>
-        <Col span={8}>
-          <Card className="shadow-sm rounded-xl border-none">
-            <Statistic title="Tổng viên chức" value={1250} prefix={<UserOutlined className="text-blue-500" />} />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card className="shadow-sm rounded-xl border-none">
-            <Statistic title="Đang quy hoạch" value={45} prefix={<DeploymentUnitOutlined className="text-purple-500" />} />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card className="shadow-sm rounded-xl border-none">
-            <Statistic title="Thông báo mới" value={12} prefix={<NotificationOutlined className="text-orange-500" />} />
-          </Card>
-        </Col>
-      </Row>
+  const { user } = useAuth();
 
-      <Card title="Hoạt động quy hoạch gần đây" className="shadow-sm rounded-xl border-none">
-        <Table 
-          pagination={false}
-          dataSource={[
-            { key: '1', name: 'Nguyễn Văn A', action: 'Đã thêm vào quy hoạch', time: '10 phút trước' },
-            { key: '2', name: 'Trần Thị B', action: 'Đã phê duyệt hồ sơ', time: '1 giờ trước' },
-          ]}
-          columns={[
-            { title: 'Nhân sự', dataIndex: 'name', key: 'name' },
-            { title: 'Hành động', dataIndex: 'action', key: 'action' },
-            { title: 'Thời gian', dataIndex: 'time', key: 'time' },
-          ]}
-        />
-      </Card>
-    </div>
-  );
+  // Render dashboard theo vai trò
+  const renderDashboard = () => {
+    if (!user) return null;
+
+    switch (user.vai_tro) {
+      case 'VC':
+        return <VCDashboard />;
+      case 'VCQL':
+        return <VCQLDashboard />;
+      case 'BGH':
+        return <BGHDashboard />;
+      case 'PTCCT':
+        return <PTCCTDashboard />;
+      default:
+        return (
+          <div className="p-6 text-center">
+            <h2 className="text-xl text-gray-600">Vai trò không được hỗ trợ</h2>
+            <p className="text-gray-500 mt-2">Vui lòng liên hệ quản trị viên</p>
+          </div>
+        );
+    }
+  };
+
+  return renderDashboard();
 };

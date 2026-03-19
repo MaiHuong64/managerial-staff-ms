@@ -1,6 +1,22 @@
 import {Request, Response } from "express";
 import pool from "../config/db";
 
+const calculateVote = (
+    so_nguoi_trieu_tap: number,  so_nguoi_co_mat: number, so_phieu_dong_y: number,  so_phieu_thu_ve: number, buoc: 2 | 3 | 4 | 5): { dat: boolean; ti_le: number; ghi_chu?: string } => {
+    
+    const coMat = Math.ceil((so_nguoi_trieu_tap * 2) / 3);
+    if(so_nguoi_co_mat < coMat)
+        return {dat: false, ti_le: 0, ghi_chu: "Không đủ số người có mặt"};
+    if(buoc === 5){
+        const ti_le = so_nguoi_trieu_tap > 0 ? Math.round((so_phieu_dong_y / so_phieu_thu_ve) * 1000) / 10 : 0;
+        return {dat: ti_le >= 50, ti_le};
+    }
+
+    // Tinh so phieu thu ve
+    const ti_le = so_phieu_thu_ve  > 0 ? Math.round((so_phieu_dong_y / so_phieu_thu_ve) * 1000) / 10 : 0;
+    return {dat: ti_le >= 50, ti_le};
+}
+
 export const getAll =  async (req: Request, res: Response) => {
     try {
         const query = `SELECT dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem, dbn.trang_thai,
@@ -10,19 +26,25 @@ export const getAll =  async (req: Request, res: Response) => {
                         JOIN chuc_danh_quan_ly cd ON pct.chuc_danh_id = cd.id
                         JOIN don_vi dv ON pct.don_vi_id = dv.id`
         const result = await pool.query(query);
-        res.status(200).json({ success: true, data: result.rows });
+        return res.status(200).json({ success: true, data: result.rows });
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 }
+
 export const getByID =  async (req: Request, res: Response) => {
     try {
         const {id} = req.params;
-        const batchQuery = `SELECT id, ma_dot_bo_nhiem, ten_dot_bo_nhiem, trang_thai 
-                            FROM dot_bo_nhiem 
-                            WHERE id = $1 `
+        const batchQuery = `SELECT dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem, dbn.trang_thai,
+                        pct.so_luong_de_xuat, cd.ten_chuc_danh, dv.ten_don_vi 
+                        FROM dot_bo_nhiem dbn 
+                        JOIN phieu_chu_truong pct ON dbn.phieu_chu_truong_id = pct.id
+                        JOIN chuc_danh_quan_ly cd ON pct.chuc_danh_id = cd.id
+                        JOIN don_vi dv ON pct.don_vi_id = dv.id
+                        WHERE dbn.id = $1 `
         const detailQuery = `SELECT 
-                        ctbn.id, vc.id, vc.ma_vien_chuc, vc.ho_va_ten,
+                        ctbn.id as chi_tiet_bn_id, vc.id as vien_chuc_id, vc.ma_vien_chuc, vc.ho_va_ten,
                         dv.ten_don_vi,
                         nk.ten_chuc_danh,
                         CASE
@@ -35,21 +57,22 @@ export const getByID =  async (req: Request, res: Response) => {
                         LEFT JOIN (SELECT nkcv.vien_chuc_id, cd.ten_chuc_danh
                                 FROM nhiem_ky_chuc_vu nkcv JOIN chuc_danh_quan_ly cd on nkcv.chuc_danh_id = cd.id
                                 WHERE nkcv.trang_thai = 1) nk ON vc.id = nk.vien_chuc_id
-                        WHERE ctbn.dot_bo_nhiem_id = $1 AND ctbn.trang_thai = 1`
+                        WHERE ctbn.dot_bo_nhiem_id = $1`
 
         const [batchInfo, candidates] = await Promise.all([
-            await pool.query(batchQuery, [id]),
-            await pool.query(detailQuery, [id])
+            pool.query(batchQuery, [id]),
+            pool.query(detailQuery, [id])
         ]);
         if(batchInfo.rows.length === 0){
             return res.status(404).json({ success: false, message: "Không tìm thấy đợt bổ nhiệm" });
         }
-        res.status(200).json({ success: true, data: {
-            batchInfo: batchInfo.rows,
+        return res.status(200).json({ success: true, data: {
+            batchInfo: batchInfo.rows[0],
             candidates: candidates.rows
         } });
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 }
 
@@ -77,6 +100,7 @@ export const getPlanningSrc = async (req: Request, res: Response) => {
         });
     }
 }
+
 //add new candidate from other place
 export const addCandidate = async (req: Request, res: Response) => {
     try {
@@ -94,19 +118,20 @@ export const addCandidate = async (req: Request, res: Response) => {
                 message: "Viên chức này đã tồn tại trong đợt bổ nhiệm!" 
             });
         }
-        res.status(500).json({ 
+        return res.status(500).json({ 
             success: false, 
             message: "Lỗi máy chủ khi thêm ứng viên" 
         });
     }
 }   
+
 export const removeCandidate = async (req: Request, res: Response) => {
     try {
-        const {ly_do_ra, dot_bo_nhiem_id, vien_chuc_id} = req.body; 
+        const {dot_bo_nhiem_id, vien_chuc_id} = req.params; 
         const query  = `UPDATE chi_tiet_bo_nhiem 
-                        SET trang_thai = 0, ly_do_ra = $1
-                        WHERE dot_bo_nhiem_id = $2 AND vien_chuc_id = $3 AND trang_thai = 1 RETURNING *`;
-        const result = await pool.query(query, [ly_do_ra, dot_bo_nhiem_id, vien_chuc_id])
+                        SET trang_thai = 0
+                        WHERE dot_bo_nhiem_id = $1 AND vien_chuc_id = $2 AND trang_thai = 1 RETURNING *`;
+        const result = await pool.query(query,[dot_bo_nhiem_id, vien_chuc_id])
 
         if (result.rowCount === 0) {
             return res.status(404).json({ 
@@ -122,23 +147,106 @@ export const removeCandidate = async (req: Request, res: Response) => {
         });
     } catch (error) {
         console.error("Lỗi removeCandidate:", error);
-        res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+        return res.status(500).json({ success: false, message: "Lỗi hệ thống" });
     }
 }
+
 export const addVoteResult = async (req: Request, res: Response) => {
+    const client = await pool.connect();
     try {
-        const {chi_tiet_bn_id, buoc_hoi_nghi, so_nguoi_trieu_tap, so_nguoi_co_mat, so_phieu_dong_y, so_phieu_thu_ve, ket_qua} = req.body;
-        const query = `INSERT INTO ket_qua_bo_nhiem 
-                    (chi_tiet_bn_id, buoc_hoi_nghi, so_nguoi_trieu_tap, so_nguoi_co_mat, so_phieu_dong_y, so_phieu_thu_ve, ket_qua)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
+        const {buoc_hoi_nghi, so_nguoi_trieu_tap, so_nguoi_co_mat, so_phieu_phat_ra, so_phieu_thu_ve, so_phieu_hop_le, ket_qua_ung_vien} = req.body;
         
-        const result = await pool.query(query, [chi_tiet_bn_id, buoc_hoi_nghi, so_nguoi_trieu_tap, so_nguoi_co_mat, so_phieu_dong_y, so_phieu_thu_ve, ket_qua]);
-        res.status(200).json({ success: true, data: result.rows[0] });         
-    } catch (error) {
+        if(![3,4,5].includes(buoc_hoi_nghi))
+            return res.status(400).json({ success: false, message: "buoc_hoi_nghi không hợp lệ" });
+
+        const buoc = buoc_hoi_nghi as 3 | 4 | 5;
+        const dot_bo_nhiem_id = req.params.id;
+
+        // Check batch status
+        const batchCheck = await pool.query(`SELECT trang_thai FROM dot_bo_nhiem WHERE id = $1`, [dot_bo_nhiem_id]);
+        if(batchCheck.rowCount === 0)
+            return res.status(404).json({ success: false, message: "Không tìm thấy đợt bổ nhiệm" });
+
+        const trang_thai_dbn = batchCheck.rows[0].trang_thai;
+        if(trang_thai_dbn !== buoc - 1 && trang_thai_dbn !== buoc)
+            return res.status(400).json({success: false, message: `Đợt đang ở bước ${trang_thai_dbn}, không thể nhập kết quả bước ${buoc}`,});
+
+        await client.query('BEGIN');
+
+        // Insert vote results for each candidate
+        const results = [];
+        for (const candidate of ket_qua_ung_vien) {
+            const {chi_tiet_bn_id, so_phieu_dong_y, so_phieu_khong_dong_y, ket_qua} = candidate;
+            
+            // Validate candidate exists
+            const candidateCheck = await client.query(
+                `SELECT ctbn.id FROM chi_tiet_bo_nhiem ctbn WHERE ctbn.id = $1 AND ctbn.dot_bo_nhiem_id = $2`,
+                [chi_tiet_bn_id, dot_bo_nhiem_id]
+            );
+            
+            if(candidateCheck.rowCount === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ success: false, message: `Không tìm thấy ứng viên ${chi_tiet_bn_id}` });
+            }
+
+            // Check if vote result already exists
+            const existingCheck = await client.query(
+                `SELECT id FROM ket_qua_bo_nhiem WHERE chi_tiet_bn_id = $1 AND buoc_hoi_nghi = $2`,
+                [chi_tiet_bn_id, buoc_hoi_nghi]
+            );
+
+            let result;
+            if (existingCheck.rowCount && existingCheck.rowCount > 0) {
+                // Update existing record
+                const updateQuery = `UPDATE ket_qua_bo_nhiem 
+                    SET so_nguoi_trieu_tap = $3, so_nguoi_co_mat = $4, so_phieu_phat_ra = $5, 
+                        so_phieu_thu_ve = $6, so_phieu_hop_le = $7, so_phieu_dong_y = $8, 
+                        so_phieu_khong_dong_y = $9, ket_qua = $10
+                    WHERE chi_tiet_bn_id = $1 AND buoc_hoi_nghi = $2 RETURNING *`;
+                
+                result = await client.query(updateQuery, [
+                    chi_tiet_bn_id, buoc_hoi_nghi, so_nguoi_trieu_tap, so_nguoi_co_mat, 
+                    so_phieu_phat_ra, so_phieu_thu_ve, so_phieu_hop_le, 
+                    so_phieu_dong_y, so_phieu_khong_dong_y, ket_qua
+                ]);
+            } else {
+                // Insert new record
+                const insertQuery = `INSERT INTO ket_qua_bo_nhiem 
+                    (chi_tiet_bn_id, buoc_hoi_nghi, so_nguoi_trieu_tap, so_nguoi_co_mat, so_phieu_phat_ra, so_phieu_thu_ve, so_phieu_hop_le, so_phieu_dong_y, so_phieu_khong_dong_y, ket_qua)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`;
+                
+                result = await client.query(insertQuery, [
+                    chi_tiet_bn_id, buoc_hoi_nghi, so_nguoi_trieu_tap, so_nguoi_co_mat, 
+                    so_phieu_phat_ra, so_phieu_thu_ve, so_phieu_hop_le, 
+                    so_phieu_dong_y, so_phieu_khong_dong_y, ket_qua
+                ]);
+            }
+            results.push(result.rows[0]);
+        }
+
+        // Update batch status if needed
+        if(trang_thai_dbn === buoc - 1) {
+            await client.query(`UPDATE dot_bo_nhiem SET trang_thai = $1 WHERE id = $2`, [buoc, dot_bo_nhiem_id]);
+        }
+
+        await client.query('COMMIT');
+        
+        return res.status(200).json({ 
+            success: true, 
+            message: `Đã ghi nhận kết quả bước ${buoc_hoi_nghi} cho ${results.length} ứng viên!`,
+            data: results 
+        });
+    } catch (error: any) {
+        await client.query('ROLLBACK');
         console.error("Lỗi addVoteResult:", error);
-        res.status(500).json({ success: false, message: "Lỗi khi lưu kết quả bỏ phiếu" });
+        console.error("Error details:", error.message);
+        console.error("Error stack:", error.stack);
+        return res.status(500).json({ success: false, message: "Lỗi khi lưu kết quả bỏ phiếu" });
+    } finally {
+        client.release();
     }
 }
+
 // Tạo phương án nhân sự
 export const createPersonnelProposal = async (req:Request, res: Response) => {
     const client = await pool.connect();
@@ -194,25 +302,108 @@ export const createPersonnelProposal = async (req:Request, res: Response) => {
         });
     } finally{client.release()}
 }
+
 // Tạo hồ sơ bổ nhiệm
 export const createDossier = async (req: Request, res:Response) => {
+    const client = await pool.connect();
     try {
+        const dot_bo_nhiem_id = req.params.id;
+        const {so_to_trinh, ngay_to_trinh, ghi_chu, danh_sach_ho_so} = req.body;
+
+        if(!danh_sach_ho_so || danh_sach_ho_so.length === 0)
+            return res.status(400).json({ success: false, message: "Danh sách hồ sơ không được rỗng" });
+
+        await client.query('BEGIN');
+
+        // Tạo mã hồ sơ tự động
+        const idResult = await client.query("SELECT MAX(id) FROM ho_so_bo_nhiem");
+        const maxid = idResult.rows[0].id || 0;
+        const ma_ho_so = "HS" + (maxid + 1).toString().padStart(3, "0");
+
+        const query = `INSERT INTO ho_so_bo_nhiem (ma_ho_so, so_to_trinh, ngay_to_trinh, ngay_lap, ghi_chu, trang_thai, dot_bo_nhiem_id)
+                        VALUES ($1, $2, $3, CURRENT_DATE, $4, 1, $5) RETURNING *`;
+        const result = await client.query(query, [ma_ho_so, so_to_trinh, ngay_to_trinh, ghi_chu, dot_bo_nhiem_id]);
+
+        const ho_so_id = result.rows[0].id;
+
+        // Insert chi tiết hồ sơ
+        const insertDetail = `INSERT INTO chi_tiet_ho_so (ghi_chu, trang_thai, ho_so_id, chi_tiet_bn_id)
+                            VALUES ($1, 1, $2, $3)`;
         
-    } catch (error) {
+        for (const hoSo of danh_sach_ho_so) {
+            await client.query(insertDetail, [hoSo.ghi_chu, ho_so_id, hoSo.chi_tiet_bn_id]);
+        }
+
+        await client.query('COMMIT');
+
+        return res.status(201).json({
+            success: true,
+            message: "Đã lập hồ sơ bổ nhiệm thành công!",
+            data: { 
+                ho_so_id: ho_so_id, 
+                ma_ho_so: ma_ho_so,
+                so_luong_ho_so: danh_sach_ho_so.length
+            }
+        });
+
+    } catch (error: any) {
+        await client.query('ROLLBACK'); 
+        console.error("Lỗi khi tạo hồ sơ:", error);
         
-    }
-}
-export const createDecision = async (req: Request, res: Response) => {
-    try {
-        const {ho_so_bo_nhiem, ma_bo_nhiem, so_quyet_dinh, ngay_quyet_dinh, ngay_co_hieu_luc, thoi_han} = req.body;
-        const client = await pool.connect();
-        client.query("BEGIN")
-        
-        client.query ("COMMIT");
-    } catch (error) {
-        
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Lỗi máy chủ khi lập hồ sơ bổ nhiệm"
+        });
+    } finally {
+        client.release();
     }
 }
 
+export const createDecision = async (req: Request, res: Response) => {
+    const client = await pool.connect();
+    try {
+        const {ho_so_bo_nhiem, ma_bo_nhiem, so_quyet_dinh, ngay_quyet_dinh, ngay_co_hieu_luc, thoi_han} = req.body;
+        const dot_bo_nhiem_id = req.params.id;
+
+        if(!ho_so_bo_nhiem || !ma_bo_nhiem || !so_quyet_dinh || !ngay_quyet_dinh || !ngay_co_hieu_luc) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Thiếu thông tin bắt buộc cho quyết định" 
+            });
+        }
+
+        await client.query('BEGIN');
+
+        // Tạo quyết định
+        const query = `INSERT INTO quyet_dinh_bo_nhiem (ma_bo_nhiem, so_quyet_dinh, ngay_quyet_dinh, ngay_co_hieu_luc, thoi_han, trang_thai, ho_so_bo_nhiem_id, dot_bo_nhiem_id)
+                        VALUES ($1, $2, $3, $4, $5, 1, $6, $7) RETURNING *`;
+        
+        const result = await client.query(query, [
+            ma_bo_nhiem, so_quyet_dinh, ngay_quyet_dinh, ngay_co_hieu_luc, thoi_han, ho_so_bo_nhiem, dot_bo_nhiem_id
+        ]);
+
+        // Update batch status to completed (5)
+        await client.query(`UPDATE dot_bo_nhiem SET trang_thai = 5 WHERE id = $1`, [dot_bo_nhiem_id]);
+
+        await client.query('COMMIT');
+
+        return res.status(201).json({
+            success: true,
+            message: "Đã tạo quyết định bổ nhiệm thành công!",
+            data: result.rows[0]
+        });
+
+    } catch (error: any) {
+        await client.query('ROLLBACK');
+        console.error("Lỗi khi tạo quyết định:", error);
+        
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Lỗi máy chủ khi tạo quyết định bổ nhiệm"
+        });
+    } finally {
+        client.release();
+    }
+}
 
 export default {getAll, getByID, removeCandidate, addCandidate, addVoteResult, createDecision, getPlanningSrc, createPersonnelProposal, createDossier}
