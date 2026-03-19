@@ -31,7 +31,7 @@ const ProfilePage: React.FC = () => {
     const [profile, setProfile] = useState<profile | null>(null);
 
     useEffect(() => {
-        axiosClient.get('/staff/profile')
+        axiosClient.get('/staffs/profile')
             .then(res => setProfile(res.data.data))
             .catch(console.error);
     }, []);
