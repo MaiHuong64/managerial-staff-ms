@@ -6,7 +6,7 @@ const PlanningController = {
     // get all
     getAll: async (req: Request, res: Response) => {
         try {
-            const query = `select d.*, count(c.vien_chuc_id)
+            const query = ` select d.*, count(c.vien_chuc_id) as so_luong
                             from dot_quy_hoach d left join chi_tiet_quy_hoach c on d.id = c.dot_quy_hoach_id
                             group by d.id`;
             const result = await pool.query(query);
@@ -20,13 +20,36 @@ const PlanningController = {
     getDetail: async (req: Request, res: Response) => {
         const {id} = req.params;
         try {
-            const query = `select d.ma_quy_hoach, d.loai_quy_hoach, d.nam_thuc_hien, d.so_qd_phe_duyet, d.ngay_qd_phe_duyet, vc.ho_va_ten, dv.ten_don_vi, ct.ngay_vao_qh, ct.ngay_ra_qh, ct.so_qd_ra_khoi_quy_hoach, ct.ngay_qd_ra_khoi_quy_hoach, ct.ly_do_ra_khoi_quy_hoach
+            const query = `select d.ma_quy_hoach, d.ten_quy_hoach, d.loai_quy_hoach, d.nam_thuc_hien, d.so_qd_phe_duyet, d.ngay_qd_phe_duyet, 
+                            vc.ho_va_ten, 
+                            dv.ten_don_vi,
+                            ct.ngay_vao_qh, ct.ngay_ra_qh, ct.so_qd_ra_khoi_quy_hoach, ct.ngay_qd_ra_khoi_quy_hoach, ct.ly_do_ra_khoi_quy_hoach, ct.trang_thai
                             from dot_quy_hoach d left join chi_tiet_quy_hoach ct on d.id = ct.dot_quy_hoach_id
                                 left join vien_chuc vc on ct.vien_chuc_id = vc.id
                                 left join don_vi dv on vc.don_vi_id = dv.id
                             where d.id = $1`;
             const result = await pool.query(query, [id]);
-            res.status(200).json({ success: true, data: result.rows });
+            
+            // Tach du lieu
+            const rows = result.rows;
+            const planning = {
+                ma_quy_hoach: rows[0].ma_quy_hoach,
+                ten_quy_hoach: rows[0].ten_quy_hoach,
+                loai_quy_hoach: rows[0].loai_quy_hoach,
+                nam_thuc_hien: rows[0].nam_thuc_hien,
+                so_qd_phe_duyet: rows[0].so_qd_phe_duyet,
+                ngay_qd_phe_duyet: rows[0].ngay_qd_phe_duyet
+            };
+            const staff = rows.map(r => ({
+                ho_va_ten: r.ho_va_ten,
+                ten_don_vi: r.ten_don_vi,
+                ngay_vao_qh: r.ngay_vao_qh,
+                ngay_ra_qh: r.ngay_ra_qh,
+                ly_do_ra_khoi_quy_hoach: r.ly_do_ra_khoi_quy_hoach,
+                trang_thai: r.trang_thai
+            }));
+
+            res.status(200).json({ success: true, planning, staff });
         } catch (error) {
             console.error("Error fetching staff:", error);
             res.status(500).send("Internal server error");
@@ -85,7 +108,7 @@ const PlanningController = {
         }
     },
     // remove staff to plan
-    removeCandidate: async (req: Request, res: Response) => {
+    updateCandidateStatus: async (req: Request, res: Response) => {
         try {
             const {id}  = req.params;
             const {ly_do, so_quyet_dinh} = req. body;

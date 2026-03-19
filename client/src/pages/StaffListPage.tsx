@@ -10,7 +10,7 @@ export const StaffPage: React.FC = () => {
     // const [setLoading] = useState(true);
     
     useEffect(() => {
-        axiosClient.get('/staff')
+        axiosClient.get('/staffs')
         .then(res => setStaffList(res.data.data))
         .catch(console.error);
     }, [])
@@ -66,7 +66,7 @@ export const StaffPage: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-2xl border-slate-500 overflow-hidden">
-               <Table dataSource={staffList} columns={cols}></Table>
+               <Table dataSource={searchText} columns={cols}></Table>
             </div>
 
         </div>
