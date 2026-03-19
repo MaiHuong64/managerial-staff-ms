@@ -37,48 +37,58 @@ const staffController = {
         }
     },
     createStaff: async (req: Request, res: Response) => {
+        const client = await pool.connect();
         try{
-            const id = await pool.query("SELECT MAX(id) FROM vien_chuc");
-            const ma_vien_chuc = "VC" + (id.rows[0].max + 1).toString().padStart(3, '0');
-            const {ho_va_ten, gioi_tinh, ngay_sinh, dan_toc,
-                so_cccd, so_dien_thoai, email, dia_chi,
-                trinh_do_chuyen_mon, chuyen_nganh, ngach,
-                nam_tot_nghiep, trinh_do_ly_luan_CT,
-                trinh_do_ngoai_ngu, trinh_do_tin_hoc,
-                ngay_ket_nap, ngay_chinh_thuc, don_vi_id} = req.body;
-                console.log(req.body);
-            const result = await pool.query(`INSERT INTO vien_chuc (
-                ma_vien_chuc, ho_va_ten, gioi_tinh, ngay_sinh, dan_toc,
-                so_cccd, so_dien_thoai, email, dia_chi,
-                trinh_do_chuyen_mon, chuyen_nganh, ngach, nam_tot_nghiep,
-                trinh_do_ly_luan_CT, trinh_do_ngoai_ngu, trinh_do_tin_hoc,
-                ngay_ket_nap, ngay_chinh_thuc, don_vi_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING id, ma_vien_chuc, ho_va_ten`,
-                [ma_vien_chuc, ho_va_ten, gioi_tinh, ngay_sinh, dan_toc, so_cccd, so_dien_thoai, email, dia_chi,
-                trinh_do_chuyen_mon, chuyen_nganh, ngach, nam_tot_nghiep, trinh_do_ly_luan_CT, trinh_do_ngoai_ngu, trinh_do_tin_hoc,
-                ngay_ket_nap, ngay_chinh_thuc, don_vi_id]);
-            
-            const newStaff = result.rows[0];
-            console.log(newStaff)
+            client.query('BEGIN');
+            const maxId = await client.query(`SELECT MAX(id) FROM vien_chuc`);
+            const id = maxId.rows[0] || 0;
+            const ma_vien_chuc = (id + 1).toString().padStart(4, '0');
+            const [ho_va_ten, gioi_tinh, ngay_sinh, dan_toc, so_cccd, so_dien_thoai, email, dia_chi, trinh_do_chuyen_mon, 
+                chuyen_nganh, ngach, nam_tot_nghiep, trinh_do_ly_luan_CT, 
+                trinh_do_ngoai_ngu, trinh_do_tin_hoc, ngay_ket_nap, ngay_chinh_thuc, don_vi_id] = req.body; 
 
-            if(result.rows.length > 0){
-                
-                const hashedPassword = await bcrypt.hash('123456', 10);
-                const newAccount = await pool.query (`INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai, vien_chuc_id) VALUES ($1, $2, $3, $4, $5)`,
-                                                    [ma_vien_chuc, hashedPassword, 'VC', 1, newStaff.id ])
-            }
+            const query = `INSERT INTO vien_chuc (
+                    ma_vien_chuc, ho_va_ten, gioi_tinh, ngay_sinh, dan_toc,
+                    so_cccd, so_dien_thoai, email, dia_chi,
+                    trinh_do_chuyen_mon, chuyen_nganh, ngach, nam_tot_nghiep,
+                    trinh_do_ly_luan_CT, trinh_do_ngoai_ngu, trinh_do_tin_hoc,
+                    ngay_ket_nap, ngay_chinh_thuc, don_vi_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) 
+                RETURNING id, ma_vien_chuc, ho_va_ten`;
+            
+            const value = [
+                ma_vien_chuc, ho_va_ten, gioi_tinh, ngay_sinh, dan_toc, 
+                so_cccd, so_dien_thoai, email, dia_chi, trinh_do_chuyen_mon, 
+                chuyen_nganh, ngach, nam_tot_nghiep, trinh_do_ly_luan_CT, 
+                trinh_do_ngoai_ngu, trinh_do_tin_hoc, ngay_ket_nap, ngay_chinh_thuc, don_vi_id
+            ];
+            const result = await pool.query(query, value);
+
+            const newStaff = result.rows[0];
+            const hashPassword = bcrypt.hash('123456', 10);
+            await client.query(`INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai, vien_chuc_id) 
+                VALUES ($1, $2, $3, $4, $5)`, [ma_vien_chuc, hashPassword, 1, 1, maxId]);
+            await client.query('COMMIT');
+            
             return res.status(201).json({
                 success: true,
-                message: "Tạo viên chức thành công",
+                message: "Khởi tạo hồ sơ và cấp tài khoản thành công",
                 data: newStaff
             });
+            
         }
         catch(error: any){
-            console.error("Error fetching staff by ID:", error);
-            res.status(500).json({
-                sucess: false,
-                message: error.message,
-                detail:error
-            })
+           await client.query('ROLLBACK');
+            console.error("Error creating staff:", error);
+            
+            // trùng CCCD
+            if (error.code === '23505') { 
+                return res.status(400).json({ success: false, message: "Số CCCD hoặc Email đã tồn tại trong hệ thống." });
+            }
+
+            res.status(500).json({ success: false, message: error.message });
+        }
+        finally{
+            client.release();
         }
     },
     updateStaff: async (req: Request, res: Response) => {

@@ -21,7 +21,7 @@ const Login: React.FC = () => {
             localStorage.setItem('token', token);
         
             // get profile user when user login
-            const profile = await axios.get('/staff/profile');
+            const profile = await axios.get('/staffs/profile');
 
             const fullData = profile.data.data;
 

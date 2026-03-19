@@ -5,6 +5,13 @@ import { SideBar } from './components/SideBar'
 import ProfilePage from './pages/ProfilePage'
 import type React from 'react'
 import { StaffPage } from './pages/StaffListPage'
+import { PlanningPage} from './pages/Planning/index'
+import { PlanningDetailPage } from './pages/Planning/PlanningDetail'
+import { DashboardPage } from './pages/DashboardPage'
+import { NotificationPage } from './pages/NotificationPage'
+import { DepartmentPage } from './pages/DepartmentPage'
+import { AppointmentPage } from './pages/appointment'
+import AppointmentDetailView from './pages/appointment/AppointmentDetailView'
 // const Dashboard = () => <div className="p-10 text-2xl">Chào mừng bạn đến với Dashboard AGU!</div>
 
 // Chặn route nếu chưa có token
@@ -35,9 +42,15 @@ function App() {
         }>
 
           {/*All Pages to render */}
-          <Route path='dashboard' element={<div>Dashboard</div>}></Route>
+          <Route path='dashboard' element={<DashboardPage/>}></Route>
           <Route path='profile' element={<ProfilePage />}></Route>
-          <Route path='getAllStaff' element={<StaffPage />}></Route>
+          <Route path='staffs' element={<StaffPage />}></Route>
+          <Route path='plannings' element={<PlanningPage />}></Route>
+          <Route path='plannings/:id' element={<PlanningDetailPage />}></Route>
+          <Route path='appointments' element={<AppointmentPage />}></Route>
+          <Route path="appointments/:id" element={<AppointmentDetailView />} />
+          <Route path='' element={<NotificationPage/>}></Route>
+          <Route path='' element={<DepartmentPage />}></Route>
           {/* <Route path='dashboard' element={<div>Dashboard</div>}></Route> */}
            <Route index element={<Navigate to="/dashboard" replace />} />
         </Route>       
