@@ -22,13 +22,7 @@ interface ProposalCandidate {
 const { TextArea } = Input;
 const { Option } = Select;
 
-export const PersonnelProposalModal: React.FC<PersonnelProposalModalProps> = ({
-    visible,
-    onCancel,
-    onSuccess,
-    batchId,
-    candidates
-}) => {
+export const PersonnelProposalModal: React.FC<PersonnelProposalModalProps> = ({visible,onCancel,onSuccess, batchId,candidates}) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [proposalCandidates, setProposalCandidates] = useState<ProposalCandidate[]>([]);
@@ -112,7 +106,7 @@ export const PersonnelProposalModal: React.FC<PersonnelProposalModalProps> = ({
             title: "Loại phương án",
             key: 'loai_phuong_an',
             width: 150,
-            render: (_: any, record: ChiTietBoNhiem) => (
+            render: (_: unknown, record: ChiTietBoNhiem) => (
                 <Select
                     placeholder="Chọn loại phương án"
                     value={proposalCandidates.find(pc => pc.chi_tiet_bn_id === record.chi_tiet_bn_id)?.loai_phuong_an}
@@ -130,7 +124,7 @@ export const PersonnelProposalModal: React.FC<PersonnelProposalModalProps> = ({
             title: "Ghi chú",
             key: 'ghi_chu',
             width: 200,
-            render: (_: any, record: ChiTietBoNhiem) => (
+            render: (_: unknown, record: ChiTietBoNhiem) => (
                 <TextArea
                     placeholder="Nhập ghi chú"
                     value={proposalCandidates.find(pc => pc.chi_tiet_bn_id === record.chi_tiet_bn_id)?.ghi_chu_ung_vien}
