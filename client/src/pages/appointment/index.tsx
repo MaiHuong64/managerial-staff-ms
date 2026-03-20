@@ -1,98 +1,206 @@
-import React, { useEffect, useMemo, useState } from "react";
+import type React from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Card, Table, Button, Tag, message, Input } from "antd";
+import { PlusOutlined, EyeOutlined } from "@ant-design/icons";
 import axiosClient from "../../utils/AxiosClient";
-import type {DotBoNhiem } from "../../types/BoNhiem";
-import {EyeOutlined, SearchOutlined} from '@ant-design/icons';
-import { Button, Card, Input, Table, Tag } from "antd";
-import { useNavigate } from "react-router-dom";
+import CreateBatchModal from "./CreateBatchModal";
+import axios from "axios";
+
+const { Search } = Input;
+
+interface BatchData {
+    id: number;
+    ma_dot_bo_nhiem: string;
+    ten_dot_bo_nhiem: string;
+    trang_thai: number;
+    so_luong_de_xuat: number;
+    so_luong_thuc_te: number;
+    ten_chuc_danh: string;
+    ten_don_vi: string;
+}
+
+const STATE_MAP: Record<number, { label: string; color: string }> = {
+    0: { label: "Đã dừng",color: "error" },
+    1: { label: "Đang soạn thảo",color: "default" },
+    2: { label: "Hội nghị lãnh đạo (vòng 1)",color: "processing" },
+    3: { label: "Hội nghị lãnh đạo (vòng 2)",color: "processing" },
+    4: { label: "Hội nghị cán bộ chủ chốt",color: "processing" },
+    5: { label: "Hội nghị lãnh đạo (vòng cuối)",color: "processing" },
+    6: { label: "Ghi nhận kết quả",color: "success" },
+};
 
 export const AppointmentPage: React.FC = () => {
-    const [appointments, setAppointments] = useState<DotBoNhiem[]>([]);
-    const [searchText, setSearchText] = useState<string>("");
-    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    // const [isModalOpen, setIsModalOpen] = useState(false);
-     
-    const filterSearch = useMemo( ()=> {
-        if(!searchText?.trim()) return appointments;
-        return appointments.filter((item)  => item.ten_dot_bo_nhiem.toLowerCase().includes(searchText.toLowerCase()));
-    }, [appointments, searchText]);
- 
-    useEffect(() => {
-        fetchData();
-    }, []);
+    const [data, setData] = useState<BatchData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [createModalVisible, setCreateModalVisible] = useState(false);
+    const [searchText, setSearchText] = useState("");
+    const location = useLocation();
 
-    const fetchData = async () =>{
-        setLoading(true);
+    const fetchBatches = async () => {
         try {
-            const res = await axiosClient.get("/appointments");
-            setAppointments(res.data.data);
-        } catch (err) {
-            console.error(err);
+            setLoading(true);
+            console.log("fetchBatches đang chạy...")
+            const result = await axiosClient.get('/appointments');
+            console.log("Raw data từ API:", result.data.data);
+            console.log("trang_thai sample:", result.data.data[0]?.trang_thai, typeof result.data.data[0]?.trang_thai)
+            if (result.data.success) {
+                const normalized = result.data.data.map((item: BatchData) => ({
+                ...item,
+                trang_thai: Number(item.trang_thai),
+                so_luong_thuc_te: Number(item.so_luong_thuc_te),
+            }));
+            setData(normalized);
+            }
+        }  catch (error) {
+            if (axios.isAxiosError(error)) {
+                message.error(error.response?.data?.message || "...");
+            } else {
+                message.error("Không thể bắt đầu quy trình bỏ phiếu");
+            }
         } finally {
             setLoading(false);
         }
-    }
-    
-    const renderStatus = (status: number) => {
-    switch (status) {
-        case 1: return <Tag>Chọn ứng viên</Tag>;
-        case 2: return <Tag color="processing">Đang vote</Tag>;
-        case 3: return <Tag color="warning">Lập phương án</Tag>;
-        case 4: return <Tag color="success">Đã duyệt</Tag>;
-        case 7: return <Tag color="red">Thất bại</Tag>;
-        default: return <Tag>Không xác định</Tag>;
-    }
     };
-    const cols = [
+
+    useEffect(() => {
+        fetchBatches();
+    }, [location]);
+
+    const handleCreateSuccess = () => {
+        fetchBatches();
+        message.success("Tạo đợt bổ nhiệm thành công!");
+    };
+
+    const handleViewDetail = (id: number) => {
+        navigate(`/appointments/${id}`);
+    };
+
+   const filteredData = useMemo(() => 
+    data.filter(item =>
+        item.ma_dot_bo_nhiem.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.ten_dot_bo_nhiem.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.ten_chuc_danh.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.ten_don_vi.toLowerCase().includes(searchText.toLowerCase())
+    ), [data, searchText]
+);
+
+    const columns = [
+        // {
+        //     title: "Mã đợt",
+        //     dataIndex: "ma_dot_bo_nhiem",
+        //     key: "ma_dot_bo_nhiem",
+        //     width: 120,
+        //     render: (text: string, record: BatchData) => (
+        //         <Button
+        //             type="link"
+        //             onClick={() => handleViewDetail(record.id)}
+        //             style={{ padding: 0 }}
+        //         >
+        //             {text}
+        //         </Button>
+        //     )
+        // },
         {
-            title: 'Mã / Tên đợt',
-            dataIndex: 'ten_dot_bo_nhiem',
-            key: 'ten_dot_bo_nhiem',
+            title: "Tên đợt bổ nhiệm",
+            dataIndex: "ten_dot_bo_nhiem",
+            key: "ten_dot_bo_nhiem",
+            width: 250,
         },
         {
-            title: "Tên chức danh",
+            title: "Chức danh",
             dataIndex: "ten_chuc_danh",
-            key: 'ten_chuc_danh'
-        },  
-        {
-            title: "Tên đơn vị",
-            dataIndex: "ten_don_vi",
-            key: 'ten_don_vi'
+            key: "ten_chuc_danh",
+            width: 150,
         },
         {
-            title: 'Số lượng nhân sự',
-            dataIndex: 'so_luong_de_xuat',
-            key: 'so_luong_de_xuat'
+            title: "Đơn vị",
+            dataIndex: "ten_don_vi",
+            key: "ten_don_vi",
+            width: 150,
+        },
+        {
+            title: "Số lượng",
+            dataIndex: "so_luong_thuc_te",
+            key: "so_luong_thuc_te",
+            width: 120,
+            render: (value: number) => (
+                <Tag color="blue">{value || 0}</Tag>
+            )
         },
         {
             title: "Trạng thái",
-            render: (_:unknown , record: DotBoNhiem) => renderStatus(record.trang_thai)
+            dataIndex: "trang_thai",
+            key: "trang_thai",
+            width: 150,
+            render: (status: number) => {
+                const state = STATE_MAP[status];
+                if (!state) return <Tag>Không xác định ({status})</Tag>;
+                console.log({status})
+                return <Tag color={state.color}>{state.label}</Tag>;
+            }
         },
         {
-            title: "Action",
-            key: 'action',
-            render: (_: unknown, record: DotBoNhiem) => {
-                return (
-                    <Button type="primary" ghost icon={<EyeOutlined />} onClick={() => navigate(`/appointments/${record.id}`)}>Xem</Button>
-                )
-            }
+            title: "Thao tác",
+            key: "actions",
+            width: 100,
+            render: (_: unknown, record: BatchData) => (
+                <Button
+                    type="primary"
+                    size="small"
+                    icon={<EyeOutlined />}
+                    onClick={() => handleViewDetail(record.id)}
+                >
+                    Chi tiết
+                </Button>
+            )
         }
-    ]
-    
+    ];
+
     return (
-        <>
-        <div className="p-8 space-y-6 bg-gray-50 max-h-screen">
-            {/* Header */}
-            <div className="text-2xl font-bold text-gray-600">DANH SÁCH ĐỢT BỔ NHIỆM</div>
-            <p className="text-sm text-gray-200 ">QUẢN LÝ CÁC DỢT BỔ NHIỆM</p>
+        <div className="p-6">
+            <Card title="Danh sách đợt bổ nhiệm" extra={
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
+                        Tạo đợt bổ nhiệm
+                    </Button>
+                }
+            >
+                <div className="mb-4">
+                    <Search
+                        placeholder="Tìm kiếm theo mã, tên, chức danh, đơn vị..."
+                        allowClear
+                        enterButton="Tìm kiếm"
+                        size="large"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        style={{ width: 400 }}
+                    />
+                </div>
+
+                <Table
+                    columns={columns}
+                    dataSource={filteredData}
+                    rowKey="id"
+                    loading={loading}
+                    pagination={{
+                        pageSize: 10,
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        showTotal: (total, range) => 
+                            `Hiển thị ${range[0]}-${range[1]} của ${total} đợt bổ nhiệm`
+                    }}
+                    scroll={{ x: 1000 }}
+                />
+            </Card>
+
+            <CreateBatchModal
+                visible={createModalVisible}
+                onCancel={() => setCreateModalVisible(false)}
+                onSuccess={handleCreateSuccess}
+            />
         </div>
-        <Card variant={"borderless"} className="shadow-sm rounded-xl">
-            <div className="mb-4 w-full md:w-1/2">
-                <Input size="large" prefix={<SearchOutlined className="text-gray-50"/>} placeholder="Tìm kiếm theo đợt bổ nhiệm" onChange={(e) => setSearchText(e.target.value)}></Input>
-            </div>
-        </Card>
-        <Table dataSource={filterSearch} columns={cols} rowKey="id" loading={loading} bordered size="middle"pagination={{ pageSize: 10 }}/>
-        </>
-    )
-}
+    );
+};
+
 export default AppointmentPage;
