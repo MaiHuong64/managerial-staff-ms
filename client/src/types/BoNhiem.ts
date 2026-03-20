@@ -28,13 +28,13 @@ export interface KetQuaUngVien {
     so_phieu_khong_dong_y: number;
     ket_qua: number;  
 }
-export interface CandidateVoteInput {
+export interface InputPhieuUngVien  {
     chi_tiet_bn_id: number;
     so_phieu_dong_y: number | null;
     so_phieu_khong_dong_y: number | null;
 }
 
-export interface VoteResultRequest {
+export interface YeuCauGhiNhanPhieu  {
     dot_bo_nhiem_id: number;
     buoc_hoi_nghi: number;   // 3 | 4 | 5
     so_nguoi_trieu_tap: number;

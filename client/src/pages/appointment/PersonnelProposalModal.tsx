@@ -16,7 +16,7 @@ interface PersonnelProposalModalProps {
 interface ProposalCandidate {
     chi_tiet_bn_id: number;
     loai_phuong_an: string;
-    ghi_chu_ung_vien: string;
+    ghi_chu: string;
 }
 
 const { TextArea } = Input;
@@ -27,14 +27,14 @@ export const PersonnelProposalModal: React.FC<PersonnelProposalModalProps> = ({v
     const [loading, setLoading] = useState(false);
     const [proposalCandidates, setProposalCandidates] = useState<ProposalCandidate[]>([]);
 
-    const activeCandidates = candidates.filter(c => c.trang_thai === 1);
+    const activeCandidates = candidates.filter(c => c.trang_thai === 3);
 
     useEffect(() => {
         if (visible && activeCandidates.length > 0) {
             const initialCandidates: ProposalCandidate[] = activeCandidates.map(candidate => ({
                 chi_tiet_bn_id: candidate.chi_tiet_bn_id,
                 loai_phuong_an: "",
-                ghi_chu_ung_vien: ""
+                ghi_chu: ""
             }));
             setProposalCandidates(initialCandidates);
         }
@@ -75,7 +75,7 @@ export const PersonnelProposalModal: React.FC<PersonnelProposalModalProps> = ({v
         onCancel();
     };
 
-    const handleCandidateChange = (chiTietId: number, field: 'loai_phuong_an' | 'ghi_chu_ung_vien', value: string) => {
+    const handleCandidateChange = (chiTietId: number, field: 'loai_phuong_an' | 'ghi_chu', value: string) => {
         setProposalCandidates(prev => prev.map(pc => 
             pc.chi_tiet_bn_id === chiTietId 
                 ? { ...pc, [field]: value }
@@ -114,9 +114,9 @@ export const PersonnelProposalModal: React.FC<PersonnelProposalModalProps> = ({v
                     style={{ width: '100%' }}
                 >
                     <Option value="Bổ nhiệm">Bổ nhiệm</Option>
-                    <Option value="Miễn nhiệm">Miễn nhiệm</Option>
-                    <Option value="Thuyên chuyển">Thuyên chuyển</Option>
-                    <Option value="Luân chuyển">Luân chuyển</Option>
+                    <Option value="Bổ nhiệm lại">Bổ nhiệm lại</Option>
+                    <Option value="Thôi chức vụ">Thôi chức vụ</Option>
+                    <Option value="Thôi kiêm nhiệm">Thôi kiêm nhiệm</Option>
                 </Select>
             )
         },
@@ -127,8 +127,8 @@ export const PersonnelProposalModal: React.FC<PersonnelProposalModalProps> = ({v
             render: (_: unknown, record: ChiTietBoNhiem) => (
                 <TextArea
                     placeholder="Nhập ghi chú"
-                    value={proposalCandidates.find(pc => pc.chi_tiet_bn_id === record.chi_tiet_bn_id)?.ghi_chu_ung_vien}
-                    onChange={(e) => handleCandidateChange(record.chi_tiet_bn_id, 'ghi_chu_ung_vien', e.target.value)}
+                    value={proposalCandidates.find(pc => pc.chi_tiet_bn_id === record.chi_tiet_bn_id)?.ghi_chu}
+                    onChange={(e) => handleCandidateChange(record.chi_tiet_bn_id, 'ghi_chu', e.target.value)}
                     rows={2}
                     maxLength={500}
                 />
