@@ -35,6 +35,7 @@ export interface CandidateVoteInput {
 }
 
 export interface VoteResultRequest {
+    dot_bo_nhiem_id: number;
     buoc_hoi_nghi: number;   // 3 | 4 | 5
     so_nguoi_trieu_tap: number;
     so_nguoi_co_mat: number;
