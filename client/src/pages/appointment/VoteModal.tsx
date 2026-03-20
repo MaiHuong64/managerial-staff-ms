@@ -2,7 +2,7 @@ import type React from "react";
 import { useState, useEffect, useMemo } from "react"; 
 import axios from "axios";                             
 import { Modal, Form, InputNumber, Button, Card, Table, Tag, Alert, message } from "antd";
-import type { VoteResultRequest, CandidateVoteInput, KetQuaUngVien, ChiTietBoNhiem } from "../../types/BoNhiem";
+import type { YeuCauGhiNhanPhieu, InputPhieuUngVien , KetQuaUngVien, ChiTietBoNhiem } from "../../types/BoNhiem";
 import axiosClient from "../../utils/AxiosClient";
 
 interface VoteFormValues {
@@ -35,7 +35,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
 }) => {
     const [form] = Form.useForm<VoteFormValues>();
     const [loading, setLoading] = useState(false);
-    const [candidateVotes, setCandidateVotes] = useState<CandidateVoteInput[]>([]);
+    const [candidateVotes, setCandidateVotes] = useState<InputPhieuUngVien[]>([]);
     const [soPhieuHopLe, setSoPhieuHopLe]    = useState<number | null>(null);
     const activeCandidates = useMemo(
         () => candidates.filter(c => c.trang_thai === 1),
@@ -57,7 +57,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
 
     const handleCandidateVoteChange = (
         id: number,
-        field: keyof Omit<CandidateVoteInput, "chi_tiet_bn_id">,
+        field: keyof Omit<InputPhieuUngVien , "chi_tiet_bn_id">,
         value: number | null ) => { setCandidateVotes(prev => prev.map(v => v.chi_tiet_bn_id === id ? { ...v, [field]: value } : v));
     };
     const handleSubmit = async (values: VoteFormValues) => {
@@ -103,7 +103,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                 ket_qua: 0
             }));
 
-            const payload: VoteResultRequest = {
+            const payload: YeuCauGhiNhanPhieu = {
                 dot_bo_nhiem_id: parseInt(batchId),
                 buoc_hoi_nghi: currentStep!,
                 so_nguoi_trieu_tap: values.so_nguoi_trieu_tap,
@@ -141,7 +141,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         { title: "Họ và tên", dataIndex: "ho_va_ten", width: 180 },
         {
             title: "Phiếu đồng ý", key: "dong_y", width: 130,
-            render: (_: any, record: ChiTietBoNhiem) => (
+            render: (_: unknown, record: ChiTietBoNhiem) => (
                 <InputNumber
                     min={0} style={{ width: "100%" }}
                     value={candidateVotes.find(v => v.chi_tiet_bn_id === record.chi_tiet_bn_id)?.so_phieu_dong_y ?? undefined}
@@ -150,7 +150,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         },
         {
             title: "Phiếu không đồng ý", key: "khong_dong_y", width: 150,
-            render: (_: any, record: ChiTietBoNhiem) => (
+            render: (_: unknown, record: ChiTietBoNhiem) => (
                 <InputNumber
                     min={0} style={{ width: "100%" }}
                     value={candidateVotes.find(v => v.chi_tiet_bn_id === record.chi_tiet_bn_id)?.so_phieu_khong_dong_y ?? undefined}
@@ -160,7 +160,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         },
         {
             title: "Kết quả", key: "ket_qua", width: 110,
-            render: (_: any, record: ChiTietBoNhiem) => {
+            render: (_: unknown, record: ChiTietBoNhiem) => {
                 const v = candidateVotes.find(x => x.chi_tiet_bn_id === record.chi_tiet_bn_id);
                 if (v?.so_phieu_dong_y == null || v?.so_phieu_khong_dong_y == null)
                     return <Tag>—</Tag>;
@@ -171,7 +171,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         },
         {
              title: "Tỉ lệ / kết quả", key: "ket_qua", width: 130,
-            render: (_: any, record: ChiTietBoNhiem) => {
+            render: (_: unknown, record: ChiTietBoNhiem) => {
                 const v = candidateVotes.find(x => x.chi_tiet_bn_id === record.chi_tiet_bn_id);
                 if (v?.so_phieu_dong_y == null || !soPhieuHopLe)
                     return <Tag>Chưa tính</Tag>;

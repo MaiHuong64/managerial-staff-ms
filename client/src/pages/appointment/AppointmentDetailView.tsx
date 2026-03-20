@@ -4,38 +4,36 @@ import { useParams } from "react-router-dom";
 import type { ChiTietBoNhiemReq } from "../../types/BoNhiem";
 import axiosClient from "../../utils/AxiosClient";
 import { Card, message, Spin, Steps, Table, Tag, Button, Alert, Descriptions, Badge } from "antd";
-import { FileTextOutlined, FormOutlined } from "@ant-design/icons";
+import { FormOutlined, PlayCircleOutlined } from "@ant-design/icons";
 import VoteModal from "./VoteModal";
-import PersonnelProposalModal from "./PersonnelProposalModal";
 
-const STATE_MAP: Record<number, { label: string; color: string; badgeStatus: "default" | "warning" | "processing" | "success" | "error" }> = {
-    1: { label: "Đang soạn thảo",               color: "default",    badgeStatus: "default" },
-    2: { label: "Chờ hội nghị vòng 1",          color: "warning",    badgeStatus: "warning" },
-    3: { label: "Chờ hội nghị vòng 2",          color: "processing", badgeStatus: "processing" },
-    4: { label: "Chờ hội nghị cán bộ chủ chốt",   color: "processing", badgeStatus: "processing" },
-    5: { label: "Chờ hội nghị vòng cuối",        color: "processing", badgeStatus: "processing" },
-    6: { label: "Chờ xử lý hòa phiếu",           color: "warning",    badgeStatus: "warning" },
-    7: { label: "Hoàn thành",                    color: "success",    badgeStatus: "success" },
-    0: { label: "Đã hủy",                        color: "error",      badgeStatus: "error" },
+const state: Record<number, { label: string; color: string; badgeStatus: "default" | "warning" | "processing" | "success" | "error" }> = {
+    0: { label: "Đã dừng", color: "error", badgeStatus: "error" },
+    1: { label: "Đang soạn thảo", color: "default", badgeStatus: "default" },
+    2: { label: "Hội nghị lãnh đạo (vòng 1)", color: "processing", badgeStatus: "processing" },
+    3: { label: "Hội nghị lãnh đạo (vòng 2)", color: "processing", badgeStatus: "processing" },
+    4: { label: "Hội nghị cán bộ chủ chốt", color: "processing", badgeStatus: "processing" },
+    5: { label: "Hội nghị lãnh đạo (vòng cuối)", color: "processing", badgeStatus: "processing" },
+    6: { label: "Hoàn thành", color: "success", badgeStatus: "success" },
 };
 
-// Map trang_thai → current step index (0-based)
-const STEP_INDEX: Record<number, number> = {
-    2: 0, 3: 1, 4: 2, 5: 3,
+const step_index: Record<number, number> = {
+    2: 0, 3: 1, 4: 2, 5: 3, 6: 4,
 };
 
 const STEP_ITEMS = [
-    { title: "Vòng 1",      description: "Hội nghị tập thể lãnh đạo - Rà soát nguồn" },
-    { title: "Vòng 2",      description: "Hội nghị tập thể lãnh đạo - Lấy phiếu giới thiệu" },
-    { title: "Chốt",        description: "Hội nghị cán bộ chủ chốt - Lấy ý kiến tín nhiệm" },
-    { title: "Vòng cuối",   description: "Hội nghị tập thể lãnh đạo - Biểu quyết" },
-    { title: "Hoàn thành",  description: "Lập phương án nhân sự" },
+    { title: "Bước 1", description: "Hội nghị tập thể lãnh đạo (vòng 1)" },
+    { title: "Bước 2", description: "Hội nghị tập thể lãnh đạo (vòng 2)" },
+    { title: "Bước 3", description: "Hội nghị cán bộ chủ chốt" },
+    { title: "Bước 4", description: "Hội nghị tập thể lãnh đạo (vòng cuối)" },
+    { title: "Hoàn thành", description: "Quy trình bổ nhiệm hoàn tất" },
 ];
 
-const VOTE_STEP_LABEL: Record<number, string> = {
+const vote_step_label: Record<number, string> = {
+    2: "Hội nghị tập thể lãnh đạo (vòng 1) - Thảo luận và đề xuất danh sách",
     3: "Hội nghị tập thể lãnh đạo (vòng 2) - Lấy phiếu giới thiệu",
     4: "Hội nghị cán bộ chủ chốt - Lấy ý kiến tín nhiệm",
-    5: "Hội nghị tập thể lãnh đạo (vòng cuối) - Biểu quyết",
+    5: "Hội nghị tập thể lãnh đạo (vòng cuối) - Biểu quyết cuối cùng",
 };
 
 export const AppointmentDetailView: React.FC = () => {
@@ -43,7 +41,6 @@ export const AppointmentDetailView: React.FC = () => {
     const [data, setData] = useState<ChiTietBoNhiemReq | null>(null);
     const [loading, setLoading] = useState(true);
     const [voteModalVisible, setVoteModalVisible] = useState(false);
-    const [proposalModalVisible, setProposalModalVisible] = useState(false);
     const [currentVotingStep, setCurrentVotingStep] = useState<number | null>(null);
 
     const fetchDetail = async () => {
@@ -74,9 +71,17 @@ export const AppointmentDetailView: React.FC = () => {
         message.success("Ghi nhận kết quả bỏ phiếu thành công!");
     };
 
-    const handleProposalSuccess = () => {
-        fetchDetail();
-        message.success("Lập phương án nhân sự thành công!");
+    const handleStartVoting = async () => {
+        try {
+            const result = await axiosClient.post(`/appointments/${id}/start-voting`);
+            if (result.data.success) {
+                message.success(result.data.message);
+                fetchDetail();
+                fetchCurrentStep();
+            }
+        } catch {
+            message.error( "Không thể bắt đầu quy trình bỏ phiếu");
+        }
     };
 
     useEffect(() => {
@@ -93,33 +98,53 @@ export const AppointmentDetailView: React.FC = () => {
     );
 
     const { batchInfo, candidates } = data;
-    const trangThai = STATE_MAP[batchInfo.trang_thai];
-    const stepIndex  = STEP_INDEX[batchInfo.trang_thai] ?? 0;
+    const trangThai = state[batchInfo.trang_thai];
+    const stepIndex  = step_index[batchInfo.trang_thai] ?? 0;
 
-    // ── Button logic ───────────────────────────────────────────────────────────
-    // Hiện nút bỏ phiếu ở bước 3, 4, 5
-    const canVote     = [3, 4, 5].includes(batchInfo.trang_thai);
-    // Hiện nút lập phương án khi hoàn thành (6)
-    const canProposal = batchInfo.trang_thai === 6;
+    // Hiện nút bắt đầu quy trình ở bước 1 (Đang soạn thảo)
+    const canStartVoting = batchInfo.trang_thai === 1;
+    // Hiện nút next ở bước 2, 3, 4, 5 (Tất cả các bước hội nghị)
+    const canVote = [2, 3, 4, 5].includes(batchInfo.trang_thai);
 
-    const validCandidates   = candidates.filter(c => c.trang_thai === 1);
-    const invalidCandidates = candidates.filter(c => c.trang_thai !== 1);
+    const validCandidates = candidates.filter(c => c.trang_thai === 1);
+    const passedCandidates = candidates.filter(c => c.trang_thai === 3);
+    const failedCandidates = candidates.filter(c => c.trang_thai === 2);
+    const invalidCandidates = candidates.filter(c => c.trang_thai === 0);
 
     const cols = [
-        { title: "Mã viên chức",    dataIndex: "ma_vien_chuc",   key: "ma_vien_chuc" },
-        { title: "Họ và tên",       dataIndex: "ho_va_ten",      key: "ho_va_ten" },
-        { title: "Đơn vị",          dataIndex: "ten_don_vi",     key: "ten_don_vi" },
+        { title: "Mã viên chức", dataIndex: "ma_vien_chuc", key: "ma_vien_chuc" },
+        { title: "Họ và tên", dataIndex: "ho_va_ten", key: "ho_va_ten" },
+        { title: "Đơn vị", dataIndex: "ten_don_vi", key: "ten_don_vi" },
         { title: "Nguồn viên chức", dataIndex: "nguon_vien_chuc",key: "nguon_vien_chuc" },
-        { title: "Chức vụ hiện tại",dataIndex: "ten_chuc_danh",  key: "ten_chuc_danh" },
+        { title: "Chức vụ hiện tại",dataIndex: "ten_chuc_danh", key: "ten_chuc_danh" },
         {
             title: "Trạng thái",
             dataIndex: "trang_thai",
             key: "trang_thai",
-            render: (s: number) => (
-                <Tag color={s === 1 ? "success" : "default"}>
-                    {s === 1 ? "Hợp lệ" : "Đã loại"}
-                </Tag>
-            ),
+            render: (s: number) => {
+                let color = "default";
+                let text = "Không xác định";
+                
+                switch(s) {
+                    case 1:
+                        color = "success";
+                        text = "Hợp lệ";
+                        break;
+                    case 2:
+                        color = "error";
+                        text = "Không đạt";
+                        break;
+                    case 3:
+                        color = "processing";
+                        text = "Đạt";
+                        break;
+                    default:
+                        color = "default";
+                        text = "Đã loại";
+                }
+                
+                return <Tag color={color}>{text}</Tag>;
+            },
         },
     ];
 
@@ -144,70 +169,73 @@ export const AppointmentDetailView: React.FC = () => {
             </Card>
 
             {/* ── Alert theo trạng thái ── */}
+            {canStartVoting && (
+                <Alert
+                    type="info"
+                    showIcon
+                    message="Đang soạn thảo đợt bổ nhiệm"
+                    description={
+                        validCandidates.length > 0 
+                            ? `Đã có ${validCandidates.length} ứng viên hợp lệ. Nhấn "Bắt đầu quy trình bỏ phiếu" khi đã sẵn sàng.`
+                            : "Chưa có ứng viên nào. Vui lòng thêm ứng viên vào đợt bổ nhiệm."
+                    }
+                />
+            )}
             {canVote && (
                 <Alert
                     type="info"
                     showIcon
-                    message={`Đang thực hiện: ${VOTE_STEP_LABEL[batchInfo.trang_thai]}`}
+                    message={`Đang thực hiện: ${vote_step_label[batchInfo.trang_thai]}`}
                     description={
-                        currentVotingStep
-                            ? `Bước hiện tại: ${VOTE_STEP_LABEL[currentVotingStep]}`
-                            : "Đang xác định bước tiếp theo..."
+                        currentVotingStep ? `Bước hiện tại: ${vote_step_label[currentVotingStep]}`: "Đang xác định bước tiếp theo..."
                     }
-                />
-            )}
-            {batchInfo.trang_thai === 5 && (
-                <Alert
-                    type="info"
-                    showIcon
-                    message="Vote quyết định cuối"
-                    description="Vote tất cả ứng viên tín nhiệm. Kết quả: >50% (trên tổng triệu tập) → DONE / tạo quyết định, không đạt → Step 7 (Dừng)."
                 />
             )}
             {batchInfo.trang_thai === 6 && (
                 <Alert
-                    type="warning"
+                    type="success"
                     showIcon
-                    message="Hòa phiếu — cần xử lý thủ công"
-                    description="Có nhiều ứng viên bằng phiếu nhau ở vòng cuối. Vui lòng liên hệ ban tổ chức để xử lý."
+                    message="Quy trình bổ nhiệm đã hoàn thành"
+                    description={
+                        passedCandidates.length > 0 
+                            ? `Có ${passedCandidates.length} ứng viên đạt và ${failedCandidates.length} ứng viên không đạt. Quy trình bổ nhiệm đã hoàn tất.`
+                            : "Không có ứng viên nào đạt yêu cầu."
+                    }
                 />
             )}
 
             <Card>
                 <Steps
                     current={stepIndex}
-                    status={batchInfo.trang_thai === 6 ? "error" : "process"}
+                    status={batchInfo.trang_thai === 6 ? "finish" : "process"}
                     items={STEP_ITEMS}
                 />
             </Card>
 
             {/* ── Danh sách ứng viên ── */}
             <Card
-                title="Danh sách ứng viên"
-                extra={
-                    <div className="flex gap-2">
-                        {canVote && (
-                            <Button
-                                type="primary"
-                                icon={<FormOutlined />}
-                                onClick={() => setVoteModalVisible(true)}> Ghi nhận bỏ phiếu
+                title="Danh sách ứng viên" extra={
+                    <div className="flex gap-2"> 
+                    {canStartVoting && (
+                            <Button type="primary" icon={<PlayCircleOutlined />} onClick={handleStartVoting} disabled={validCandidates.length === 0}>
+                                Bắt đầu quy trình bỏ phiếu
                             </Button>
                         )}
-                        {canProposal && (
-                            <Button
-                                type="primary"
-                                icon={<FileTextOutlined />}
-                                onClick={() => setProposalModalVisible(true)}
-                            >
-                                Lập phương án nhân sự
+                        {canVote && (
+                            <Button type="primary" icon={<FormOutlined />} onClick={() => setVoteModalVisible(true)}> Next
                             </Button>
                         )}
                     </div>
-                }
-            >
+                }>
                 <div className="mb-4 flex gap-3">
                     <Tag color="blue">Tổng: {candidates.length}</Tag>
                     <Tag color="green">Hợp lệ: {validCandidates.length}</Tag>
+                    {batchInfo.trang_thai === 6 && (
+                        <>
+                            <Tag color="processing">Đạt: {passedCandidates.length}</Tag>
+                            <Tag color="error">Không đạt: {failedCandidates.length}</Tag>
+                        </>
+                    )}
                     <Tag color="red">Bị loại: {invalidCandidates.length}</Tag>
                 </div>
 
@@ -226,15 +254,8 @@ export const AppointmentDetailView: React.FC = () => {
                 onCancel={() => setVoteModalVisible(false)}
                 onSuccess={handleVoteSuccess}
                 batchId={id!}
-                candidates={validCandidates}   // chỉ truyền ứng viên hợp lệ
-                currentStep={batchInfo.trang_thai}  // dùng trang_thai thay vì currentVotingStep
-            />
-            <PersonnelProposalModal
-                visible={proposalModalVisible}
-                onCancel={() => setProposalModalVisible(false)}
-                onSuccess={handleProposalSuccess}
-                batchId={id!}
                 candidates={validCandidates}
+                currentStep={batchInfo.trang_thai}
             />
         </div>
     );
