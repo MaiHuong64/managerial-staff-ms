@@ -14,12 +14,13 @@ interface VoteFormValues {
 }
 
 interface VoteModalProps {
-    visible:    boolean;
-    onCancel:   () => void;
-    onSuccess:  () => void;
-    batchId:    string;
+    visible: boolean;
+    onCancel: () => void;
+    onSuccess: () => void;
+    batchId: string;
     candidates: ChiTietBoNhiem[];
     currentStep?: number | null;
+    chiTietDotBoNhiemId: number;
 }
 
 const STEP_NAMES: Record<number, string> = {

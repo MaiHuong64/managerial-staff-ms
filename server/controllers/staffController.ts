@@ -147,7 +147,7 @@ const staffController = {
                                 LEFT JOIN nhiem_ky_chuc_vu nk on vc.id = nk.vien_chuc_id AND nk.trang_thai = 1
                                 LEFT JOIN chuc_danh_quan_ly cd on cd.id = nk.chuc_danh_id
                                 LEFT JOIN qd_bo_nhiem qd on qd.id = nk.qd_bo_nhiem_id
-                                LEFT JOIN tai_khoan tk ON tk.vien_chuc_id = vc.id
+                                LEFT JOIN tai_khoan tk ON tk.ten_dang_nhap = vc.ma_vien_chuc
                             WHERE vc.id = $1`
             
             const querylichSuChucvu = `
