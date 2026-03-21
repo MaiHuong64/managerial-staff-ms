@@ -22,7 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
     { section: 'Nghiệp vụ' },
     { icon: 'chart', label: 'Quy hoạch cán bộ', path: '/plannings', roles: ['PTCCT'] },
     { icon: 'plus', label: 'Bổ nhiệm viên chức', path: '/appointments', roles: ['PTCCT'] },
-    { icon: 'plus', label: 'Lập phương án nhân sự', path: '/personnelPlan', roles: ['PTCCT'] },
+    { icon: 'file-text', label: 'Phương án nhân sự', path: '/personnel-proposals', roles: ['PTCCT'] },
 ];
 export const ROLE_LABEL: Record<string, string> = {
     VC: 'Viên Chức',
