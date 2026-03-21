@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { query, Request, Response } from "express";
 import pool from "../config/db";
 
 interface VoteItem {
@@ -42,8 +42,6 @@ const validateInput = (data: VoteInput) => {
             throw new Error("Số phiếu hợp lệ không thể lớn hơn số phiếu thu về");
     }
 };
-
-// ─── Step Handlers ────────────────────────────────────────────────────────────
 
 // Bước 2: Hội nghị lãnh đạo vòng 1
 // KHÔNG có phiếu - chỉ thảo luận, ghi biên bản
@@ -198,17 +196,17 @@ const handleStep5 = async (client: any, data: VoteInput) => {
 export const getAll = async (req: Request, res: Response) => {
     try {
         const result = await pool.query(
-            `SELECT dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem, dbn.trang_thai,
-                    pct.so_luong_de_xuat, cd.ten_chuc_danh, dv.ten_don_vi,
-                    COUNT(ctbn.id) as so_luong_thuc_te
-             FROM dot_bo_nhiem dbn
-             LEFT JOIN phieu_chu_truong pct ON dbn.phieu_chu_truong_id = pct.id
-             LEFT JOIN chuc_danh_quan_ly cd ON pct.chuc_danh_id = cd.id
-             LEFT JOIN don_vi dv ON pct.don_vi_id = dv.id
-             LEFT JOIN chi_tiet_bo_nhiem ctbn ON dbn.id = ctbn.dot_bo_nhiem_id
-             GROUP BY dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem, dbn.trang_thai,
-                      pct.so_luong_de_xuat, cd.ten_chuc_danh, dv.ten_don_vi
-             ORDER BY dbn.id DESC`
+                `SELECT 
+                    dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem, dbn.trang_thai,
+                    dbn.ngay_bat_dau, dbn.ngay_ket_thuc,
+                    COUNT(DISTINCT ctdbn.id)  AS so_chuc_danh,
+                    COUNT(DISTINCT ctbn.id)   AS so_ung_vien
+                FROM dot_bo_nhiem dbn
+                LEFT JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.dot_bo_nhiem_id = dbn.id
+                LEFT JOIN chi_tiet_bo_nhiem ctbn ON ctbn.chi_tiet_dot_bo_nhiem_id = ctdbn.id
+                AND ctbn.trang_thai != 0
+                GROUP BY dbn.id
+                ORDER BY dbn.id DESC`
         );
         return res.json({ success: true, data: result.rows });
     } catch (error) {
@@ -221,17 +219,54 @@ export const getAll = async (req: Request, res: Response) => {
 export const getByID = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-
-        const batchQuery = `
-            SELECT dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem, dbn.trang_thai,
-                   pct.so_luong_de_xuat, cd.ten_chuc_danh, dv.ten_don_vi
+        const result = await pool.query(`SELECT dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem, dbn.trang_thai, dbn.ngay_bat_dau, dbn.ngay_ket_thuc,
+                ctdbn.id AS chi_tiet_dot_id,
+                pct.id AS phieu_chu_truong_id, pct.so_luong_de_xuat,
+                cd.ten_chuc_danh,
+                dv.ten_don_vi,
+                COUNT(ctbn.id)  AS so_ung_vien
             FROM dot_bo_nhiem dbn
-            LEFT JOIN phieu_chu_truong pct ON dbn.phieu_chu_truong_id = pct.id
-            LEFT JOIN chuc_danh_quan_ly cd ON pct.chuc_danh_id = cd.id
-            LEFT JOIN don_vi dv ON pct.don_vi_id = dv.id
-            WHERE dbn.id = $1`;
+            LEFT JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.dot_bo_nhiem_id = dbn.id
+            LEFT JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
+            LEFT JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+            LEFT JOIN don_vi dv ON dv.id = pct.don_vi_id
+            LEFT JOIN chi_tiet_bo_nhiem ctbn
+                ON ctbn.chi_tiet_dot_bo_nhiem_id = ctdbn.id
+                AND ctbn.trang_thai != 0
+            WHERE dbn.id = $1
+            GROUP BY dbn.id, ctdbn.id, pct.id, cd.ten_chuc_danh, dv.ten_don_vi
+        `, [id]);
+        if (result.rows.length === 0)
+            return res.status(404).json({ success: false, message: "Không tìm thấy đợt bổ nhiệm" });
+ 
+        const rows = result.rows;
+        const batchInfo = {
+            id: rows[0].id,
+            ma_dot_bo_nhiem: rows[0].ma_dot_bo_nhiem,
+            ten_dot_bo_nhiem: rows[0].ten_dot_bo_nhiem,
+            trang_thai: rows[0].trang_thai,
+            chuc_danh_list: rows
+                .filter(r => r.chi_tiet_dot_id)
+                .map(r => ({
+                    chi_tiet_dot_id: r.chi_tiet_dot_id,
+                    phieu_chu_truong_id: r.phieu_chu_truong_id,
+                    ten_chuc_danh: r.ten_chuc_danh,
+                    ten_don_vi: r.ten_don_vi,
+                    so_luong_de_xuat: r.so_luong_de_xuat,
+                    so_ung_vien: r.so_ung_vien,
+                }))
+        };
 
-        const detailQuery = `
+        return res.json({ success: true, data: batchInfo });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+};
+export const getCandidates = async (req: Request, res: Response) => {
+    try {
+        const { chiTietDotId } = req.params;
+    const detailQuery = `
             SELECT
                 ctbn.id as chi_tiet_bn_id,
                 vc.id as vien_chuc_id,
@@ -262,26 +297,15 @@ export const getByID = async (req: Request, res: Response) => {
                 JOIN chuc_danh_quan_ly cd ON nkcv.chuc_danh_id = cd.id
                 WHERE nkcv.trang_thai = 1
             ) nk ON vc.id = nk.vien_chuc_id
-            WHERE ctbn.dot_bo_nhiem_id = $1`;
-
-        const [batchInfo, candidates] = await Promise.all([
-            pool.query(batchQuery, [id]),
-            pool.query(detailQuery, [id]),
-        ]);
-
-        if (batchInfo.rows.length === 0)
-            return res.status(404).json({ success: false, message: "Không tìm thấy đợt bổ nhiệm" });
-
-        return res.json({
-            success: true,
-            data: { batchInfo: batchInfo.rows[0], candidates: candidates.rows }
-        });
+            WHERE ctbn.chi_tiet_dot_bo_nhiem_id  = $1`;
+    const result = await pool.query(detailQuery, [chiTietDotId]);
+    return res.json({ success: true, data: result.rows });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
-};
 
+}
 // GET /appointments/:id/current-step
 export const getCurrentStep = async (req: Request, res: Response) => {
     try {
@@ -335,52 +359,93 @@ export const getPlanningSrc = async (req: Request, res: Response) => {
 export const createBatch = async (req: Request, res: Response) => {
     const client = await pool.connect();
     try {
-        const { ma_dot_bo_nhiem, ten_dot_bo_nhiem, phieu_chu_truong_id, ngay_bat_dau, ngay_ket_thuc } = req.body;
+        const { ma_dot_bo_nhiem, ten_dot_bo_nhiem, ngay_bat_dau, ngay_ket_thuc } = req.body;
 
-        if (!ma_dot_bo_nhiem || !ten_dot_bo_nhiem)
-            return res.status(400).json({ success: false, message: "Thiếu mã hoặc tên đợt bổ nhiệm" });
-
-        await client.query("BEGIN");
-
-        // Kiểm tra phiếu chủ trương nếu có
-        if (phieu_chu_truong_id) {
-            const petitionCheck = await client.query(
-                "SELECT id FROM phieu_chu_truong WHERE id = $1 AND trang_thai = 1",
-                [phieu_chu_truong_id]
-            );
-            if (petitionCheck.rowCount === 0) {
-                await client.query("ROLLBACK");
-                return res.status(400).json({ success: false, message: "Phiếu chủ trương không hợp lệ" });
-            }
-
-            const usedCheck = await client.query(
-                "SELECT id FROM dot_bo_nhiem WHERE phieu_chu_truong_id = $1",
-                [phieu_chu_truong_id]
-            );
-            if (usedCheck.rowCount && usedCheck.rowCount > 0) {
-                await client.query("ROLLBACK");
-                return res.status(400).json({ success: false, message: "Phiếu chủ trương đã được sử dụng" });
-            }
+        if (!ma_dot_bo_nhiem || !ten_dot_bo_nhiem) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Thiếu thông tin bắt buộc: mã đợt bổ nhiệm, tên đợt bổ nhiệm" 
+            });
         }
 
-        const result = await client.query(
-            `INSERT INTO dot_bo_nhiem
-             (ma_dot_bo_nhiem, ten_dot_bo_nhiem, ngay_bat_dau, ngay_ket_thuc, trang_thai, phieu_chu_truong_id)
-             VALUES ($1, $2, $3, $4, 1, $5) RETURNING *`,
-            [ma_dot_bo_nhiem, ten_dot_bo_nhiem,
-             ngay_bat_dau || null, ngay_ket_thuc || null,
-             phieu_chu_truong_id || null]
+        // Validate độ dài mã đợt bổ nhiệm (tối đa 6 ký tự)
+        if (ma_dot_bo_nhiem.length > 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Mã đợt bổ nhiệm không được vượt quá 6 ký tự"
+            });
+        }
+
+        await client.query('BEGIN');
+
+        // Kiểm tra mã đợt bổ nhiệm đã tồn tại chưa
+        const duplicateCheck = await client.query(
+            'SELECT id FROM dot_bo_nhiem WHERE ma_dot_bo_nhiem = $1',
+            [ma_dot_bo_nhiem]
         );
 
-        await client.query("COMMIT");
-        return res.status(201).json({ success: true, message: "Tạo đợt bổ nhiệm thành công!", data: result.rows[0] });
+        if (duplicateCheck.rowCount && duplicateCheck.rowCount > 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({
+                success: false,
+                message: "Mã đợt bổ nhiệm đã tồn tại!"
+            });
+        }
 
-    } catch (error: unknown) {
-        await client.query("ROLLBACK");
-        const err = error as { code?: string; message?: string };
-        if (err.code === "23505")
-            return res.status(400).json({ success: false, message: "Mã đợt bổ nhiệm đã tồn tại!" });
-        return res.status(500).json({ success: false, message: err.message || "Lỗi máy chủ" });
+        // Tạo đợt bổ nhiệm mới với trạng thái = 1 (Đang soạn thảo)
+        const batchQuery = `
+            INSERT INTO dot_bo_nhiem (ma_dot_bo_nhiem, ten_dot_bo_nhiem, ngay_bat_dau, ngay_ket_thuc, trang_thai)
+            VALUES ($1, $2, $3, $4, 1)
+            RETURNING *
+        `;
+        
+        const batchResult = await client.query(batchQuery, [
+            ma_dot_bo_nhiem,
+            ten_dot_bo_nhiem,
+            ngay_bat_dau || null,
+            ngay_ket_thuc || null
+        ]);
+
+        const newBatchId = batchResult.rows[0].id;
+
+        // Tạo chi tiết đợt bổ nhiệm (vì schema mới yêu cầu)
+        const detailQuery = `
+            INSERT INTO chi_tiet_dot_bo_nhiem (dot_bo_nhiem_id, phieu_chu_truong_id, trang_thai)
+            VALUES ($1, NULL, 1)
+        `;
+        
+        await client.query(detailQuery, [newBatchId]);
+
+        await client.query('COMMIT');
+
+        return res.status(201).json({
+            success: true,
+            message: "Tạo đợt bổ nhiệm thành công!",
+            data: batchResult.rows[0]
+        });
+
+    } catch (error: any) {
+        await client.query('ROLLBACK');
+        console.error("Lỗi khi tạo đợt bổ nhiệm:", error);
+        
+        if (error.code === '23505') {
+            return res.status(400).json({
+                success: false,
+                message: "Mã đợt bổ nhiệm đã tồn tại!"
+            });
+        }
+        
+        if (error.code === '22001' || error.message?.includes('too long')) {
+            return res.status(400).json({
+                success: false,
+                message: "Mã đợt bổ nhiệm không được vượt quá 6 ký tự!"
+            });
+        }
+        
+        return res.status(500).json({
+            success: false,
+            message: "Lỗi máy chủ"
+        });
     } finally {
         client.release();
     }
@@ -540,4 +605,5 @@ export default {
     createBatch,
     startVotingProcess,
     addVoteResult,
+    getCandidates
 };
