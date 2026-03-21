@@ -17,6 +17,7 @@ const Login: React.FC = () => {
       
         try{
             const response = await axios.post('/login', values);
+            console.log(values.ten_dang_nhap, values.mat_khau)
             const token = response.data.data.token;
             localStorage.setItem('token', token);
         

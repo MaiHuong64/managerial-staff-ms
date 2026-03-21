@@ -9,7 +9,7 @@ dotenv.config();
 const authController = {
     registerUser: async (req: Request, res: Response) => {
         try{
-            const {ten_dang_nhap, mat_khau, vai_tro, vien_chuc_id} = req.body;
+            const {ten_dang_nhap, mat_khau, vai_tro} = req.body;
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(mat_khau, salt);
 
@@ -18,10 +18,10 @@ const authController = {
                 return res.status(400).json({ success: false, message: "User already exists" })
             }
             const newUser = await pool.query(
-                `INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai, vien_chuc_id) 
-                VALUES ($1, $2, $3, $4, $5) 
-                RETURNING id, ten_dang_nhap, vai_tro, vien_chuc_id`,
-                [ten_dang_nhap, hashedPassword, vai_tro, 1, vien_chuc_id]
+                `INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai) 
+                VALUES ($1, $2, $3, $4) 
+                RETURNING id, ten_dang_nhap, vai_tro`,
+                [ten_dang_nhap, hashedPassword, vai_tro, 1]
             );
             return res.status(201).json(newUser.rows[0]);
 
@@ -37,7 +37,7 @@ const authController = {
 
             const query = ` SELECT t.id, t.ten_dang_nhap, t.mat_khau, t.vai_tro, v.don_vi_id, v.ho_va_ten
                             FROM tai_khoan t
-                            JOIN vien_chuc v ON v.id = t.vien_chuc_id
+                            JOIN vien_chuc v ON v.ma_vien_chuc = t.ten_dang_nhap
                             WHERE t.ten_dang_nhap = $1`;
             // console.log(req.body)
             const user = await pool.query(query, [ten_dang_nhap]);
