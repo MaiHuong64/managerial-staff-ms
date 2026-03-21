@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Modal, Form, Input, DatePicker, Button, Card, message } from "antd";
 import dayjs from "dayjs";
 import axiosClient from "../../utils/AxiosClient";
+import { useAuth } from "../../hook/useAuth";
 
 interface CreateBatchModalProps {
     visible: boolean;
@@ -15,10 +16,27 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({
 }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
+    const {user} = useAuth();
+    const nguoiLap = user?.ho_va_ten;
+
+    // Tự động tạo mã đợt bổ nhiệm
+    const generateMaDotBoNhiem = () => {
+        const now = new Date();
+        const year = now.getFullYear().toString().slice(-2);
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+        return `DB${year}${month}${random}`.substring(0, 6);
+    };
 
     // Reset form khi modal đóng
     useEffect(() => {
-        if (!visible) {
+        if (visible) {
+            form.setFieldsValue({
+                ma_dot_bo_nhiem: generateMaDotBoNhiem(),
+                ngay_bat_dau: dayjs(),
+                ngay_ket_thuc: dayjs().add(30, 'day')
+            });
+        } else {
             form.resetFields();
         }
     }, [visible, form]);
@@ -50,6 +68,12 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({
         onCancel();
     };
 
+    const regenerateMaDot = () => {
+        form.setFieldsValue({
+            ma_dot_bo_nhiem: generateMaDotBoNhiem()
+        });
+    };
+
     return (
         <Modal
             title="Tạo đợt bổ nhiệm mới"
@@ -62,19 +86,27 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({
                 form={form}
                 layout="vertical"
                 onFinish={handleSubmit}
-                initialValues={{
-                    ngay_bat_dau: dayjs(),
-                    ngay_ket_thuc: dayjs().add(30, 'day')
-                }}
             >
-                <Card title="Thông tin cơ bản" className="mb-4">
-                    <div className="grid grid-cols-1 gap-4">
+                <Card title="Thông tin cơ bản" style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <Form.Item
                             label="Mã đợt bổ nhiệm"
                             name="ma_dot_bo_nhiem"
                             rules={[{ required: true, message: 'Vui lòng nhập mã đợt bổ nhiệm' }]}
                         >
-                            <Input placeholder="Mã đợt bổ nhiệm" />
+                            <Input 
+                                placeholder="Mã đợt bổ nhiệm" 
+                                addonAfter={
+                                    <Button 
+                                        type="link" 
+                                        size="small" 
+                                        onClick={regenerateMaDot}
+                                        style={{ padding: '0 4px' }}
+                                    >
+                                        Tạo mới
+                                    </Button>
+                                }
+                            />
                         </Form.Item>
 
                         <Form.Item
@@ -88,13 +120,13 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({
                         <Form.Item
                             label="Người lập"
                         >
-                            <Input value="Người dùng hiện tại" disabled />
+                            <Input value={nguoiLap} disabled />
                         </Form.Item>
                     </div>
                 </Card>
 
-                <Card title="Thời gian thực hiện" className="mb-4">
-                    <div className="grid grid-cols-2 gap-4">
+                <Card title="Thời gian thực hiện" style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <Form.Item
                             label="Ngày bắt đầu"
                             name="ngay_bat_dau"
@@ -112,7 +144,7 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({
                     </div>
                 </Card>
 
-                <div className="flex justify-end gap-2">
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                     <Button onClick={handleCancel}>
                         Hủy
                     </Button>
