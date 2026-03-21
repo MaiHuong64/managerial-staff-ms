@@ -16,6 +16,7 @@ export interface ChiTietBoNhiem{
     ten_chuc_danh: string;
     nguon_vien_chuc: string;
     trang_thai: number;
+    ten_dot_bo_nhiem?: string;
 }
 
 export interface ChiTietBoNhiemReq{

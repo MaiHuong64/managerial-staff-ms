@@ -91,7 +91,7 @@ export const BGHDashboard = () => {
     { 
       title: 'Tiến độ', 
       key: 'tien_do',
-      render: (record: any) => {
+      render: (record: unknown) => {
         const percent = Math.round((record.da_duyet / record.gia_tri) * 100);
         return (
           <div className="flex items-center">
