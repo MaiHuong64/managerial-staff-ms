@@ -253,8 +253,10 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                     </div>
                 </Card>
 
-                {/* ── Kết quả từng ứng viên ── */}
-                <Card title="Kết quả từng ứng viên" className="mb-4">
+
+                {currentStep === 2 ?
+                (<Alert type="info" showIcon className="mb-4" message="Hội nghị lãnh đạo vòng 1 - Thảo luận ghi biên bản" description="Ghi nhận ý kiến chọn ra ứng viên tiến hành bỏ phiếu"/>) : 
+                (<Card title="Kết quả từng ứng viên" className="mb-4">
                     {soPhieuHopLe !== null && (
                         <Alert
                             type="info" showIcon className="mb-3"
@@ -269,8 +271,8 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                         size="small"
                         bordered
                     />
-                </Card>
-
+                </Card>)};
+                
                 <div className="flex justify-end gap-2">
                     <Button onClick={handleCancel}>Hủy</Button>
                     <Button
