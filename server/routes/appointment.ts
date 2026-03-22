@@ -13,6 +13,6 @@ router.post('/', verifyToken, checkRole(['PTCCT']), createBatch);
 router.post('/:id/start-voting', verifyToken, checkRole(['PTCCT']), startVotingProcess);
 router.patch('/:id/candidates/:candidateId', verifyToken, checkRole(['PTCCT']), removeCandidate);
 router.get("/detail/:chiTietDotId/candidates", getCandidates);
-router.post('/:id/vote-results', verifyToken, checkRole(['PTCCT']), addVoteResult);
+router.post('/vote-results', verifyToken, checkRole(['PTCCT']), addVoteResult);
 router.get('/:id/current-step', getCurrentStep);
 export default router
