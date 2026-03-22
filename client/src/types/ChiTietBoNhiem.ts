@@ -5,6 +5,7 @@ export interface ChucDanh{
     ten_don_vi: string;
     so_luong_de_xuat: number;
     so_ung_vien: number;
+    buoc_hien_tai: number;
 }
 export interface DotBoNhiem{
     id: number;
