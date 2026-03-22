@@ -197,7 +197,6 @@ CREATE TABLE chi_tiet_phuong_an (
     CONSTRAINT fk_ctpa_ctbn FOREIGN KEY (chi_tiet_bn_id) REFERENCES chi_tiet_bo_nhiem(id),
     CONSTRAINT uq_ctpa_bn UNIQUE (phuong_an_id, chi_tiet_bn_id)
 );
-
 CREATE TABLE ho_so_bo_nhiem (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ma_ho_so VARCHAR(6) UNIQUE NOT NULL,
