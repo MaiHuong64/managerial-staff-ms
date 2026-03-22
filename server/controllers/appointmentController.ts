@@ -265,22 +265,13 @@ export const getByID = async (req: Request, res: Response) => {
 };
 export const getCandidates = async (req: Request, res: Response) => {
     try {
-        const { chiTietDotId } = req.params;
+    const { chiTietDotId } = req.params;
+    console.log("getCandidates called, chiTietDotId:", chiTietDotId); 
     const detailQuery = `
             SELECT
                 ctbn.id as chi_tiet_bn_id,
-                vc.id as vien_chuc_id,
-                vc.ma_vien_chuc,
-                vc.ho_va_ten,
-                vc.ngay_sinh,
-                vc.gioi_tinh,
-                vc.dan_toc,
-                vc.ngach,
-                vc.trinh_do_chuyen_mon,
-                vc.trinh_do_ly_luan_CT,
-                vc.trinh_do_ngoai_ngu,
-                vc.trinh_do_tin_hoc,
-                vc.ngay_chinh_thuc,
+                vc.id as vien_chuc_id, vc.ma_vien_chuc, vc.ho_va_ten, vc.ngay_sinh, vc.gioi_tinh,
+                vc.dan_toc, vc.ngach, vc.trinh_do_chuyen_mon, vc.trinh_do_ly_luan_CT, vc.trinh_do_ngoai_ngu, vc.trinh_do_tin_hoc, vc.ngay_chinh_thuc,
                 dv.ten_don_vi,
                 nk.ten_chuc_danh,
                 CASE
@@ -297,8 +288,9 @@ export const getCandidates = async (req: Request, res: Response) => {
                 JOIN chuc_danh_quan_ly cd ON nkcv.chuc_danh_id = cd.id
                 WHERE nkcv.trang_thai = 1
             ) nk ON vc.id = nk.vien_chuc_id
-            WHERE ctbn.chi_tiet_dot_bo_nhiem_id  = $1`;
+            WHERE ctbn.chi_tiet_dot_bo_nhiem_id = $1`;
     const result = await pool.query(detailQuery, [chiTietDotId]);
+    console.log(result.rows[0])
     return res.json({ success: true, data: result.rows });
     } catch (error) {
         console.error(error);
