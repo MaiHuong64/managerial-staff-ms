@@ -46,7 +46,7 @@ export const AppointmentDetailView: React.FC = () => {
     const [voteModalVisible, setVoteModalVisible] = useState(false);
  
  
-    const fetchDetail = async () => {
+    const fetchDetail = async (keepSelectedPositonId?: number) => {
         try {
             setLoading(true);
             const result = await axiosClient.get(`/appointments/${id}`);
@@ -55,11 +55,14 @@ export const AppointmentDetailView: React.FC = () => {
             setBatchInfo(batch);
             // Auto-chọn chức danh đầu tiên nếu có
             if (batch.chuc_danh_list?.length > 0) {
-                const first = batch.chuc_danh_list[0];
-                setSelectedChucDanh(first);
-                fetchCandidates(first.chi_tiet_dot_id);
-                // console.log(cadndidate)
-            }
+            // Giữ lại chức danh đang chọn nếu có, không thì lấy đầu tiên
+            const target = keepSelectedPositonId
+                ? batch.chuc_danh_list.find(cd => cd.chi_tiet_dot_id === keepSelectedPositonId)
+                : null;
+            const selected = target ?? batch.chuc_danh_list[0];
+            setSelectedChucDanh(selected);
+            fetchCandidates(selected.chi_tiet_dot_id);
+        }
         } catch {
             message.error("Lỗi kết nối tới máy chủ");
         } finally {
@@ -68,7 +71,7 @@ export const AppointmentDetailView: React.FC = () => {
     };
  
     const fetchCandidates = async (chiTietDotId: number) => {
-         console.log("fetchCandidates chiTietDotId:", chiTietDotId);
+        //  console.log("fetchCandidates chiTietDotId:", chiTietDotId);
         try {
             setLoadingCandidates(true);
             const result = await axiosClient.get(`/appointments/detail/${chiTietDotId}/candidates`);
@@ -98,7 +101,7 @@ export const AppointmentDetailView: React.FC = () => {
     };
  
     const handleVoteSuccess = async () => {
-        await fetchDetail();
+        await fetchDetail(selectedChucDanh?.chi_tiet_dot_id);
         message.success("Ghi nhận kết quả bỏ phiếu thành công!");
     };
  
@@ -116,9 +119,9 @@ export const AppointmentDetailView: React.FC = () => {
     );
 
     const trangThaiInfo = STATE_MAP[batchInfo.trang_thai];
-    const stepIndex = STEP_INDEX[batchInfo.trang_thai] ?? 0;
+    const stepIndex = STEP_INDEX[selectedChucDanh?.buoc_hien_tai ?? 2] ?? 0;
     const canStartVoting = batchInfo.trang_thai === 1;
-    const canVote = [2, 3, 4, 5].includes(batchInfo.trang_thai);
+    const canVote = batchInfo.trang_thai === 2 && selectedChucDanh !== null && [2, 3, 4, 5].includes(selectedChucDanh.buoc_hien_tai);
  
     const validCandidates   = candidates.filter(c => c.trang_thai === 1);
     const passedCandidates  = candidates.filter(c => c.trang_thai === 3);
@@ -273,6 +276,11 @@ export const AppointmentDetailView: React.FC = () => {
                                 <div className="mt-2 flex gap-2">
                                     <Tag color="blue">{cd.so_ung_vien} ứng viên</Tag>
                                     <Tag color="orange">Đề xuất: {cd.so_luong_de_xuat}</Tag>
+                                    <Tag color={cd.buoc_hien_tai === 6 ? "success" : cd.buoc_hien_tai === 0 ? "error" : "processing"}>
+                                        {cd.buoc_hien_tai === 6 ? "Hoàn thành" 
+                                        : cd.buoc_hien_tai === 0 ? "Dừng"
+                                        : `Bước ${STEP_INDEX[cd.buoc_hien_tai] + 1}`}
+                                    </Tag>
                                 </div>
                             </Card>
                         ))}
@@ -286,9 +294,8 @@ export const AppointmentDetailView: React.FC = () => {
                     message="Đang soạn thảo"
                     description="Kiểm tra danh sách ứng viên và nhấn 'Bắt đầu quy trình' khi đã sẵn sàng." />
             )}
-            {canVote && (
-                <Alert type="info" showIcon
-                    message={`Đang thực hiện: ${VOTE_STEP_LABEL[batchInfo.trang_thai]}`} />
+            {canVote && selectedChucDanh && (
+                <Alert message={`${selectedChucDanh.ten_chuc_danh}: ${VOTE_STEP_LABEL[selectedChucDanh.buoc_hien_tai]}`} />
             )}
             {batchInfo.trang_thai === 6 && (
                 <Alert type="success" showIcon
@@ -330,7 +337,7 @@ export const AppointmentDetailView: React.FC = () => {
                             </span>
                         </div>
                         <div className="flex gap-2">
-                            {canStartVoting && (
+                            {canStartVoting && (    
                                 <Button type="primary" icon={<PlayCircleOutlined />}
                                     onClick={handleStartVoting}
                                     disabled={totalAllChucDanh === 0}>
@@ -380,10 +387,10 @@ export const AppointmentDetailView: React.FC = () => {
                     visible={voteModalVisible}
                     onCancel={() => setVoteModalVisible(false)}
                     onSuccess={handleVoteSuccess}
-                    batchId={id!}
+                    // batchId={id!}
                     chiTietDotBoNhiemId={selectedChucDanh.chi_tiet_dot_id}
                     candidates={validCandidates}
-                    currentStep={batchInfo.trang_thai}
+                    currentStep={selectedChucDanh.buoc_hien_tai}
                 />
             )}
         </div>

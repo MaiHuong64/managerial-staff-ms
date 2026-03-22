@@ -96,8 +96,8 @@ export const AppointmentPage: React.FC = () => {
         },
         {
             title: "Số ứng viên",
-            dataIndex: "so_luong_thuc_te",
-            key: "so_luong_thuc_te",
+            dataIndex: "so_ung_vien",
+            key: "so_ung_vien",
             width: 120,
             render: (value: number) => (
                 <div style={{ textAlign: 'center' }}>
