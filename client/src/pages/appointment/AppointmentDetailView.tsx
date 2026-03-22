@@ -51,12 +51,14 @@ export const AppointmentDetailView: React.FC = () => {
             setLoading(true);
             const result = await axiosClient.get(`/appointments/${id}`);
             const batch: DotBoNhiem = result.data.data;
+            // console.log(batch);
             setBatchInfo(batch);
             // Auto-chọn chức danh đầu tiên nếu có
             if (batch.chuc_danh_list?.length > 0) {
                 const first = batch.chuc_danh_list[0];
                 setSelectedChucDanh(first);
                 fetchCandidates(first.chi_tiet_dot_id);
+                // console.log(cadndidate)
             }
         } catch {
             message.error("Lỗi kết nối tới máy chủ");
@@ -66,11 +68,10 @@ export const AppointmentDetailView: React.FC = () => {
     };
  
     const fetchCandidates = async (chiTietDotId: number) => {
+         console.log("fetchCandidates chiTietDotId:", chiTietDotId);
         try {
             setLoadingCandidates(true);
-            const result = await axiosClient.get(
-                `/appointments/detail/${chiTietDotId}/candidates`
-            );
+            const result = await axiosClient.get(`/appointments/detail/${chiTietDotId}/candidates`);
             setCandidates(result.data.data);
         } catch {
             message.error("Không thể tải danh sách ứng viên");
@@ -164,9 +165,9 @@ export const AppointmentDetailView: React.FC = () => {
             title: "Trạng thái", dataIndex: "trang_thai", key: "trang_thai",
             render: (s: number) => {
                 const map: Record<number, { color: string; text: string }> = {
-                    0: { color: "default",    text: "Đã loại" },
-                    1: { color: "success",    text: "Hợp lệ" },
-                    2: { color: "error",      text: "Không đạt" },
+                    0: { color: "default", text: "Đã loại" },
+                    1: { color: "success", text: "Hợp lệ" },
+                    2: { color: "error", text: "Không đạt" },
                     3: { color: "processing", text: "Đạt" },
                 };
                 const info = map[s] ?? { color: "default", text: "?" };
