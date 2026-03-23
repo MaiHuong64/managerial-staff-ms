@@ -19,6 +19,9 @@ export const StaffPage: React.FC = () => {
             Đang tải dữ liệu viên chức...
         </div>
     )
+    const filteredStaff = staffList.filter(s =>
+        s.ho_va_ten.toLowerCase().includes(searchText.toLowerCase())
+    );
 
     const cols = [
         {
@@ -66,7 +69,7 @@ export const StaffPage: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-2xl border-slate-500 overflow-hidden">
-               <Table dataSource={searchText} columns={cols}></Table>
+               <Table dataSource={filteredStaff} columns={cols}></Table>
             </div>
 
         </div>
