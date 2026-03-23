@@ -304,7 +304,27 @@ export const getCurrentStep = async (req: Request, res: Response) => {
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 };
+// GET /appointments/planning-candidates?chuc_danh_id=1
+export const getPlanningCandidates = async (req: Request, res: Response) => {
+    try {
+        const { chuc_danh_id } = req.query;
+        if (!chuc_danh_id)
+            return res.status(400).json({ success: false, message: "Thiếu chuc_danh_id" });
 
+        const result = await pool.query(
+            `SELECT vc.id, vc.ma_vien_chuc, vc.ho_va_ten,
+                    dv.ten_don_vi, ctqh.id as chi_tiet_qh_id
+             FROM chi_tiet_quy_hoach ctqh
+             JOIN vien_chuc vc ON ctqh.vien_chuc_id = vc.id
+             JOIN don_vi dv ON vc.don_vi_id = dv.id
+             WHERE ctqh.chuc_danh_id = $1 AND ctqh.trang_thai = 1`,
+            [chuc_danh_id]
+        );
+        return res.json({ success: true, data: result.rows });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+};
 // GET /appointments/:id/planning-source
 export const getPlanningSrc = async (req: Request, res: Response) => {
     try {
@@ -524,10 +544,10 @@ export const addVoteResult = async (req: Request, res: Response) => {
             "SELECT trang_thai FROM dot_bo_nhiem WHERE id = $1 FOR UPDATE",
             [dot_bo_nhiem_id]
         );
-       console.log("batchDetail rows:", batchDetail.rows);
-console.log("buoc_hien_tai raw:", batchDetail.rows[0]?.buoc_hien_tai);
-console.log("buocHienTai parsed:", Number(batchDetail.rows[0]?.buoc_hien_tai));
-console.log("data.buoc_hoi_nghi:", data.buoc_hoi_nghi, typeof data.buoc_hoi_nghi);
+        console.log("batchDetail rows:", batchDetail.rows);
+        console.log("buoc_hien_tai raw:", batchDetail.rows[0]?.buoc_hien_tai);
+        console.log("buocHienTai parsed:", Number(batchDetail.rows[0]?.buoc_hien_tai));
+        console.log("data.buoc_hoi_nghi:", data.buoc_hoi_nghi, typeof data.buoc_hoi_nghi);
 
         // Bước của đợt bổ nhiệm chức danh
         const currentStep = Number(batchDetail.rows[0].buoc_hien_tai);
@@ -567,6 +587,55 @@ console.log("data.buoc_hoi_nghi:", data.buoc_hoi_nghi, typeof data.buoc_hoi_nghi
     }
 };
 
+export const createBatchWithCandidates = async (req: Request, res: Response) => {
+    const client = await pool.connect();
+    try {
+        const { ma_dot_bo_nhiem, ten_dot_bo_nhiem, nguoi_lap,
+                ngay_bat_dau, ngay_ket_thuc, chuc_danh_list } = req.body;
+
+        await client.query("BEGIN");
+
+        // Tạo đợt
+        const batchRes = await client.query(
+            `INSERT INTO dot_bo_nhiem 
+             (ma_dot_bo_nhiem, ten_dot_bo_nhiem, nguoi_lap, ngay_bat_dau, ngay_ket_thuc, trang_thai)
+             VALUES ($1,$2,$3,$4,$5,1) RETURNING id`,
+            [ma_dot_bo_nhiem, ten_dot_bo_nhiem, nguoi_lap, ngay_bat_dau, ngay_ket_thuc]
+        );
+        const batchId = batchRes.rows[0].id;
+
+        // Tạo chi_tiet_dot_bo_nhiem + ứng viên cho từng chức danh
+        for (const cd of chuc_danh_list) {
+            const detailRes = await client.query(
+                `INSERT INTO chi_tiet_dot_bo_nhiem 
+                 (dot_bo_nhiem_id, phieu_chu_truong_id, trang_thai, buoc_hien_tai)
+                 VALUES ($1,$2,1,2) RETURNING id`,
+                [batchId, cd.pct_id ?? null]
+            );
+            const chiTietId = detailRes.rows[0].id;
+
+            for (const uv of cd.ung_vien) {
+                await client.query(
+                    `INSERT INTO chi_tiet_bo_nhiem 
+                     (chi_tiet_dot_bo_nhiem_id, vien_chuc_id, chi_tiet_qh_id, trang_thai)
+                     VALUES ($1,$2,$3,1)`,
+                    [chiTietId, uv.vien_chuc_id, uv.chi_tiet_qh_id ?? null]
+                );
+            }
+        }
+
+        await client.query("COMMIT");
+        return res.status(201).json({ success: true, message: "Tạo đợt bổ nhiệm thành công!" });
+
+    } catch (error: any) {
+        await client.query("ROLLBACK");
+        if (error.code === "23505")
+            return res.status(400).json({ success: false, message: "Mã đợt bổ nhiệm đã tồn tại!" });
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    } finally {
+        client.release();
+    }
+};
 export default {
     getAll,
     getByID,
@@ -577,5 +646,7 @@ export default {
     createBatch,
     startVotingProcess,
     addVoteResult,
-    getCandidates
+    getCandidates,
+    getPlanningCandidates,
+    createBatchWithCandidates
 };
