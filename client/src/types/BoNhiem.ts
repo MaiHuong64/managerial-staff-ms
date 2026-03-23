@@ -58,3 +58,37 @@ export interface KetQuaBoNhiem {
     ket_qua: number;
     chi_tiet_bn_id: number;
 }
+export interface PCT {
+    id: number;
+    ma_phieu: string;
+    tieu_de: string;
+    ten_chuc_danh: string;
+    ten_don_vi: string;
+    so_luong_de_xuat: number;
+    chuc_danh_id: number;
+}
+
+export interface VienChuc {
+    id: number;
+    ma_vien_chuc: string;
+    ho_va_ten: string;
+    ten_don_vi: string;
+    chi_tiet_qh_id?: number;
+}
+
+export interface ChucDanhItem {
+    tempId: string;
+    loai: "pct" | "thu_cong";
+    pct_id?: number;
+    ten_chuc_danh: string;
+    ten_don_vi: string;
+    chuc_danh_id?: number;
+    ung_vien: {
+        vien_chuc_id: number;
+        ma_vien_chuc: string;
+        ho_va_ten: string;
+        ten_don_vi: string;
+        chi_tiet_qh_id?: number;
+        nguon: "quy_hoach" | "thu_cong";
+    }[];
+}
