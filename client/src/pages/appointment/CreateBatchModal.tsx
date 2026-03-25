@@ -5,8 +5,7 @@ import { DeleteOutlined, UserOutlined, FileTextOutlined, TeamOutlined, PlusOutli
 import dayjs from "dayjs";
 import axiosClient from "../../utils/AxiosClient";
 import { useAuth } from "../../hook/useAuth";
-import type { ChucDanhItem, VienChuc } from "../../types/BoNhiem";
-
+import type { ChucDanhItem, PCT, VienChuc } from "../../types/BoNhiem";
 interface CreateBatchModalProps {
     visible: boolean;
     onCancel: () => void;
@@ -26,12 +25,11 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
 
     // Các State chứa dữ liệu danh mục
     const [allStaff, setAllStaff] = useState<VienChuc[]>([]);
-    const [donViList, setDonViList] = useState<{ id: number, ten_don_vi: string }[]>([]);
-    const [chucDanhQLList, setChucDanhQLList] = useState<{ id: number, ten_chuc_danh: string }[]>([]);
+    const [pctList, setPctList] = useState<PCT[]>([]);
+    const [selectedPctId, setSelectedPctId] = useState<number | null>(null)
     
     // State lưu cấu trúc Đợt bổ nhiệm đang tạo
     const [chucDanhList, setChucDanhList] = useState<ChucDanhItem[]>([]);
-    const [thuCongForm, setThuCongForm] = useState<{ chuc_danh_id: number | null, don_vi_id: number | null, ten_chuc_danh: string, ten_don_vi: string }>({ chuc_danh_id: null, don_vi_id: null, ten_chuc_danh: "", ten_don_vi: "" });
 
     // Fetch dữ liệu Master (Chỉ lấy Viên chức, Đơn vị, Chức danh)
     useEffect(() => {
@@ -46,19 +44,13 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
         const fetchMasterData = async () => {
             try {
                 // Gom 3 API chạy cùng lúc cho nhanh
-                const [staffRes, deptRes, posRes] = await Promise.all([
+                const [staffRes, pctRes] = await Promise.all([
                     axiosClient.get("/staffs"),
-                    axiosClient.get("/departments"),
-                    axiosClient.get("/positions")
+                    axiosClient.get("/pct"),
                 ]);
-
-                const staffs = staffRes.data?.data || staffRes.data || [];
-                const depts = deptRes.data?.data || deptRes.data || [];
-                const positions = posRes.data?.data || posRes.data || [];
-
-                setAllStaff(Array.isArray(staffs) ? staffs : []);
-                setDonViList(Array.isArray(depts) ? depts : []);
-                setChucDanhQLList(Array.isArray(positions) ? positions : []);
+                setAllStaff(staffRes.data?.data ?? []);
+                setPctList((pctRes.data?.data ?? []).filter((p: PCT) => p.trang_thai === 1));
+              
 
             } catch (error) {
                 console.error("Lỗi khi tải dữ liệu:", error);
@@ -113,9 +105,8 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
                 ngay_bat_dau: values.ngay_bat_dau?.format("YYYY-MM-DD") ?? null,
                 ngay_ket_thuc: values.ngay_ket_thuc?.format("YYYY-MM-DD") ?? null,
                 chuc_danh_list: chucDanhList.map(cd => ({
-                    pct_id: null,
+                    pct_id: cd.pct_id ?? null,
                     chuc_danh_id: cd.chuc_danh_id,
-                    don_vi_id: donViList.find(d => d.ten_don_vi === cd.ten_don_vi)?.id, 
                     ung_vien: cd.ung_vien.map(u => ({
                         vien_chuc_id: u.vien_chuc_id,
                         chi_tiet_qh_id: null,
@@ -138,7 +129,7 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
     const handleCancel = () => {
         form.resetFields();
         setChucDanhList([]);
-        setThuCongForm({ chuc_danh_id: null, don_vi_id: null, ten_chuc_danh: "", ten_don_vi: "" });
+        setSelectedPctId(null);
         onCancel();
     };
 
@@ -175,47 +166,36 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
                             </div>
                         </Card>
 
-                        {/* Box 2: Chỉ định chức danh & đơn vị */}
-                        <Card size="small" title={<span><TeamOutlined className="mr-2 text-blue-500" />Chỉ định chức danh cần bổ nhiệm</span>}>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                                <Select
-                                    placeholder="Chọn chức danh..."
-                                    style={{ width: "100%" }}
-                                    showSearch
-                                    optionFilterProp="label"
-                                    value={thuCongForm.chuc_danh_id}
-                                    onChange={(val: number, opt: any) => setThuCongForm(prev => ({
-                                        ...prev, chuc_danh_id: val, ten_chuc_danh: opt.label
-                                    }))}
-                                    options={chucDanhQLList.map(cd => ({ value: cd.id, label: cd.ten_chuc_danh }))}
-                                />
-                                <Select
-                                    placeholder="Chọn đơn vị..."
-                                    style={{ width: "100%" }}
-                                    showSearch
-                                    optionFilterProp="label"
-                                    value={thuCongForm.don_vi_id}
-                                    onChange={(val: number, opt: any) => setThuCongForm(prev => ({
-                                        ...prev, don_vi_id: val, ten_don_vi: opt.label
-                                    }))}
-                                    options={donViList.map(dv => ({ value: dv.id, label: dv.ten_don_vi }))}
-                                />
-                            </div>
+                        <Card size="small" title={<span><TeamOutlined className="mr-2 text-blue-500" />Chọn phiếu chủ trương</span>}>
+                            <Select
+                                placeholder="Chọn phiếu chủ trương đã duyệt..."
+                                style={{ width: "100%" }}
+                                showSearch
+                                optionFilterProp="label"
+                                value={selectedPctId}
+                                onChange={(val) => setSelectedPctId(val)}
+                                options={pctList
+                                    .filter(p => !chucDanhList.find(cd => cd.pct_id === p.id))
+                                    .map(p => ({ value: p.id, label: `${p.ten_chuc_danh} — ${p.ten_don_vi}` }))}
+                            />
                             <Button
                                 type="dashed"
                                 icon={<PlusOutlined />}
                                 className="w-full mt-3"
-                                disabled={!thuCongForm.chuc_danh_id || !thuCongForm.don_vi_id}
+                                disabled={!selectedPctId}
                                 onClick={() => {
+                                    const pct = pctList.find(p => p.id === selectedPctId);
+                                    if (!pct) return;
                                     setChucDanhList(prev => [...prev, {
-                                        tempId: `thu-cong-${Date.now()}`,
-                                        loai: "thu_cong",
-                                        ten_chuc_danh: thuCongForm.ten_chuc_danh,
-                                        ten_don_vi: thuCongForm.ten_don_vi,
-                                        chuc_danh_id: thuCongForm.chuc_danh_id!,
+                                        tempId: `pct-${Date.now()}`,
+                                        loai: "pct",
+                                        pct_id: pct.id,
+                                        ten_chuc_danh: pct.ten_chuc_danh,
+                                        ten_don_vi: pct.ten_don_vi,
+                                        chuc_danh_id: pct.chuc_danh_id,
                                         ung_vien: [],
                                     }]);
-                                    setThuCongForm({ chuc_danh_id: null, don_vi_id: null, ten_chuc_danh: "", ten_don_vi: "" });
+                                    setSelectedPctId(null);
                                 }}
                             >
                                 Đưa vào danh sách đợt
@@ -223,7 +203,6 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
                         </Card>
                     </div>
 
-                    {/* ── CỘT PHẢI: HIỂN THỊ DANH SÁCH CHỨC DANH & CHỌN ỨNG VIÊN ── */}
                     <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 580, overflowY: "auto" }}>
                         {chucDanhList.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-gray-400 border border-dashed rounded-lg p-10 bg-gray-50">
@@ -274,7 +253,7 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
                                         showSearch
                                         optionFilterProp="label"
                                         value={null} // Luôn null để nhập xong là trắng ô
-                                        onChange={vcId => handleAddManualStaff(cd.tempId, vcId)}
+                                        onChange={vcId => handleAddManualStaff(cd.tempId, vcId ?? 0)}
                                         options={allStaff
                                             .filter(v => !cd.ung_vien.find(u => u.vien_chuc_id === v.id))
                                             .map(v => ({ value: v.id, label: `${v.ho_va_ten} — ${v.ten_don_vi}` }))}
