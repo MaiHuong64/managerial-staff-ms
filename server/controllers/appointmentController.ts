@@ -566,9 +566,20 @@ export const addVoteResult = async (req: Request, res: Response) => {
         // update chi tiết đợt bổ nhiệm đang chọn
         await client.query( `UPDATE chi_tiet_dot_bo_nhiem  SET buoc_hien_tai = $1 WHERE id = $2`,[result.nextState, data.chi_tiet_dot_bo_nhiem_id])
 
+        // Cập nhật trang_thai của đợt theo bước nhỏ nhất đang active
+        const minStepResult = await client.query(
+            `SELECT MIN(buoc_hien_tai) FILTER (WHERE buoc_hien_tai NOT IN (0, 6)) AS min_step
+             FROM chi_tiet_dot_bo_nhiem WHERE dot_bo_nhiem_id = $1`,
+            [dot_bo_nhiem_id]
+        );
+        const minStep = minStepResult.rows[0].min_step;
+        if (minStep !== null && minStep >= 2 && minStep <= 5) {
+            await client.query(`UPDATE dot_bo_nhiem SET trang_thai = $1 WHERE id = $2`, [Number(minStep), dot_bo_nhiem_id]);
+        }
+
         // Kiểm tra đợt bổ nhiệm này hoàn thành chưa.
         const checkDoneQuery = `SELECT COUNT (*) as total, COUNT(*) FILTER (WHERE buoc_hien_tai = 6) AS done
-                                FROM chi_tiet_dot_bo_nhiem 
+                                FROM chi_tiet_dot_bo_nhiem
                                 WHERE dot_bo_nhiem_id = $1`;
         const allDone = await client.query(checkDoneQuery, [dot_bo_nhiem_id]);
         const checkAllPosition = Number(allDone.rows[0].total) === Number(allDone.rows[0].done)
