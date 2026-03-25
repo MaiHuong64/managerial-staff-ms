@@ -66,6 +66,7 @@ export interface PCT {
     ten_don_vi: string;
     so_luong_de_xuat: number;
     chuc_danh_id: number;
+    trang_thai: number;
 }
 
 export interface VienChuc {
