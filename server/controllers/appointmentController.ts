@@ -550,11 +550,14 @@ export const addVoteResult = async (req: Request, res: Response) => {
         }
 
         // Kiểm tra đợt bổ nhiệm này hoàn thành chưa.
-        const checkDoneQuery = `SELECT COUNT (*) as total, COUNT(*) FILTER (WHERE buoc_hien_tai = 6) AS done
-                                FROM chi_tiet_dot_bo_nhiem
-                                WHERE dot_bo_nhiem_id = $1`;
+        // Một phiếu được coi là "xong" khi buoc_hien_tai = 6 (thành công) HOẶC = 0 (thất bại/đóng).
+        // Đợt hoàn thành khi KHÔNG còn phiếu nào đang ở bước 2–5 (đang xử lý).
+        const checkDoneQuery = `
+            SELECT COUNT(*) FILTER (WHERE buoc_hien_tai BETWEEN 2 AND 5) AS dang_xu_ly
+            FROM chi_tiet_dot_bo_nhiem
+            WHERE dot_bo_nhiem_id = $1`;
         const allDone = await client.query(checkDoneQuery, [dot_bo_nhiem_id]);
-        const checkAllPosition = Number(allDone.rows[0].total) === Number(allDone.rows[0].done)
+        const checkAllPosition = Number(allDone.rows[0].dang_xu_ly) === 0;
         if(checkAllPosition){
             await client.query(`UPDATE dot_bo_nhiem SET trang_thai = 6 WHERE id = $1`, [dot_bo_nhiem_id]);
         }

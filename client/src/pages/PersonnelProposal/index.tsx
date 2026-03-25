@@ -6,8 +6,6 @@ import SelectCandidateModal, { type PersonnelData } from './SelectedPersonnel';
 import CreatePhuongAnForm from './CreatePhuongAnForm';
 import type { PhuongAnNhanSu } from '../../types/PhuongAnNhanSu';
 
-
-
 const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
     1: { label: 'Đang soạn thảo', color: 'default' },
     2: { label: 'Chờ phê duyệt', color: 'processing' },
@@ -18,7 +16,7 @@ const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
 const PersonnelProposalPage: React.FC = () => {
     const [listPA, setListPA] = useState<PhuongAnNhanSu[]>([]);
     const [loading, setLoading] = useState(true);
-    
+
     const [selectModalVisible, setSelectModalVisible] = useState(false);
     const [createModalVisible, setCreateModalVisible] = useState(false);
 
@@ -27,7 +25,7 @@ const PersonnelProposalPage: React.FC = () => {
     const fetchList = async () => {
         try {
             setLoading(true);
-            const res = await axiosClient.get('/getAll');
+            const res = await axiosClient.get('/personnel');
             setListPA(res.data.data || []);
         } catch {
             message.error('Không thể tải danh sách phương án');
@@ -39,9 +37,9 @@ const PersonnelProposalPage: React.FC = () => {
     useEffect(() => { fetchList(); }, []);
 
     const handleSelectDone = (personnel: PersonnelData[]) => {
-        setSelectedPersonnel(personnel); 
-        setSelectModalVisible(false);    
-        setCreateModalVisible(true);     
+        setSelectedPersonnel(personnel);
+        setSelectModalVisible(false);
+        setCreateModalVisible(true);
     };
 
     const cols = [
@@ -72,7 +70,7 @@ const PersonnelProposalPage: React.FC = () => {
         },
         {
             title: 'Thao tác', key: 'action', width: 100,
-            render: (_: unknown, record: PhuongAnNhanSu) => (
+            render: (_: unknown, _record: PhuongAnNhanSu) => (
                 <Button size="small" type="link">Xem chi tiết</Button>
             ),
         },
@@ -107,7 +105,6 @@ const PersonnelProposalPage: React.FC = () => {
                 </Col>
             </Row>
 
-            {/* Danh sách */}
             <Card title={
                 <div className="flex items-center justify-between">
                     <span className="font-semibold">Danh sách phương án nhân sự</span>
@@ -131,7 +128,6 @@ const PersonnelProposalPage: React.FC = () => {
                 onConfirm={handleSelectDone}
             />
 
-         
             <Modal
                 title="Lập phương án nhân sự"
                 open={createModalVisible}
@@ -140,13 +136,12 @@ const PersonnelProposalPage: React.FC = () => {
                 footer={null}
                 destroyOnClose
             >
-          
                 <CreatePhuongAnForm
-                    selectedPersonnel={selectedPersonnel} 
+                    selectedPersonnel={selectedPersonnel}
                     onCancel={() => setCreateModalVisible(false)}
                     onSuccess={() => {
                         setCreateModalVisible(false);
-                        fetchList(); 
+                        fetchList();
                     }}
                 />
             </Modal>

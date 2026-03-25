@@ -50,7 +50,7 @@ export const StaffPage: React.FC = () => {
         },
     ]
     return (
-        <div className="min-h-screen bg-[#F8FAFC] p-8">
+        <div className="min-h-screen bg-gray-50 p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Danh sách Viên chức Quản lý</h1>

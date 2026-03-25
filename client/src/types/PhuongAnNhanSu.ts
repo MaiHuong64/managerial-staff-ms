@@ -6,4 +6,5 @@ export interface PhuongAnNhanSu {
     ngay_lap: string;
     trang_thai: number;
     so_nhan_su?: number ;
+    ghi_chu?: string;
 }

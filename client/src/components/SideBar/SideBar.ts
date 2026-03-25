@@ -9,10 +9,11 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
     { section: 'Tổng quan' },
     { icon: 'dashboard', label: 'Dashboard', path: '/dashboard', roles: ['VC','VCQL','BGH','PTCCT'] },
-    { icon: 'bell', label: 'Thông báo', path: '/nofication', roles: ['VC','VCQL','BGH','PTCCT'] },
+    { icon: 'bell', label: 'Thông báo', path: '/notification', roles: ['VC','VCQL','BGH','PTCCT'] },
     { section: 'Hồ sơ' },
     { icon: 'user', label: 'Hồ sơ của tôi', path: '/profile', roles: ['VC','VCQL','BGH','PTCCT'] },
     { icon: 'users', label: 'Danh sách viên chức', path: '/staffs', roles: ['VCQL','BGH','PTCCT'] },
+    { icon: '', label: 'Phiếu chủ trương', path: '/pct', roles: ['VCQL'] },
     { section: 'Phê duyệt' },
     { icon: 'check', label: 'Duyệt quy hoạch', path: '/approvePlanning', roles: ['BGH'] },
     { icon: 'doc', label: 'Duyệt bổ nhiệm', path: '/approveAppointment', roles: ['BGH'] },
