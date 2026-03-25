@@ -14,7 +14,6 @@ interface CreateBatchModalProps {
 }
 
 interface FormValues {
-    ma_dot_bo_nhiem: string;
     ten_dot_bo_nhiem: string;
     ngay_bat_dau: dayjs.Dayjs;
     ngay_ket_thuc?: dayjs.Dayjs;
@@ -39,7 +38,6 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
         if (!visible) return;
         
         form.setFieldsValue({
-            ma_dot_bo_nhiem: generateMa(),
             ngay_bat_dau: dayjs(),
             ngay_ket_thuc: dayjs().add(30, "day"),
         });
@@ -54,7 +52,6 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
                     axiosClient.get("/positions")
                 ]);
 
-                // Xử lý bọc lót: Lấy đúng mảng dữ liệu dù Backend trả về {data: []} hay trực tiếp []
                 const staffs = staffRes.data?.data || staffRes.data || [];
                 const depts = deptRes.data?.data || deptRes.data || [];
                 const positions = posRes.data?.data || posRes.data || [];
@@ -71,15 +68,6 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
 
         fetchMasterData();
     }, [visible, form]);
-
-    const generateMa = () => {
-        const now = new Date();
-        const y = now.getFullYear().toString().slice(-2);
-        const m = (now.getMonth() + 1).toString().padStart(2, "0");
-        const r = Math.floor(Math.random() * 100).toString().padStart(2, "0");
-        return `DB${y}${m}${r}`.substring(0, 6);
-    };
-
     // Hàm gắn 1 viên chức vào chức danh
     const handleAddManualStaff = (tempId: string, vcId: number) => {
         const vc = allStaff.find(s => s.id === vcId);
@@ -120,7 +108,6 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
         setLoading(true);
         try {
             const res = await axiosClient.post("/appointments/create-with-candidates", {
-                ma_dot_bo_nhiem: values.ma_dot_bo_nhiem,
                 ten_dot_bo_nhiem: values.ten_dot_bo_nhiem,
                 nguoi_lap: user?.ho_va_ten,
                 ngay_bat_dau: values.ngay_bat_dau?.format("YYYY-MM-DD") ?? null,
@@ -167,19 +154,10 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
             <Form form={form} layout="vertical" onFinish={handleSubmit}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
 
-                    {/* ── CỘT TRÁI: KHAI BÁO THÔNG TIN ── */}
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                         
                         {/* Box 1: Thông tin đợt */}
                         <Card size="small" title={<span><FileTextOutlined className="mr-2 text-blue-500" />Thông tin chung</span>}>
-                            <Form.Item label="Mã đợt" name="ma_dot_bo_nhiem"
-                                rules={[{ required: true, message: "Vui lòng nhập mã đợt" }]}>
-                                <Input addonAfter={
-                                    <Button type="link" size="small" onClick={() => form.setFieldValue("ma_dot_bo_nhiem", generateMa())}>
-                                        Tạo mới
-                                    </Button>
-                                } />
-                            </Form.Item>
                             <Form.Item label="Tên đợt bổ nhiệm" name="ten_dot_bo_nhiem"
                                 rules={[{ required: true, message: "Vui lòng nhập tên đợt" }]}>
                                 <Input placeholder="VD: Đợt bổ nhiệm tháng 3/2026" />

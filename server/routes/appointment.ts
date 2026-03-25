@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {getAll, getByID, removeCandidate, addCandidate, addVoteResult, getPlanningSrc, createBatch, startVotingProcess, getCurrentStep, getCandidates, getPlanningCandidates, createBatchWithCandidates} from "../controllers/appointmentController";
+import {getAll, getByID, removeCandidate, addCandidate, addVoteResult, getPlanningSrc, startVotingProcess, getCurrentStep, getCandidates, getPlanningCandidates, createBatchWithCandidates} from "../controllers/appointmentController";
 import { checkRole, verifyToken } from "../middleware/authMiddleware";
 
 const router = Router();
@@ -12,7 +12,7 @@ router.get('/:id/planning-sources', verifyToken, getPlanningSrc);
 router.post("/create-with-candidates", verifyToken, checkRole(['PTCCT']), createBatchWithCandidates);
 router.get('/', verifyToken, checkRole(['PTCCT', 'BGH']), getAll);
 router.get('/:id', verifyToken, getByID);
-router.post('/', verifyToken, checkRole(['PTCCT']), createBatch);
+// router.post('/', verifyToken, checkRole(['PTCCT']), createBatch);
 router.post('/:id/start-voting', verifyToken, checkRole(['PTCCT']), startVotingProcess);
 router.patch('/:id/candidates/:candidateId', verifyToken, checkRole(['PTCCT']), removeCandidate);
 router.get("/detail/:chiTietDotId/candidates", verifyToken, getCandidates);
