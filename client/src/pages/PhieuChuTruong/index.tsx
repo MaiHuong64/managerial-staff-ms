@@ -20,7 +20,7 @@ export const PhieuChuTruongPage: React.FC = () => {
             setLoading(true);
             const response = await axiosClient.get('/pct');
             setPhieuChuTruong(response.data.data);
-        } catch (error) {
+        } catch {
             message.error("Không thể tải dữ liệu phiếu chủ trương");
         } finally {
             setLoading(false);
@@ -41,8 +41,8 @@ export const PhieuChuTruongPage: React.FC = () => {
 
     const status = useMemo(() => ({
         choDuyet: phieuChuTruong.filter(item => item.trang_thai === 0).length,
-        daDuyet:  phieuChuTruong.filter(item => item.trang_thai === 1).length,
-        tuChoi:   phieuChuTruong.filter(item => item.trang_thai === 2).length,
+        daDuyet: phieuChuTruong.filter(item => item.trang_thai === 1).length,
+        tuChoi: phieuChuTruong.filter(item => item.trang_thai === 2).length,
     }), [phieuChuTruong]);
 
     const filteredData = useMemo(() => {
@@ -61,9 +61,9 @@ export const PhieuChuTruongPage: React.FC = () => {
     };
 
     const columns = [
-        { title: "Số tờ trình",      dataIndex: 'so_to_trinh_chu_truong' },
+        { title: "Số tờ trình", dataIndex: 'so_to_trinh_chu_truong' },
         { title: "Chức danh đề xuất", dataIndex: 'ten_chuc_danh' },
-        { title: "SL",               dataIndex: 'so_luong_de_xuat' },
+        { title: "SL", dataIndex: 'so_luong_de_xuat' },
         {
             title: 'Ngày lập', dataIndex: 'ngay_lap',
             render: (date: string) => dayjs(date).format("DD/MM/YYYY")
@@ -74,7 +74,7 @@ export const PhieuChuTruongPage: React.FC = () => {
         },
         ...(user?.vai_tro === 'BGH' ? [{
             title: 'Thao tác',
-            render: (_: any, record: PhieuChuTruong) => record.trang_thai === 0 ? (
+            render: (_: unknown, record: PhieuChuTruong) => record.trang_thai === 0 ? (
                 <div className="flex gap-2">
                     <Popconfirm title="Phê duyệt phiếu này?" onConfirm={() => handleApprove(record.id, 1)} okText="Duyệt" cancelText="Hủy">
                         <Button type="primary" size="small">Duyệt</Button>

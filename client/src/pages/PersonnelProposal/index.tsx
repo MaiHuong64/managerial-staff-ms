@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Tag, Card, Row, Col, Statistic, Modal, message } from 'antd';
 import { PlusOutlined, FileTextOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import axiosClient from '../../utils/AxiosClient';
 import SelectCandidateModal, { type PersonnelData } from './SelectedPersonnel';
 import CreatePhuongAnForm from './CreatePhuongAnForm';
 import type { PhuongAnNhanSu } from '../../types/PhuongAnNhanSu';
 
 const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
+    0: { label: 'Đã hủy', color: 'error' },
     1: { label: 'Đang soạn thảo', color: 'default' },
     2: { label: 'Chờ phê duyệt', color: 'processing' },
     3: { label: 'Đã phê duyệt', color: 'success' },
-    0: { label: 'Đã hủy', color: 'error' },
 };
 
 const PersonnelProposalPage: React.FC = () => {
+    const navigate = useNavigate();
     const [listPA, setListPA] = useState<PhuongAnNhanSu[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -70,8 +72,10 @@ const PersonnelProposalPage: React.FC = () => {
         },
         {
             title: 'Thao tác', key: 'action', width: 100,
-            render: (_: unknown, _record: PhuongAnNhanSu) => (
-                <Button size="small" type="link">Xem chi tiết</Button>
+            render: (_: unknown, record: PhuongAnNhanSu) => (
+                <Button size="small" type="link" onClick={() => navigate(`/personnel/${record.id}`)}>
+                    Xem chi tiết
+                </Button>
             ),
         },
     ];
