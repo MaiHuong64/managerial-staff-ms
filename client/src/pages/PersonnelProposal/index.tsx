@@ -4,16 +4,9 @@ import { PlusOutlined, FileTextOutlined, CheckCircleOutlined, ClockCircleOutline
 import axiosClient from '../../utils/AxiosClient';
 import SelectCandidateModal, { type PersonnelData } from './SelectedPersonnel';
 import CreatePhuongAnForm from './CreatePhuongAnForm';
+import type { PhuongAnNhanSu } from '../../types/PhuongAnNhanSu';
 
-interface PhuongAn {
-    id: number;
-    ma_phuong_an: string;
-    so_to_trinh: string;
-    ngay_to_trinh: string;
-    ngay_lap: string;
-    trang_thai: number;
-    so_nhan_su: number;
-}
+
 
 const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
     1: { label: 'Đang soạn thảo', color: 'default' },
@@ -23,7 +16,7 @@ const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
 };
 
 const PersonnelProposalPage: React.FC = () => {
-    const [list, setList] = useState<PhuongAn[]>([]);
+    const [listPA, setListPA] = useState<PhuongAnNhanSu[]>([]);
     const [loading, setLoading] = useState(true);
     
     const [selectModalVisible, setSelectModalVisible] = useState(false);
@@ -35,7 +28,7 @@ const PersonnelProposalPage: React.FC = () => {
         try {
             setLoading(true);
             const res = await axiosClient.get('/getAll');
-            setList(res.data.data || []);
+            setListPA(res.data.data || []);
         } catch {
             message.error('Không thể tải danh sách phương án');
         } finally {
@@ -68,7 +61,7 @@ const PersonnelProposalPage: React.FC = () => {
         },
         {
             title: 'Nhân sự', dataIndex: 'so_nhan_su', key: 'so_nhan_su', width: 100,
-            render: (n: number) => <Tag color="blue">{n} người</Tag>,
+            render: (n: number) => <Tag color="blue">{n ?? 0} người</Tag>,
         },
         {
             title: 'Trạng thái', dataIndex: 'trang_thai', key: 'trang_thai', width: 150,
@@ -79,23 +72,22 @@ const PersonnelProposalPage: React.FC = () => {
         },
         {
             title: 'Thao tác', key: 'action', width: 100,
-            render: (_: unknown, record: PhuongAn) => (
+            render: (_: unknown, record: PhuongAnNhanSu) => (
                 <Button size="small" type="link">Xem chi tiết</Button>
             ),
         },
     ];
 
-    const draftCount    = list.filter(p => p.trang_thai === 1).length;
-    const pendingCount  = list.filter(p => p.trang_thai === 2).length;
-    const approvedCount = list.filter(p => p.trang_thai === 3).length;
+    const draftCount = listPA.filter(p => p.trang_thai === 1).length;
+    const pendingCount = listPA.filter(p => p.trang_thai === 2).length;
+    const approvedCount = listPA.filter(p => p.trang_thai === 3).length;
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen space-y-5">
-            {/* Khối Thống kê (Giữ nguyên của bạn) */}
             <Row gutter={16}>
                 <Col span={6}>
                     <Card>
-                        <Statistic title="Tổng phương án" value={list.length} valueStyle={{ color: '#1890ff' }} prefix={<FileTextOutlined />} />
+                        <Statistic title="Tổng phương án" value={listPA.length} valueStyle={{ color: '#1890ff' }} prefix={<FileTextOutlined />} />
                     </Card>
                 </Col>
                 <Col span={6}>
@@ -127,7 +119,7 @@ const PersonnelProposalPage: React.FC = () => {
                 <Table
                     rowKey="id"
                     columns={cols}
-                    dataSource={list}
+                    dataSource={listPA}
                     loading={loading}
                     pagination={{ pageSize: 10 }}
                 />
