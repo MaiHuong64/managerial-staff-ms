@@ -1,90 +1,63 @@
-import React, { useState } from 'react';
-import { Form, Input, Select, Button, Table, Tag, Card, Divider, message } from 'antd';
-import { FileTextOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Card, DatePicker, Form, Input, Select, Table, Tag, message } from "antd";
+import { useState } from "react";
 import dayjs from 'dayjs';
-import axiosClient from '../../utils/AxiosClient';
-
-export interface SelectedPersonnel {
-    chi_tiet_bn_id: number;
-    ho_va_ten: string;
-    ten_chuc_danh: string;
-}
-
-interface CreatePhuongAnFormProps {
-    selectedPersonnel: SelectedPersonnel[];
-    onCancel: () => void;
-    onSuccess?: () => void;
-}
-
-interface ChiTietPhuongAn extends SelectedPersonnel {
-    loai_phuong_an: string;
-    ghi_chu: string;
-}
+import axiosClient from "../../utils/AxiosClient";
+import { FileTextOutlined, UserOutlined } from "@ant-design/icons";
+import type { PersonnelData } from "./SelectedPersonnel";
 
 const LOAI_PHUONG_AN = [
     { value: 'Bổ nhiệm', label: 'Bổ nhiệm' },
     { value: 'Bổ nhiệm lại', label: 'Bổ nhiệm lại' },
     { value: 'Thôi chức vụ', label: 'Thôi chức vụ' },
-    { value: 'Thôi kiêm nhiệm',label: 'Thôi kiêm nhiệm' },
+    { value: 'Thôi kiêm nhiệm', label: 'Thôi kiêm nhiệm' },
 ];
 
-const generateMa = () => {
-    const now = new Date();
-    const y = now.getFullYear().toString().slice(-2);
-    const m = (now.getMonth() + 1).toString().padStart(2, '0');
-    const r = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-    return `PA${y}${m}${r}`.substring(0, 6);
-};
+interface ChiTietRow extends PersonnelData {
+    loai_phuong_an: string;
+    ghi_chu: string;
+}
 
-const CreatePhuongAnForm: React.FC<CreatePhuongAnFormProps> = ({
-    selectedPersonnel, onCancel, onSuccess
-}) => {
+interface CreatePhuongAnFormProps {
+    selectedPersonnel: PersonnelData[];
+    onSuccess: () => void;
+    onCancel: () => void;
+}
+
+export const CreatePhuongAnForm: React.FC<CreatePhuongAnFormProps> = ({ selectedPersonnel, onSuccess, onCancel }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [chiTiet, setChiTiet] = useState<ChiTietPhuongAn[]>(
-        selectedPersonnel.map(p => ({...p,
-            loai_phuong_an: 'Bổ nhiệm',
-            ghi_chu: '',
-        }))
+    const [chiTiet, setChiTiet] = useState<ChiTietRow[]>(
+        selectedPersonnel.map(p => ({ ...p, loai_phuong_an: 'Bổ nhiệm', ghi_chu: '' }))
     );
 
-    const handleDetailChange = (
-        chi_tiet_bn_id: number,
-        field: 'loai_phuong_an' | 'ghi_chu',
-        value: string
-    ) => {
+    const handleDetailChange = (id: number, field: 'loai_phuong_an' | 'ghi_chu', value: string) => {
         setChiTiet(prev => prev.map(item =>
-            item.chi_tiet_bn_id === chi_tiet_bn_id
-                ? { ...item, [field]: value }
-                : item
+            item.chi_tiet_bn_id === id ? { ...item, [field]: value } : item
         ));
     };
 
     const handleSubmit = async (values: any) => {
         setLoading(true);
         try {
-           const payload = {
-                thong_tin_chung: {
-                    ma_phuong_an: values.ma_phuong_an,
-                    so_to_trinh: values.so_to_trinh,
-                    ngay_to_trinh: values.ngay_to_trinh ? dayjs(values.ngay_to_trinh).format('YYYY-MM-DD') : null,
-                    ngay_lap: dayjs().format('YYYY-MM-DD'),
-                    ghi_chu: values.ghi_chu,
-                },
+            const payload = {
+                so_to_trinh: values.so_to_trinh,
+                ngay_to_trinh: values.ngay_to_trinh ? dayjs(values.ngay_to_trinh).format('YYYY-MM-DD') : null,
+                ngay_lap: dayjs().format('YYYY-MM-DD'),
+                ghi_chu: values.ghi_chu,
                 chi_tiet: chiTiet.map(item => ({
                     chi_tiet_bn_id: item.chi_tiet_bn_id,
                     loai_phuong_an: item.loai_phuong_an,
-                    ghi_chu: item.ghi_chu,
+                    ghi_chu: item.ghi_chu || null,
                 })),
             };
-
-            const res = await axiosClient.post('/phuong-an-nhan-su', payload);
+            const res = await axiosClient.post('/personnel', payload);
             if (res.data.success) {
-                message.success('Lập phương án thành công!');
+                message.success('Tạo phương án thành công!');
+                form.resetFields();
                 onSuccess?.();
             }
         } catch (error: any) {
-            message.error(error.response?.data?.message || 'Lỗi khi lập phương án');
+            message.error(error.response?.data?.message || 'Lỗi khi tạo phương án');
         } finally {
             setLoading(false);
         }
@@ -106,7 +79,7 @@ const CreatePhuongAnForm: React.FC<CreatePhuongAnFormProps> = ({
         },
         {
             title: 'Loại phương án', key: 'loai_phuong_an', width: 180,
-            render: (_: unknown, record: ChiTietPhuongAn) => (
+            render: (_: unknown, record: ChiTietRow) => (
                 <Select
                     size="small"
                     style={{ width: '100%' }}
@@ -118,7 +91,7 @@ const CreatePhuongAnForm: React.FC<CreatePhuongAnFormProps> = ({
         },
         {
             title: 'Ghi chú', key: 'ghi_chu',
-            render: (_: unknown, record: ChiTietPhuongAn) => (
+            render: (_: unknown, record: ChiTietRow) => (
                 <Input
                     size="small"
                     placeholder="Ghi chú..."
@@ -130,29 +103,18 @@ const CreatePhuongAnForm: React.FC<CreatePhuongAnFormProps> = ({
     ];
 
     return (
-        <Form form={form} layout="vertical" onFinish={handleSubmit}
-            initialValues={{ ma_phuong_an: generateMa() }}>
-
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
             <Card size="small" className="mb-4"
-                title={<span><FileTextOutlined className="mr-2 text-blue-500" />Thông tin phương án</span>}>
+                title={<span><FileTextOutlined className="mr-2 text-blue-500" />Thông tin chung phương án</span>}>
                 <div className="grid grid-cols-2 gap-4">
-                    <Form.Item label="Mã phương án" name="ma_phuong_an"
-                        rules={[{ required: true, message: 'Vui lòng nhập mã phương án' }]}>
-                        <Input addonAfter={
-                            <Button type="link" size="small"
-                                onClick={() => form.setFieldValue('ma_phuong_an', generateMa())}>
-                                Tạo mới
-                            </Button>
-                        } />
-                    </Form.Item>
                     <Form.Item label="Số tờ trình" name="so_to_trinh">
                         <Input placeholder="VD: 18/TTr-ĐHAG" />
                     </Form.Item>
-                    <Form.Item label="Ngày tờ trình" name="ngay_to_trinh">
-                        <Input type="date" />
+                    <Form.Item label="Ngày lập tờ trình" name="ngay_to_trinh">
+                        <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
                     </Form.Item>
-                    <Form.Item label="Ghi chú" name="ghi_chu">
-                        <Input placeholder="Ghi chú thêm..." />
+                    <Form.Item label="Ghi chú" name="ghi_chu" className="col-span-2">
+                        <Input.TextArea rows={2} placeholder="Ghi chú thêm..." />
                     </Form.Item>
                 </div>
             </Card>
@@ -169,12 +131,9 @@ const CreatePhuongAnForm: React.FC<CreatePhuongAnFormProps> = ({
                 />
             </Card>
 
-            <Divider />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 mt-4">
                 <Button onClick={onCancel}>Hủy bỏ</Button>
-                <Button type="primary" htmlType="submit" loading={loading}>
-                    Lưu phương án
-                </Button>
+                <Button type="primary" htmlType="submit" loading={loading}>Lưu phương án</Button>
             </div>
         </Form>
     );

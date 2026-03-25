@@ -20,7 +20,6 @@ const SelectCandidateModal: React.FC<SelectPersonnelModalProps> = ({ isOpen, onC
     const [danhSachDat, setDanhSachDat] = useState<PersonnelData[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     
-    // State lưu trữ các ID được chọn (Ant Design dùng React.Key cho rowKey)
     const [selectedIds, setSelectedIds] = useState<React.Key[]>([]);
 
     useEffect(() => {
@@ -35,7 +34,7 @@ const SelectCandidateModal: React.FC<SelectPersonnelModalProps> = ({ isOpen, onC
     const fetchDanhSachDat = async () => {
         setIsLoading(true);
         try {
-            const res = await axiosClient.get('/passedCandidate'); 
+            const res = await axiosClient.get('/personnel/candidates');
             
             if (res.data.success) {
                 setDanhSachDat(res.data.data);
