@@ -12,7 +12,7 @@ import { NotificationPage } from './pages/NotificationPage'
 import { DepartmentPage } from './pages/DepartmentPage'
 import { AppointmentPage } from './pages/appointment'
 import AppointmentDetailView from './pages/appointment/AppointmentDetailView'
-import PersonnelProposalPage from './pages/PersonnelProposal'
+import PersonnelProposalPage from './pages/PersonnelProposal/index'
 // const Dashboard = () => <div className="p-10 text-2xl">Chào mừng bạn đến với Dashboard AGU!</div>
 
 // Chặn route nếu chưa có token
@@ -50,7 +50,7 @@ function App() {
           <Route path='plannings/:id' element={<PlanningDetailPage />}></Route>
           <Route path='appointments' element={<AppointmentPage />}></Route>
           <Route path="appointments/:id" element={<AppointmentDetailView />} />
-          <Route path='/personnel-proposals' element={<PersonnelProposalPage />}></Route>
+          <Route path='/personnel' element={<PersonnelProposalPage/>}></Route>
           <Route path='' element={<NotificationPage/>}></Route>
           <Route path='' element={<DepartmentPage />}></Route>
           <Route index element={<Navigate to="/dashboard" replace />} />
