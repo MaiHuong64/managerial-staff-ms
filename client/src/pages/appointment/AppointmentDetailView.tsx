@@ -121,7 +121,7 @@ export const AppointmentDetailView: React.FC = () => {
     const trangThaiInfo = STATE_MAP[batchInfo.trang_thai];
     const stepIndex = STEP_INDEX[selectedChucDanh?.buoc_hien_tai ?? 2] ?? 0;
     const canStartVoting = batchInfo.trang_thai === 1;
-    const canVote = batchInfo.trang_thai === 2 && selectedChucDanh !== null && [2, 3, 4, 5].includes(selectedChucDanh.buoc_hien_tai);
+    const canVote = [2, 3, 4, 5].includes(batchInfo.trang_thai) && selectedChucDanh !== null && [2, 3, 4, 5].includes(selectedChucDanh.buoc_hien_tai);
  
     const validCandidates   = candidates.filter(c => c.trang_thai === 1);
     const passedCandidates  = candidates.filter(c => c.trang_thai === 3);

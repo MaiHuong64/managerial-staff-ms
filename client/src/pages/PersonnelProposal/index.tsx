@@ -1,155 +1,165 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Tag, Card, Row, Col, Statistic, Modal, message } from 'antd';
+import { PlusOutlined, FileTextOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import axiosClient from '../../utils/AxiosClient';
+import SelectCandidateModal, { type PersonnelData } from './SelectedPersonnel';
+import CreatePhuongAnForm from './CreatePhuongAnForm';
 
-const CreatePhuongAnForm = ({ selectedPersonnel, onCancel, onSuccess }) => {
-    // State quản lý thông tin chung (Master)
-    const [thongTinChung, setThongTinChung] = useState({
-        ma_phuong_an: '',
-        so_to_trinh: '',
-        ngay_to_trinh: '',
-        ghi_chu: ''
-    });
+interface PhuongAn {
+    id: number;
+    ma_phuong_an: string;
+    so_to_trinh: string;
+    ngay_to_trinh: string;
+    ngay_lap: string;
+    trang_thai: number;
+    so_nhan_su: number;
+}
 
-    // State quản lý chi tiết nhân sự (Detail) - Khởi tạo từ danh sách đã chọn
-    const [chiTiet, setChiTiet] = useState(
-        selectedPersonnel.map(person => ({
-            chi_tiet_bn_id: person.chi_tiet_bn_id,
-            ho_va_ten: person.ho_va_ten, // Giữ lại để hiển thị UI
-            ten_chuc_danh: person.ten_chuc_danh, // Giữ lại để hiển thị UI
-            loai_phuong_an: 'Bổ nhiệm', // Default value
-            ghi_chu: ''
-        }))
-    );
+const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
+    1: { label: 'Đang soạn thảo', color: 'default' },
+    2: { label: 'Chờ phê duyệt', color: 'processing' },
+    3: { label: 'Đã phê duyệt', color: 'success' },
+    0: { label: 'Đã hủy', color: 'error' },
+};
 
-    const [isLoading, setIsLoading] = useState(false);
+const PersonnelProposalPage: React.FC = () => {
+    const [list, setList] = useState<PhuongAn[]>([]);
+    const [loading, setLoading] = useState(true);
+    
+    const [selectModalVisible, setSelectModalVisible] = useState(false);
+    const [createModalVisible, setCreateModalVisible] = useState(false);
 
-    // Hàm xử lý khi thay đổi thông tin chung
-    const handleMasterChange = (e) => {
-        const { name, value } = e.target;
-        setThongTinChung(prev => ({ ...prev, [name]: value }));
-    };
+    const [selectedPersonnel, setSelectedPersonnel] = useState<PersonnelData[]>([]);
 
-    // Hàm xử lý khi thay đổi chi tiết từng nhân sự (Loại PA hoặc Ghi chú)
-    const handleDetailChange = (index, field, value) => {
-        const newChiTiet = [...chiTiet];
-        newChiTiet[index][field] = value;
-        setChiTiet(newChiTiet);
-    };
-
-    // Hàm Submit gửi data xuống Backend
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        // Chuẩn bị payload đúng format yêu cầu của API
-        const payload = {
-            thong_tin_chung: thongTinChung,
-            chi_tiet: chiTiet.map(item => ({
-                chi_tiet_bn_id: item.chi_tiet_bn_id,
-                loai_phuong_an: item.loai_phuong_an,
-                ghi_chu: item.ghi_chu
-            }))
-        };
-
+    const fetchList = async () => {
         try {
-            const response = await fetch('/api/phuong-an-nhan-su', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                alert("Lập phương án thành công!");
-                if (onSuccess) onSuccess(); // Báo cho Component cha biết để đóng form/chuyển trang
-            } else {
-                alert("Lỗi: " + data.message);
-            }
-        } catch (error) {
-            console.error("Lỗi khi submit:", error);
-            alert("Có lỗi xảy ra khi kết nối đến máy chủ.");
+            setLoading(true);
+            const res = await axiosClient.get('/getAll');
+            setList(res.data.data || []);
+        } catch {
+            message.error('Không thể tải danh sách phương án');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
+    useEffect(() => { fetchList(); }, []);
+
+    const handleSelectDone = (personnel: PersonnelData[]) => {
+        setSelectedPersonnel(personnel); 
+        setSelectModalVisible(false);    
+        setCreateModalVisible(true);     
+    };
+
+    const cols = [
+        {
+            title: 'Mã phương án', dataIndex: 'ma_phuong_an', key: 'ma_phuong_an', width: 130,
+            render: (text: string) => <span className="font-mono font-semibold">{text}</span>,
+        },
+        {
+            title: 'Số tờ trình', dataIndex: 'so_to_trinh', key: 'so_to_trinh', width: 160,
+            render: (text: string) => text ?? '—',
+        },
+        {
+            title: 'Ngày lập', dataIndex: 'ngay_lap', key: 'ngay_lap', width: 120,
+            render: (text: string) => text
+                ? new Date(text).toLocaleDateString('vi-VN')
+                : '—',
+        },
+        {
+            title: 'Nhân sự', dataIndex: 'so_nhan_su', key: 'so_nhan_su', width: 100,
+            render: (n: number) => <Tag color="blue">{n} người</Tag>,
+        },
+        {
+            title: 'Trạng thái', dataIndex: 'trang_thai', key: 'trang_thai', width: 150,
+            render: (s: number) => {
+                const info = TRANG_THAI_MAP[s] ?? { label: '?', color: 'default' };
+                return <Tag color={info.color}>{info.label}</Tag>;
+            },
+        },
+        {
+            title: 'Thao tác', key: 'action', width: 100,
+            render: (_: unknown, record: PhuongAn) => (
+                <Button size="small" type="link">Xem chi tiết</Button>
+            ),
+        },
+    ];
+
+    const draftCount    = list.filter(p => p.trang_thai === 1).length;
+    const pendingCount  = list.filter(p => p.trang_thai === 2).length;
+    const approvedCount = list.filter(p => p.trang_thai === 3).length;
+
     return (
-        <form onSubmit={handleSubmit} className="p-4 bg-white rounded shadow-md">
-            <h2 className="text-xl font-bold mb-4">Lập Phương Án Nhân Sự Mới</h2>
+        <div className="p-6 bg-gray-50 min-h-screen space-y-5">
+            {/* Khối Thống kê (Giữ nguyên của bạn) */}
+            <Row gutter={16}>
+                <Col span={6}>
+                    <Card>
+                        <Statistic title="Tổng phương án" value={list.length} valueStyle={{ color: '#1890ff' }} prefix={<FileTextOutlined />} />
+                    </Card>
+                </Col>
+                <Col span={6}>
+                    <Card>
+                        <Statistic title="Đang soạn thảo" value={draftCount} valueStyle={{ color: '#888' }} prefix={<ClockCircleOutlined />} />
+                    </Card>
+                </Col>
+                <Col span={6}>
+                    <Card>
+                        <Statistic title="Chờ phê duyệt" value={pendingCount} valueStyle={{ color: '#1890ff' }} prefix={<ClockCircleOutlined />} />
+                    </Card>
+                </Col>
+                <Col span={6}>
+                    <Card>
+                        <Statistic title="Đã phê duyệt" value={approvedCount} valueStyle={{ color: '#52c41a' }} prefix={<CheckCircleOutlined />} />
+                    </Card>
+                </Col>
+            </Row>
 
-            {/* Khối Thông Tin Chung */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                    <label className="block text-sm font-medium mb-1">Mã phương án (*)</label>
-                    <input 
-                        required type="text" name="ma_phuong_an" 
-                        value={thongTinChung.ma_phuong_an} onChange={handleMasterChange}
-                        className="w-full border p-2 rounded" placeholder="VD: PA003"
-                    />
+            {/* Danh sách */}
+            <Card title={
+                <div className="flex items-center justify-between">
+                    <span className="font-semibold">Danh sách phương án nhân sự</span>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => setSelectModalVisible(true)}>
+                        Tạo phương án mới
+                    </Button>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1">Số tờ trình</label>
-                    <input 
-                        type="text" name="so_to_trinh" 
-                        value={thongTinChung.so_to_trinh} onChange={handleMasterChange}
-                        className="w-full border p-2 rounded" placeholder="VD: 18/TTr-ĐHAG"
-                    />
-                </div>
-                {/* Thêm input ngày tờ trình và ghi chú tương tự... */}
-            </div>
+            }>
+                <Table
+                    rowKey="id"
+                    columns={cols}
+                    dataSource={list}
+                    loading={loading}
+                    pagination={{ pageSize: 10 }}
+                />
+            </Card>
 
-            <hr className="my-4" />
+            <SelectCandidateModal
+                isOpen={selectModalVisible}
+                onClose={() => setSelectModalVisible(false)}
+                onConfirm={handleSelectDone}
+            />
 
-            {/* Khối Chi Tiết Nhân Sự */}
-            <h3 className="text-lg font-semibold mb-3">Danh sách nhân sự đưa vào phương án</h3>
-            <table className="w-full text-left border-collapse border border-gray-300 mb-6">
-                <thead className="bg-gray-100">
-                    <tr>
-                        <th className="border p-2">Họ và tên</th>
-                        <th className="border p-2">Chức danh</th>
-                        <th className="border p-2">Loại phương án (*)</th>
-                        <th className="border p-2">Ghi chú</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {chiTiet.map((person, index) => (
-                        <tr key={person.chi_tiet_bn_id}>
-                            <td className="border p-2 font-medium">{person.ho_va_ten}</td>
-                            <td className="border p-2">{person.ten_chuc_danh}</td>
-                            <td className="border p-2">
-                                <select 
-                                    className="border p-1 w-full"
-                                    value={person.loai_phuong_an}
-                                    onChange={(e) => handleDetailChange(index, 'loai_phuong_an', e.target.value)}
-                                >
-                                    <option value="Bổ nhiệm">Bổ nhiệm</option>
-                                    <option value="Bổ nhiệm lại">Bổ nhiệm lại</option>
-                                    <option value="Thôi chức vụ">Thôi chức vụ</option>
-                                    <option value="Thôi kiêm nhiệm">Thôi kiêm nhiệm</option>
-                                </select>
-                            </td>
-                            <td className="border p-2">
-                                <input 
-                                    type="text" className="w-full border p-1"
-                                    value={person.ghi_chu}
-                                    onChange={(e) => handleDetailChange(index, 'ghi_chu', e.target.value)}
-                                />
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-
-            {/* Buttons */}
-            <div className="flex justify-end gap-3">
-                <button type="button" onClick={onCancel} className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50">
-                    Hủy bỏ
-                </button>
-                <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
-                    {isLoading ? 'Đang lưu...' : 'Lưu Phương Án'}
-                </button>
-            </div>
-        </form>
+         
+            <Modal
+                title="Lập phương án nhân sự"
+                open={createModalVisible}
+                onCancel={() => setCreateModalVisible(false)}
+                width={900}
+                footer={null}
+                destroyOnClose
+            >
+          
+                <CreatePhuongAnForm
+                    selectedPersonnel={selectedPersonnel} 
+                    onCancel={() => setCreateModalVisible(false)}
+                    onSuccess={() => {
+                        setCreateModalVisible(false);
+                        fetchList(); 
+                    }}
+                />
+            </Modal>
+        </div>
     );
 };
 
-export default CreatePhuongAnForm;
+export default PersonnelProposalPage;

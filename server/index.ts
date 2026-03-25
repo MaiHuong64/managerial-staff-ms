@@ -7,7 +7,7 @@ import planningRouter from "./routes/planning"
 import departmentRouter from "./routes/department"
 import appointmentRouter from "./routes/appointment"
 import positionRouter from "./routes/position"
-// import personnelPlanRouer from './routes/personnelPlan'
+import personnelPlanRouer from './routes/personnelPlan'
 import dotenv from "dotenv";
 import cors from "cors";
 
@@ -25,6 +25,7 @@ app.use("/api/plannings", planningRouter)
 app.use("/api/departments", departmentRouter)
 app.use("/api/appointments", appointmentRouter)
 app.use("/api/positions", positionRouter)
+app.use("/api/personnel", personnelPlanRouer)
 
 pool.query("SELECT NOW()")
     .then(res => console.log("Database connected:", res.rows[0]))
