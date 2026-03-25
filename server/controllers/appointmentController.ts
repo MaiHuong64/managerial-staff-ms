@@ -56,7 +56,7 @@ const handleStep2 = async (client: any, data: VoteInput) => {
              ON CONFLICT (chi_tiet_bn_id, buoc_hoi_nghi)
              DO UPDATE SET
                 so_nguoi_trieu_tap = EXCLUDED.so_nguoi_trieu_tap,
-                so_nguoi_co_mat    = EXCLUDED.so_nguoi_co_mat`,
+                so_nguoi_co_mat = EXCLUDED.so_nguoi_co_mat`,
             [uv.chi_tiet_bn_id, data.buoc_hoi_nghi,
              data.so_nguoi_trieu_tap, data.so_nguoi_co_mat]
         );
@@ -355,37 +355,13 @@ export const getPlanningSrc = async (req: Request, res: Response) => {
 export const createBatch = async (req: Request, res: Response) => {
     const client = await pool.connect();
     try {
-        const { ma_dot_bo_nhiem, ten_dot_bo_nhiem, ngay_bat_dau, ngay_ket_thuc } = req.body;
-
-        if (!ma_dot_bo_nhiem || !ten_dot_bo_nhiem) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Thiếu thông tin bắt buộc: mã đợt bổ nhiệm, tên đợt bổ nhiệm" 
-            });
-        }
-
-        if (ma_dot_bo_nhiem.length > 6) {
-            return res.status(400).json({
-                success: false,
-                message: "Mã đợt bổ nhiệm không được vượt quá 6 ký tự"
-            });
-        }
+        const { ten_dot_bo_nhiem, ngay_bat_dau, ngay_ket_thuc } = req.body;
 
         await client.query('BEGIN');
 
-        const duplicateCheck = await client.query(
-            'SELECT id FROM dot_bo_nhiem WHERE ma_dot_bo_nhiem = $1',
-            [ma_dot_bo_nhiem]
-        );
-
-        if (duplicateCheck.rowCount && duplicateCheck.rowCount > 0) {
-            await client.query('ROLLBACK');
-            return res.status(400).json({
-                success: false,
-                message: "Mã đợt bổ nhiệm đã tồn tại!"
-            });
-        }
-
+        const result = await client.query(`SELECT COALESCE(MAX(id), 0) as max FROM dot_bo_nhiem`);
+        const nextId = Number(result.rows[0].max) + 1;
+        const batchId = nextId.toString().padStart(3, '0');
         const batchQuery = `
             INSERT INTO dot_bo_nhiem (ma_dot_bo_nhiem, ten_dot_bo_nhiem, ngay_bat_dau, ngay_ket_thuc, trang_thai)
             VALUES ($1, $2, $3, $4, 1)
@@ -393,7 +369,7 @@ export const createBatch = async (req: Request, res: Response) => {
         `;
         
         const batchResult = await client.query(batchQuery, [
-            ma_dot_bo_nhiem,
+            batchId,
             ten_dot_bo_nhiem,
             ngay_bat_dau || null,
             ngay_ket_thuc || null
@@ -597,11 +573,14 @@ export const addVoteResult = async (req: Request, res: Response) => {
 export const createBatchWithCandidates = async (req: Request, res: Response) => {
     const client = await pool.connect();
     try {
-        const { ma_dot_bo_nhiem, ten_dot_bo_nhiem, nguoi_lap,
+        const { ten_dot_bo_nhiem, nguoi_lap,
                 ngay_bat_dau, ngay_ket_thuc, chuc_danh_list } = req.body;
 
         await client.query("BEGIN");
 
+        const result = await client.query(`SELECT COALESCE(MAX(id), 0) as max FROM dot_bo_nhiem`);
+        const nextId = Number(result.rows[0].max) + 1;
+        const ma_dot_bo_nhiem = nextId.toString().padStart(3, '0');
         // Tạo đợt
         const batchRes = await client.query(
             `INSERT INTO dot_bo_nhiem 
@@ -650,7 +629,6 @@ export default {
     getPlanningSrc,
     addCandidate,
     removeCandidate,
-    createBatch,
     startVotingProcess,
     addVoteResult,
     getCandidates,
