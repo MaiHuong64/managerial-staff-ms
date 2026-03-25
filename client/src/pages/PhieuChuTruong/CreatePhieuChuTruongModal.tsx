@@ -1,4 +1,4 @@
-import { DatePicker, Form, Input, InputNumber, message, Modal, Select } from "antd";
+import { Form, Input, InputNumber, message, Modal, Select } from "antd";
 import { useEffect, useState } from "react";
 import axiosClient from "../../utils/AxiosClient";
 
@@ -11,19 +11,13 @@ interface Props {
 export const CreatePhieuChuTruongModal: React.FC<Props> = ({ isVisible, onCancel, onSuccess }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [chucDanhList, setChucDanhList] = useState<{id: number, ten_chuc_danh: string}[]>([]);
-    const [donViList, setDonViList]       = useState<{id: number, ten_don_vi: string}[]>([]);
+    const [chucDanhList, setChucDanhList] = useState<{ id: number; ten_chuc_danh: string }[]>([]);
 
-    // Load danh mục khi mở modal
     useEffect(() => {
         if (!isVisible) return;
         form.resetFields();
-        Promise.all([
-            axiosClient.get("/chuc-danh"),
-            axiosClient.get("/don-vi"),
-        ]).then(([cd, dv]) => {
-            setChucDanhList(cd.data.data);
-            setDonViList(dv.data.data);
+        axiosClient.get("/positions").then(res => {
+            setChucDanhList(res.data.data ?? []);
         });
     }, [isVisible]);
 
@@ -31,18 +25,11 @@ export const CreatePhieuChuTruongModal: React.FC<Props> = ({ isVisible, onCancel
         try {
             setLoading(true);
             const values = await form.validateFields();
-            await axiosClient.post("/pct", {
-                ...values,
-                ngay_lap: values.ngay_lap.format("YYYY-MM-DD"),
-            });
+            await axiosClient.post("/pct", values);
             message.success("Tạo phiếu chủ trương thành công!");
             onSuccess();
         } catch (error: any) {
-            const serverErrors = error?.response?.data?.errors;
-            if (serverErrors?.length)
-                serverErrors.forEach((e: string) => message.error(e));
-            else
-                message.error("Lỗi khi tạo phiếu chủ trương");
+            message.error(error?.response?.data?.message || "Lỗi khi tạo phiếu chủ trương");
         } finally {
             setLoading(false);
         }
@@ -57,68 +44,46 @@ export const CreatePhieuChuTruongModal: React.FC<Props> = ({ isVisible, onCancel
             confirmLoading={loading}
             okText="Gửi phiếu"
             cancelText="Hủy"
-            width={700}
+            width={680}
             style={{ top: 20 }}
         >
             <Form form={form} layout="vertical">
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                    <Form.Item label="Số văn bản" name="so_van_ban"
-                        rules={[{ required: true, message: "Nhập số văn bản!" }]}>
+                    <Form.Item label="Số tờ trình" name="so_to_trinh_chu_truong"
+                        rules={[{ required: true, message: "Nhập số tờ trình!" }]}>
                         <Input placeholder="VD: 12/TTr-ĐHCT" />
                     </Form.Item>
 
-                    <Form.Item label="Ngày lập" name="ngay_lap"
-                        rules={[{ required: true, message: "Chọn ngày lập!" }]}>
-                        <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-                    </Form.Item>
-
-                    <Form.Item label="Chức danh cần bổ nhiệm" name="chuc_danh_id"
+                    <Form.Item label="Chức danh đề xuất" name="chuc_danh_id"
                         rules={[{ required: true, message: "Chọn chức danh!" }]}>
-                        <Select placeholder="Chọn chức danh" showSearch
-                            optionFilterProp="children">
-                            {chucDanhList.map(cd => (
-                                <Select.Option key={cd.id} value={cd.id}>{cd.ten_chuc_danh}</Select.Option>
-                            ))}
-                        </Select>
+                        <Select placeholder="Chọn chức danh" showSearch optionFilterProp="label"
+                            options={chucDanhList.map(cd => ({ value: cd.id, label: cd.ten_chuc_danh }))} />
                     </Form.Item>
 
-                    <Form.Item label="Đơn vị" name="don_vi_id"
-                        rules={[{ required: true, message: "Chọn đơn vị!" }]}>
-                        <Select placeholder="Chọn đơn vị" showSearch
-                            optionFilterProp="children">
-                            {donViList.map(dv => (
-                                <Select.Option key={dv.id} value={dv.id}>{dv.ten_don_vi}</Select.Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-
-                    <Form.Item label="Số lượng cần bổ nhiệm" name="so_luong_de_xuat"
+                    <Form.Item label="Số lượng đề xuất" name="so_luong_de_xuat"
                         rules={[{ required: true, message: "Nhập số lượng!" }]}>
-                        <InputNumber min={1} style={{ width: "100%" }} placeholder="VD: 2" />
+                        <InputNumber min={1} style={{ width: "100%" }} placeholder="VD: 1" />
                     </Form.Item>
 
                     <Form.Item label="Nguồn nhân sự" name="nguon_nhan_su"
                         rules={[{ required: true, message: "Chọn nguồn nhân sự!" }]}>
-                        <Select placeholder="Chọn nguồn">
-                            <Select.Option value="tai_cho">Tại chỗ (trong quy hoạch)</Select.Option>
-                            <Select.Option value="noi_khac">Điều động từ nơi khác</Select.Option>
-                            <Select.Option value="ca_hai">Cả hai nguồn</Select.Option>
-                        </Select>
+                        <Select placeholder="Chọn nguồn" options={[
+                            { value: 1, label: "Tại chỗ (trong quy hoạch)" },
+                            { value: 2, label: "Điều động từ nơi khác" },
+                            { value: 3, label: "Cả hai nguồn" },
+                        ]} />
                     </Form.Item>
                 </div>
 
-                <Form.Item label="Sự cần thiết và mục đích bổ nhiệm" name="su_can_thiet"
-                    rules={[{ required: true, message: "Nêu rõ sự cần thiết!" },
-                            { min: 10, message: "Cần ít nhất 10 ký tự" }]}>
-                    <Input.TextArea rows={4}
-                        placeholder="Nêu rõ lý do, mục đích và sự cần thiết phải bổ nhiệm vị trí này..." />
+                <Form.Item label="Tiêu đề" name="tieu_de"
+                    rules={[{ required: true, message: "Nhập tiêu đề!" }]}>
+                    <Input placeholder="VD: Tờ trình đề xuất bổ nhiệm Trưởng khoa CNTT" />
                 </Form.Item>
 
-                <Form.Item label="Dự kiến phân công công tác" name="du_kien_phan_cong"
-                    rules={[{ required: true, message: "Nêu dự kiến phân công!" },
-                            { min: 10, message: "Cần ít nhất 10 ký tự" }]}>
+                <Form.Item label="Lý do đề xuất" name="ly_do_de_xuat"
+                    rules={[{ required: true, message: "Nêu lý do!" }, { min: 10, message: "Cần ít nhất 10 ký tự" }]}>
                     <Input.TextArea rows={4}
-                        placeholder="Mô tả chức trách, nhiệm vụ cụ thể sẽ giao cho nhân sự sau bổ nhiệm..." />
+                        placeholder="Nêu rõ lý do và sự cần thiết phải bổ nhiệm..." />
                 </Form.Item>
             </Form>
         </Modal>
