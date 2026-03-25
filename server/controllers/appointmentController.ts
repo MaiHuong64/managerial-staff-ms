@@ -170,10 +170,6 @@ const handleStep5 = async (client: any, data: VoteInput) => {
 
     return { nextState: 6 };
 };
-
-// ─── Controllers ──────────────────────────────────────────────────────────────
-
-// GET /appointments
 export const getAll = async (req: Request, res: Response) => {
     try {
         const result = await pool.query(
