@@ -8,13 +8,13 @@ import { StaffPage } from './pages/StaffListPage'
 import { PlanningPage} from './pages/Planning/index'
 import { PlanningDetailPage } from './pages/Planning/PlanningDetail'
 import { DashboardPage } from './pages/DashboardPage'
-import { NotificationPage } from './pages/NotificationPage'
-import { DepartmentPage } from './pages/DepartmentPage'
 import { AppointmentPage } from './pages/appointment'
 import AppointmentDetailView from './pages/appointment/AppointmentDetailView'
 import PersonnelProposalPage from './pages/PersonnelProposal/index'
-// const Dashboard = () => <div className="p-10 text-2xl">Chào mừng bạn đến với Dashboard AGU!</div>
-
+import PhieuChuTruongPage from './pages/PhieuChuTruong'
+import { NotificationPage } from './pages/NotificationPage'
+import { DepartmentPage } from './pages/DepartmentPage'
+import { ComingSoonPage } from './pages/ComingSoonPage'
 // Chặn route nếu chưa có token
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token')
@@ -51,8 +51,12 @@ function App() {
           <Route path='appointments' element={<AppointmentPage />}></Route>
           <Route path="appointments/:id" element={<AppointmentDetailView />} />
           <Route path='/personnel' element={<PersonnelProposalPage/>}></Route>
-          <Route path='' element={<NotificationPage/>}></Route>
-          <Route path='' element={<DepartmentPage />}></Route>
+          <Route path='/pct' element={<PhieuChuTruongPage/>}></Route>
+          <Route path='notification' element={<NotificationPage />} />
+          <Route path='don-vi' element={<DepartmentPage />} />
+          <Route path='approvePlanning' element={<ComingSoonPage title="Duyệt quy hoạch" />} />
+          <Route path='approveAppointment' element={<ComingSoonPage title="Duyệt bổ nhiệm" />} />
+          <Route path='chuc-danh' element={<ComingSoonPage title="Quản lý chức danh" />} />
           <Route index element={<Navigate to="/dashboard" replace />} />
         </Route>       
       </Routes>

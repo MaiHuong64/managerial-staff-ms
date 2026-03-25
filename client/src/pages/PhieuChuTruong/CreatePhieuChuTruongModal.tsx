@@ -31,7 +31,7 @@ export const CreatePhieuChuTruongModal: React.FC<Props> = ({ isVisible, onCancel
         try {
             setLoading(true);
             const values = await form.validateFields();
-            await axiosClient.post("/phieu-chu-truong", {
+            await axiosClient.post("/pct", {
                 ...values,
                 ngay_lap: values.ngay_lap.format("YYYY-MM-DD"),
             });

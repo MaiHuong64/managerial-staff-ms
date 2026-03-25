@@ -164,7 +164,7 @@ export const AppointmentPage: React.FC = () => {
     };
 
     return (
-        <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+        <div className="p-6 bg-gray-50 min-h-screen">
             {/* Header Statistics */}
             <Row gutter={16} style={{ marginBottom: '24px' }}>
                 <Col span={6}>
