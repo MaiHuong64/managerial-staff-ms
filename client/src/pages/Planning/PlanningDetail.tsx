@@ -70,7 +70,7 @@ export const PlanningDetailPage: React.FC = () => {
     ]
        
     return (
-        <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-5">
+        <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-6xl mx-auto space-y-6">
                 <Breadcrumb 
                     items={[ { title: <><HomeOutlined /> Dashboard</> },{ title: <span className="cursor-pointer hover:text-indigo-600" onClick={() => navigate('/plannings')}>Quy hoạch</span> },{ title: 'Chi tiết' },
