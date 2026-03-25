@@ -2,8 +2,8 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosClient from "../../utils/AxiosClient";
-import { Card, message, Spin, Steps, Table, Tag, Button, Alert, Row, Col, Statistic, Progress, Avatar, Empty} from "antd";
-import {  FormOutlined, PlayCircleOutlined, UserOutlined, HomeOutlined, CheckCircleOutlined, ExclamationCircleOutlined,FileTextOutlined, TeamOutlined
+import { Card, message, Spin, Steps, Table, Tag, Button, Alert, Row, Col, Statistic, Progress, Avatar, Empty, Select} from "antd";
+import {  FormOutlined, PlayCircleOutlined, UserOutlined, HomeOutlined, CheckCircleOutlined, ExclamationCircleOutlined,FileTextOutlined, TeamOutlined, PlusOutlined
 } from "@ant-design/icons";
 import VoteModal from "./VoteModal";
 import type { ChucDanh, DotBoNhiem, UngVien } from "../../types/ChiTietBoNhiem";
@@ -44,8 +44,40 @@ export const AppointmentDetailView: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [loadingCandidates, setLoadingCandidates] = useState(false);
     const [voteModalVisible, setVoteModalVisible] = useState(false);
+    const [allStaff, setAllStaff] = useState<{ id: number; ho_va_ten: string; ma_vien_chuc: string | null }[]>([]);
+    const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
+    const [addingCandidate, setAddingCandidate] = useState(false);
  
  
+    const fetchAllStaff = async () => {
+        try {
+            const res = await axiosClient.get("/staffs");
+            setAllStaff(res.data?.data ?? res.data ?? []);
+        } catch {
+            // silently fail — not critical
+        }
+    };
+
+    const handleAddCandidate = async () => {
+        if (!selectedStaffId || !selectedChucDanh) return;
+        try {
+            setAddingCandidate(true);
+            await axiosClient.post(`/appointments/${selectedChucDanh.chi_tiet_dot_id}/candidates`, {
+                vien_chuc_id: selectedStaffId,
+                ly_do_vao: "Nguồn bên ngoài",
+                chi_tiet_qh_id: null,
+            });
+            message.success("Đã thêm ứng viên thành công");
+            setSelectedStaffId(null);
+            fetchCandidates(selectedChucDanh.chi_tiet_dot_id);
+            fetchDetail(selectedChucDanh.chi_tiet_dot_id);
+        } catch (err: any) {
+            message.error(err?.response?.data?.message ?? "Không thể thêm ứng viên");
+        } finally {
+            setAddingCandidate(false);
+        }
+    };
+
     const fetchDetail = async (keepSelectedPositonId?: number) => {
         try {
             setLoading(true);
@@ -106,7 +138,10 @@ export const AppointmentDetailView: React.FC = () => {
     };
  
     useEffect(() => {
-        if (id) fetchDetail();
+        if (id) {
+            fetchDetail();
+            fetchAllStaff();
+        }
     }, [id]);
  
     if (loading) return (
@@ -336,8 +371,36 @@ export const AppointmentDetailView: React.FC = () => {
                                 )}
                             </span>
                         </div>
-                        <div className="flex gap-2">
-                            {canStartVoting && (    
+                        <div className="flex gap-2 items-center flex-wrap">
+                            {canStartVoting && selectedChucDanh && (
+                                <>
+                                    <Select
+                                        showSearch
+                                        allowClear
+                                        placeholder="Chọn viên chức để thêm..."
+                                        style={{ minWidth: 240 }}
+                                        value={selectedStaffId}
+                                        onChange={setSelectedStaffId}
+                                        optionFilterProp="label"
+                                        options={allStaff
+                                            .filter(s => !candidates.some(c => c.vien_chuc_id === s.id))
+                                            .map(s => ({
+                                                value: s.id,
+                                                label: `${s.ma_vien_chuc ?? "—"} · ${s.ho_va_ten}`,
+                                            }))}
+                                    />
+                                    <Button
+                                        type="default"
+                                        icon={<PlusOutlined />}
+                                        loading={addingCandidate}
+                                        disabled={!selectedStaffId}
+                                        onClick={handleAddCandidate}
+                                    >
+                                        Thêm ứng viên
+                                    </Button>
+                                </>
+                            )}
+                            {canStartVoting && (
                                 <Button type="primary" icon={<PlayCircleOutlined />}
                                     onClick={handleStartVoting}
                                     disabled={totalAllChucDanh === 0}>

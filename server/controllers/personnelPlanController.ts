@@ -84,4 +84,92 @@ export const CreatePANS = async (req: Request, res: Response) => {
         client.release();
     }
 }
-export default { getPassedCandidate, getAll, CreatePANS };
+export const getById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const masterResult = await pool.query(
+            `SELECT * FROM phuong_an_nhan_su WHERE id = $1`,
+            [id]
+        );
+        if (masterResult.rows.length === 0)
+            return res.status(404).json({ success: false, message: "Không tìm thấy phương án" });
+
+        const detailResult = await pool.query(
+            `SELECT
+                ctpa.id AS chi_tiet_pa_id, ctpa.loai_phuong_an, ctpa.ghi_chu, ctpa.trang_thai, ctpa.chi_tiet_bn_id,
+                vc.ho_va_ten, vc.ma_vien_chuc,
+                cd.ten_chuc_danh,
+                dv.ten_don_vi
+             FROM chi_tiet_phuong_an ctpa
+             JOIN chi_tiet_bo_nhiem ctbn ON ctbn.id = ctpa.chi_tiet_bn_id
+             JOIN vien_chuc vc ON vc.id = ctbn.vien_chuc_id
+             JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
+             JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
+             JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+             JOIN don_vi dv ON dv.id = vc.don_vi_id
+             WHERE ctpa.phuong_an_id = $1
+             ORDER BY ctpa.id`,
+            [id]
+        );
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                ...masterResult.rows[0],
+                chi_tiet: detailResult.rows,
+            },
+        });
+    } catch (error) {
+        console.error("Lỗi getById PANS:", error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+};
+
+export const submitPANS = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { vai_tro } = (req as any).user;
+
+        if (vai_tro !== 'PTCCT')
+            return res.status(403).json({ success: false, message: "Chỉ PTCCT mới có quyền trình phương án" });
+
+        const result = await pool.query(
+            `UPDATE phuong_an_nhan_su SET trang_thai = 2 WHERE id = $1 AND trang_thai = 1 RETURNING *`,
+            [id]
+        );
+        if (result.rows.length === 0)
+            return res.status(404).json({ success: false, message: "Không tìm thấy hoặc phương án không ở trạng thái soạn thảo" });
+
+        return res.status(200).json({ success: true, message: "Đã trình BGH thành công", data: result.rows[0] });
+    } catch (error) {
+        console.error("Lỗi submitPANS:", error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+};
+
+export const approvePANS = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { trang_thai, y_kien_bgh } = req.body;
+        // trang_thai: 3 = duyệt, 0 = từ chối/hủy
+
+        const result = await pool.query(
+            `UPDATE phuong_an_nhan_su
+             SET trang_thai = $1,
+                 y_kien_bgh = $2,
+                 ngay_phe_duyet = $3
+             WHERE id = $4 AND trang_thai = 2 RETURNING *`,
+            [trang_thai, y_kien_bgh || null, new Date(), id]
+        );
+        if (result.rows.length === 0)
+            return res.status(404).json({ success: false, message: "Không tìm thấy hoặc phương án chưa được trình duyệt" });
+
+        return res.status(200).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+        console.error("Lỗi approvePANS:", error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+};
+
+export default { getPassedCandidate, getAll, CreatePANS, getById, submitPANS, approvePANS };

@@ -11,6 +11,8 @@ import { DashboardPage } from './pages/DashboardPage'
 import { AppointmentPage } from './pages/appointment'
 import AppointmentDetailView from './pages/appointment/AppointmentDetailView'
 import PersonnelProposalPage from './pages/PersonnelProposal/index'
+import PersonnelPlanDetailPage from './pages/PersonnelProposal/DetailPage'
+import ApprovePhuongAnPage from './pages/ApprovePhuongAn/index'
 import PhieuChuTruongPage from './pages/PhieuChuTruong'
 import { NotificationPage } from './pages/NotificationPage'
 import { DepartmentPage } from './pages/DepartmentPage'
@@ -51,10 +53,11 @@ function App() {
           <Route path='appointments' element={<AppointmentPage />}></Route>
           <Route path="appointments/:id" element={<AppointmentDetailView />} />
           <Route path='/personnel' element={<PersonnelProposalPage/>}></Route>
+          <Route path='/personnel/:id' element={<PersonnelPlanDetailPage />}></Route>
           <Route path='/pct' element={<PhieuChuTruongPage/>}></Route>
           <Route path='notification' element={<NotificationPage />} />
           <Route path='don-vi' element={<DepartmentPage />} />
-          <Route path='approvePlanning' element={<ComingSoonPage title="Duyệt quy hoạch" />} />
+          <Route path='approvePlanning' element={<ApprovePhuongAnPage />} />
           <Route path='approveAppointment' element={<ComingSoonPage title="Duyệt bổ nhiệm" />} />
           <Route path='chuc-danh' element={<ComingSoonPage title="Quản lý chức danh" />} />
           <Route index element={<Navigate to="/dashboard" replace />} />
