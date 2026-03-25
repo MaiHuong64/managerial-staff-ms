@@ -36,19 +36,19 @@ const pctController = {
             const nguoi_lap = (req as any).user.ho_va_ten;
             const {so_to_trinh_chu_truong, tieu_de, ly_do_de_xuat, so_luong_de_xuat,
                     nguon_nhan_su, dot_quy_hoach_id, chuc_danh_id} = req.body;
-
+            
             if(vai_tro !== 'VCQL')
                 return res.status(403).json({ success: false, message: "Không có quyền tạo phiếu" });
-
+    
             const seqResult = await pool.query(`SELECT COALESCE(MAX(id), 0) as max FROM phieu_chu_truong`);
             const ma_phieu = 'PCT' + (Number(seqResult.rows[0].max) + 1).toString().padStart(3, '0');
 
             const query = `INSERT INTO phieu_chu_truong (ma_phieu, so_to_trinh_chu_truong, tieu_de, ly_do_de_xuat,
-                            so_luong_de_xuat, nguon_nhan_su, dot_quy_hoach_id,
-                            chuc_danh_id, don_vi_id, nguoi_lap, trang_thai)
+                                so_luong_de_xuat, nguon_nhan_su, dot_quy_hoach_id,
+                            chuc_danh_id, don_vi_id, nguoi_lap, trang_thai) 
                             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`;
             const result = await pool.query(query, [ma_phieu, so_to_trinh_chu_truong, tieu_de, ly_do_de_xuat, so_luong_de_xuat, nguon_nhan_su, dot_quy_hoach_id ?? null, chuc_danh_id, don_vi_id, nguoi_lap, 0]);
-
+            
             if (result.rows[0])
                 return res.status(201).json(result.rows[0]);
             else
