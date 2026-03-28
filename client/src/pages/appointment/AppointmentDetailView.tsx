@@ -134,7 +134,6 @@ export const AppointmentDetailView: React.FC = () => {
  
     const handleVoteSuccess = async () => {
         await fetchDetail(selectedChucDanh?.chi_tiet_dot_id);
-        message.success("Ghi nhận kết quả bỏ phiếu thành công!");
     };
  
     useEffect(() => {

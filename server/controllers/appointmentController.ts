@@ -550,20 +550,26 @@ export const addVoteResult = async (req: Request, res: Response) => {
         }
 
         // Kiểm tra đợt bổ nhiệm này hoàn thành chưa.
-        // Một phiếu được coi là "xong" khi buoc_hien_tai = 6 (thành công) HOẶC = 0 (thất bại/đóng).
-        // Đợt hoàn thành khi KHÔNG còn phiếu nào đang ở bước 2–5 (đang xử lý).
+        // Đợt "xong" khi không còn chức danh nào đang ở bước 2–5 (đang xử lý).
+        // Nếu tất cả đều ở bước 6 → Hoàn thành (6). Nếu có ít nhất 1 bước 0 (dừng) → Đã dừng (0).
         const checkDoneQuery = `
-            SELECT COUNT(*) FILTER (WHERE buoc_hien_tai BETWEEN 2 AND 5) AS dang_xu_ly
+            SELECT
+                COUNT(*) FILTER (WHERE buoc_hien_tai BETWEEN 2 AND 5) AS dang_xu_ly,
+                COUNT(*) FILTER (WHERE buoc_hien_tai = 0) AS so_dung
             FROM chi_tiet_dot_bo_nhiem
             WHERE dot_bo_nhiem_id = $1`;
         const allDone = await client.query(checkDoneQuery, [dot_bo_nhiem_id]);
         const checkAllPosition = Number(allDone.rows[0].dang_xu_ly) === 0;
-        if(checkAllPosition){
-            await client.query(`UPDATE dot_bo_nhiem SET trang_thai = 6 WHERE id = $1`, [dot_bo_nhiem_id]);
+        if (checkAllPosition) {
+            const hasStopped = Number(allDone.rows[0].so_dung) > 0;
+            await client.query(
+                `UPDATE dot_bo_nhiem SET trang_thai = $1 WHERE id = $2`,
+                [hasStopped ? 0 : 6, dot_bo_nhiem_id]
+            );
         }
 
         await client.query("COMMIT");
-        return res.json({success: true});
+        return res.json({ success: true, message: "Ghi nhận kết quả thành công!" });
     } catch (err: unknown) {
         await client.query("ROLLBACK");
         const error = err as Error;

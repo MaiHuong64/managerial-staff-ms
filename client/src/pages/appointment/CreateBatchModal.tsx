@@ -30,6 +30,7 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
     
     // State lưu cấu trúc Đợt bổ nhiệm đang tạo
     const [chucDanhList, setChucDanhList] = useState<ChucDanhItem[]>([]);
+    const [addingPct, setAddingPct] = useState(false);
 
     // Fetch dữ liệu Master (Chỉ lấy Viên chức, Đơn vị, Chức danh)
     useEffect(() => {
@@ -80,6 +81,42 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
                 }],
             };
         }));
+    };
+
+    const handleAddPct = async () => {
+        const pct = pctList.find(p => p.id === selectedPctId);
+        if (!pct) return;
+
+        setAddingPct(true);
+        try {
+            const res = await axiosClient.get(`/appointments/planning-candidates?chuc_danh_id=${pct.chuc_danh_id}`);
+            const planningCandidates: VienChuc[] = res.data?.data ?? [];
+
+            setChucDanhList(prev => [...prev, {
+                tempId: `pct-${Date.now()}`,
+                loai: "pct",
+                pct_id: pct.id,
+                ten_chuc_danh: pct.ten_chuc_danh,
+                ten_don_vi: pct.ten_don_vi,
+                chuc_danh_id: pct.chuc_danh_id,
+                ung_vien: planningCandidates.map(vc => ({
+                    vien_chuc_id: vc.id,
+                    ma_vien_chuc: vc.ma_vien_chuc,
+                    ho_va_ten: vc.ho_va_ten,
+                    ten_don_vi: vc.ten_don_vi,
+                    chi_tiet_qh_id: vc.chi_tiet_qh_id,
+                    nguon: "quy_hoach" as const,
+                })),
+            }]);
+            setSelectedPctId(null);
+
+            if (planningCandidates.length === 0)
+                message.info("Chức danh này chưa có ứng viên quy hoạch, vui lòng thêm thủ công.");
+        } catch {
+            message.error("Lỗi khi tải danh sách ứng viên quy hoạch");
+        } finally {
+            setAddingPct(false);
+        }
     };
 
     const handleRemoveUngVien = (tempId: string, vcId: number) => {
@@ -183,20 +220,8 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
                                 icon={<PlusOutlined />}
                                 className="w-full mt-3"
                                 disabled={!selectedPctId}
-                                onClick={() => {
-                                    const pct = pctList.find(p => p.id === selectedPctId);
-                                    if (!pct) return;
-                                    setChucDanhList(prev => [...prev, {
-                                        tempId: `pct-${Date.now()}`,
-                                        loai: "pct",
-                                        pct_id: pct.id,
-                                        ten_chuc_danh: pct.ten_chuc_danh,
-                                        ten_don_vi: pct.ten_don_vi,
-                                        chuc_danh_id: pct.chuc_danh_id,
-                                        ung_vien: [],
-                                    }]);
-                                    setSelectedPctId(null);
-                                }}
+                                loading={addingPct}
+                                onClick={handleAddPct}
                             >
                                 Đưa vào danh sách đợt
                             </Button>
@@ -237,6 +262,7 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
                                                             <div className="text-sm font-semibold">{uv.ho_va_ten}</div>
                                                             <div className="text-xs text-gray-500">{uv.ten_don_vi}</div>
                                                         </div>
+                                                        {uv.nguon === "quy_hoach" && <Tag color="green" className="text-xs m-0">Quy hoạch</Tag>}
                                                     </div>
                                                     <Button type="text" danger size="small" icon={<DeleteOutlined />}
                                                         onClick={() => handleRemoveUngVien(cd.tempId, uv.vien_chuc_id)} />

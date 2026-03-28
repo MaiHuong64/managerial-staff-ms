@@ -5,6 +5,7 @@ import { Breadcrumb, Button, Table } from "antd";
 import type { ChiTietQuyHoach } from "../../types/ChiTietQuyHoach";
 import type { ColumnsType } from 'antd/es/table';
 import {HomeOutlined, PlusOutlined} from '@ant-design/icons';
+import { AddStaffsModal } from "./AddStaffsModal";
 
 export const PlanningDetailPage: React.FC = () => {
     const {id} = useParams();
@@ -12,9 +13,9 @@ export const PlanningDetailPage: React.FC = () => {
     const [planning, setPlanning] = useState<ChiTietQuyHoach | null>(null);
     const [, setLoading] = useState(true);
     const navigate = useNavigate();
+    const [addModalOpen, setAddModalOpen] = useState(false);
    
-    useEffect( () => {
-        const fetchData = async () => {
+    const fetchData = async () => {
             try {
                 const result = await axiosClient.get(`/plannings/${id}`)
                 const {planning, staff} = result.data;
@@ -25,6 +26,8 @@ export const PlanningDetailPage: React.FC = () => {
             }
             finally {(setLoading(false))};
         }
+
+    useEffect( () => {
         fetchData();
     }, [id])
 
@@ -61,10 +64,10 @@ export const PlanningDetailPage: React.FC = () => {
         title: "Trạng thái",
         key: "trang_thai",
         render: (_, record) =>
-            record.trang_thai ? (
-            <span className="text-red-500">Đã ra khỏi QH</span>
-            ) : (
+            record.trang_thai === 1 ? (
             <span className="text-green-600">Đang quy hoạch</span>
+            ) : (
+            <span className="text-red-500">Đã ra khỏi QH</span>
             )
         }
     ]
@@ -109,23 +112,30 @@ export const PlanningDetailPage: React.FC = () => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-lg font-bold text-gray-800">Danh sách viên chức trong quy hoạch</h2>
-                        <Button 
-                            type="primary" 
-                            icon={<PlusOutlined />} 
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={() => setAddModalOpen(true)}
                             className="bg-indigo-600 hover:bg-indigo-700 rounded-xl h-10 px-5 font-medium shadow-md shadow-indigo-100">Thêm nguồn nhân sự
                         </Button>
                     </div>
 
-                    <Table 
-                        dataSource={staffList} 
-                        columns={columns} 
-                        rowKey="id" 
-                        pagination={false} // tắt phân trang 
+                    <Table
+                        dataSource={staffList}
+                        columns={columns}
+                        rowKey="id"
+                        pagination={false}
                         className="[&_.ant-table-thead_th]:bg-gray-50/70 [&_.ant-table-thead_th]:text-gray-500 [&_.ant-table-thead_th]:font-semibold [&_.ant-table-thead_th]:text-xs [&_.ant-table-thead_th]:uppercase"
                     />
-                    
                 </div>
             </div>
+
+            <AddStaffsModal
+                open={addModalOpen}
+                onClose={() => setAddModalOpen(false)}
+                onSuccess={() => { setAddModalOpen(false); fetchData(); }}
+                dotQuyHoachId={Number(id)}
+            />
         </div>
     )
 }
