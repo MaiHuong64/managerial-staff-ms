@@ -11,7 +11,7 @@ const Login: React.FC = () => {
         {/* Cột trái – ảnh */}
         <div className="hidden md:flex bg-[#eef2ff] flex-col items-center justify-center p-12 gap-2 border-r border-indigo-50">
           <img
-            src="https://i.pinimg.com/736x/d8/5f/83/d85f83b18bad6afadadbed8b9fae052d.jpg"
+            src="https://i.pinimg.com/736x/f4/2a/e7/f42ae7973f0457ebeb251d8cc70a601e.jpg"
             alt="AGU"
             className="w-full h-full object-cover"
           />
