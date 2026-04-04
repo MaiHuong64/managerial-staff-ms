@@ -3,10 +3,16 @@ import { AddPlanningBatchDetailDTO, CreatePlanningBatchDTO } from "./dotQuyHoach
 
 export const getNextBatchCode = async (client: any) => {
     const result = await client.query(
-        `SELECT COALESCE(MAX(id), 0) as max FROM dot_quy_hoach`
+        `SELECT COALESCE(MAX(id), 0) AS max FROM dot_quy_hoach`
     )
-    const nextId = Number(result.rows[0].max) + 1
-    return 'DQY' + nextId.toString().padStart(3, '0');
+    const nextId = Number(result.rows[0].max) + 1;
+    return 'DQH' + nextId.toString().padStart(3, '0');
+}
+export const getPlanningById = async (id: number) => {
+    const result = await pool.query(
+        `SELECT * FROM dot_quy_hoach WHERE id = $1`, [id]
+    );
+    return result.rows[0] ?? null;
 }
 export const getAllPlanning = async () => {
     const result = await pool.query(
@@ -28,37 +34,10 @@ export const getDetail = async (id: number) => {
         JOIN chuc_danh_quan_ly cd ON cd.id = ct.chuc_danh_id
         JOIN don_vi dv  ON dv.id = ct.don_vi_id
         WHERE ct.dot_quy_hoach_id = $1
-        ORDER BY dv.id, cd.id, vc.id;`
+        ORDER BY dv.id, cd.id, vc.id`,
+        [id]
     )
-    const grouped = result.rows.reduce((acc: any, row: any) => {
-        const dvKey = row.don_vi_id;
-        const cdKey = row.chuc_danh_id;
-
-        if (!acc[dvKey]) {
-            acc[dvKey] = {
-                don_vi_id: row.don_vi_id,
-                ten_don_vi: row.ten_don_vi,
-                chuc_danh_list: {}
-            };
-        }
-
-        if (!acc[dvKey].chuc_danh_list[cdKey]) {
-            acc[dvKey].chuc_danh_list[cdKey] = {
-                chuc_danh_id: row.chuc_danh_id,
-                ten_chuc_danh: row.ten_chuc_danh,
-                vien_chuc_list: []
-            };
-        }
-
-        acc[dvKey].chuc_danh_list[cdKey].vien_chuc_list.push(row);
-
-        return acc;
-    }, {});
-
-    return Object.values(grouped).map((dv: any) => ({
-        ...dv,
-        chuc_danh_list: Object.values(dv.chuc_danh_list)
-    }));
+    return result.rows;
 }
 
 export const insertPlanningBatch = async (client: any, payload: CreatePlanningBatchDTO) => {
@@ -89,6 +68,17 @@ export const getCandidatesByChucDanhId = async (chucDanhId: number) => {
         JOIN don_vi dv ON dv.id = ctqh.don_vi_id
         WHERE ctqh.chuc_danh_id = $1 AND ctqh.trang_thai = 1
         `, [chucDanhId]
+    )
+    return result.rows;
+}
+
+export const filterCandidates = async (donViId: number,  trinhDoChuyenMon: string, dotQuyHoachId: number) => {
+    const result = await pool.query(
+        `select id, ma_vien_chuc, ho_va_ten, trinh_do_chuyen_mon
+        from vien_chuc
+        where trinh_do_chuyen_mon = $1 and don_vi_id = $2 and id not in 
+        (select vien_chuc_id from chi_tiet_quy_hoach where dot_quy_hoach_id = $3 and trang_thai = $4)
+        `, [trinhDoChuyenMon, donViId, dotQuyHoachId, 1]
     )
     return result.rows;
 }

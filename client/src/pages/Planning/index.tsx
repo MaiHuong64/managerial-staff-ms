@@ -22,7 +22,9 @@ export const PlanningPage: React.FC = () => {
         setLoading(true);
         try {
             const res = await getDotQuyHoachList();
-            setPlanningList(res.data.data);
+            setPlanningList(res.data.data); 
+            console.log(res.data.data);
+            
         } catch (err) {
             console.error(err);
         } finally {

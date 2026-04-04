@@ -1,6 +1,7 @@
 import { Form, message, Modal, Input, Select, InputNumber, Button } from "antd";
 import type { DotQuyHoach } from "../../types/QuyHoach";
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { createDotQuyHoach } from "../../api/dotQuyHoach.api";
 
 interface PlanningModalProps {
@@ -11,7 +12,7 @@ interface PlanningModalProps {
 
 export const PlanningModal: React.FC<PlanningModalProps> = ({open, onClose, onSuccess}) => {
     const [form] = Form.useForm();
-
+    const navigate = useNavigate();
     useEffect( () => {
         form.resetFields();
         form.setFieldsValue({nam_thuc_hien: new Date().getFullYear()});
@@ -19,12 +20,12 @@ export const PlanningModal: React.FC<PlanningModalProps> = ({open, onClose, onSu
 
     const handleFinish = async (values: Partial<DotQuyHoach>) => {
         try {
-            await createDotQuyHoach(values);
+            const response = await createDotQuyHoach(values);
             message.success("Tạo đợt quy hoạch thành công");
-            
             form.resetFields();
             onSuccess();
             onClose();
+            navigate(`/dot-quy-hoach/${response.data.data.id}`);
         } catch (error) {
             console.error(error);
             message.error('Có lỗi xảy ra, vui lòng thử lại!');
