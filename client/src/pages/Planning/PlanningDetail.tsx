@@ -1,131 +1,213 @@
-import {useEffect, useState } from "react";
-import {useNavigate, useParams } from "react-router-dom";
-import axiosClient from "../../utils/AxiosClient";
-import { Breadcrumb, Button, Table } from "antd";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button, Table, Tag, Spin } from "antd";
 import type { ChiTietQuyHoach } from "../../types/ChiTietQuyHoach";
-import type { ColumnsType } from 'antd/es/table';
-import {HomeOutlined, PlusOutlined} from '@ant-design/icons';
+import type { ColumnsType } from "antd/es/table";
+import {
+    ArrowLeftOutlined, PlusOutlined, TeamOutlined,
+    CheckCircleOutlined, UserOutlined, HomeOutlined,
+} from "@ant-design/icons";
 import { AddStaffsModal } from "./AddStaffsModal";
+import { getDotQuyHoachDetailById } from "../../api/dotQuyHoach.api";
+import { StatCard } from "../../components/common/StatCard";
+
+const formatDate = (date: string) =>
+    date ? new Date(date).toLocaleDateString("vi-VN") : "—";
+
+const InfoField = ({ label, value }: { label: string; value: React.ReactNode }) => (
+    <div>
+        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">{label}</div>
+        <div className="text-sm font-medium text-slate-800">{value ?? <span className="text-slate-300">—</span>}</div>
+    </div>
+);
 
 export const PlanningDetailPage: React.FC = () => {
-    const {id} = useParams();
+    const { id }    = useParams();
+    const navigate  = useNavigate();
+
     const [staffList, setStaffList] = useState<ChiTietQuyHoach[]>([]);
-    const [planning, setPlanning] = useState<ChiTietQuyHoach | null>(null);
-    const [, setLoading] = useState(true);
-    const navigate = useNavigate();
+    const [planning, setPlanning]   = useState<ChiTietQuyHoach | null>(null);
+    const [loading, setLoading]     = useState(true);
     const [addModalOpen, setAddModalOpen] = useState(false);
-   
+
     const fetchData = async () => {
-            try {
-                const result = await axiosClient.get(`/plannings/${id}`)
-                const {planning, staff} = result.data;
-                setPlanning(planning);
-                setStaffList(staff);
-            } catch (error) {
-                console.log(error);
-            }
-            finally {(setLoading(false))};
+        setLoading(true);
+        try {
+            const result = await getDotQuyHoachDetailById(Number(id));
+            const { planning, staff } = result.data;
+            setPlanning(planning);
+            setStaffList(staff);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
         }
+    };
 
-    useEffect( () => {
-        fetchData();
-    }, [id])
+    useEffect(() => { fetchData(); }, [id]);
 
-    const formatDate = ((date: string) => date?new Date(date).toLocaleDateString("vi-VN") :"-")
+    const stats = useMemo(() => ({
+        total:     staffList.length,
+        active:    staffList.filter(s => s.trang_thai === 1).length,
+        exited:    staffList.filter(s => s.trang_thai !== 1).length,
+    }), [staffList]);
 
-    if(!staffList) return;
-    if(!planning)  return <div>Loading...</div>;
-    const columns: ColumnsType<ChiTietQuyHoach> = [{
-        title: 'Tên viên chức',
-        dataIndex: 'ho_va_ten'
-    },
-    {
-        title: 'Tên đơn vị',
-        dataIndex: 'ten_don_vi'
-        // render: (text) => <span className="text-gray-600">{text}</span>
-    },
-    {
-        title: 'Ngày vào quy hoạch',
-        dataIndex: 'ngay_vao_qh',
-        align: 'center',
-        render: (val:string) => val? formatDate(val): "-"
-    },
-    {
-        title: 'Ngày ra khỏi quy hoạch',
-        dataIndex: 'ngay_ra_khoi_qh',
-        render: (val:string) => val? formatDate(val):" - "
-    },
-    {
-        title: 'Lý do ra',
-        dataIndex: 'ly_do_ra_khoi_quy_hoach',
-        align: 'center',
-    },
-    {
-        title: "Trạng thái",
-        key: "trang_thai",
-        render: (_, record) =>
-            record.trang_thai === 1 ? (
-            <span className="text-green-600">Đang quy hoạch</span>
-            ) : (
-            <span className="text-red-500">Đã ra khỏi QH</span>
-            )
-        }
-    ]
-       
+    const columns: ColumnsType<ChiTietQuyHoach> = [
+        {
+            title: "Viên chức",
+            key: "vc",
+            render: (_, r) => (
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                        <UserOutlined className="text-indigo-600 text-xs" />
+                    </div>
+                    <div>
+                        <div className="font-semibold text-slate-800 text-sm">{r.ho_va_ten}</div>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            title: "Đơn vị",
+            dataIndex: "ten_don_vi",
+            render: (val: string) => (
+                <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                    <HomeOutlined className="text-slate-300 text-xs" />
+                    {val}
+                </div>
+            ),
+        },
+        {
+            title: "Ngày vào QH",
+            dataIndex: "ngay_vao_qh",
+            width: 130,
+            align: "center",
+            render: (val: string) => (
+                <span className="text-sm text-slate-600">{val ? formatDate(val) : "—"}</span>
+            ),
+        },
+        {
+            title: "Ngày ra khỏi QH",
+            dataIndex: "ngay_ra_khoi_qh",
+            width: 150,
+            align: "center",
+            render: (val: string) => (
+                <span className="text-sm text-slate-400">{val ? formatDate(val) : "—"}</span>
+            ),
+        },
+        {
+            title: "Lý do ra",
+            dataIndex: "ly_do_ra_khoi_quy_hoach",
+            render: (val: string) => val
+                ? <span className="text-sm text-slate-600">{val}</span>
+                : <span className="text-slate-300 text-xs italic">—</span>,
+        },
+        {
+            title: "Trạng thái",
+            key: "trang_thai",
+            width: 140,
+            render: (_, r) => r.trang_thai === 1
+                ? <Tag color="green"  className="rounded-full px-3 text-xs border-0">Đang quy hoạch</Tag>
+                : <Tag color="default" className="rounded-full px-3 text-xs border-0">Đã ra khỏi QH</Tag>,
+        },
+    ];
+
+    if (loading) return (
+        <div className="flex justify-center items-center min-h-screen bg-slate-50">
+            <Spin size="large" />
+        </div>
+    );
+    if (!planning) return (
+        <div className="flex justify-center items-center min-h-screen text-red-500">Không tìm thấy dữ liệu</div>
+    );
+
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-6xl mx-auto space-y-6">
-                <Breadcrumb 
-                    items={[ { title: <><HomeOutlined /> Dashboard</> },{ title: <span className="cursor-pointer hover:text-indigo-600" onClick={() => navigate('/plannings')}>Quy hoạch</span> },{ title: 'Chi tiết' },
-                    ]}
-                    className="text-sm font-medium"
-                />
+        <div className="min-h-screen bg-slate-50">
 
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h1 className="text-2xl font-bold text-slate-800 mb-6 border-b border-gray-200 pb-4">
-                        {planning.ten_quy_hoach || 'Chi tiết quy hoạch'}
-                    </h1>
+            {/* ── Sticky header ─────────────────────────── */}
+            <div className="bg-white border-b border-slate-100 px-6 py-4 sticky top-14 z-30 shadow-sm">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <Button
+                            type="text"
+                            icon={<ArrowLeftOutlined />}
+                            onClick={() => navigate("/dot-quy-hoach")}
+                            className="text-slate-500 hover:text-indigo-600 shrink-0"
+                        />
+                        <div className="min-w-0">
+                            <h1 className="text-lg font-bold text-slate-800 truncate m-0 leading-tight">
+                                {planning.ten_quy_hoach || "Chi tiết quy hoạch"}
+                            </h1>
+                            <div className="flex items-center gap-2 mt-0.5">
+                                <Tag
+                                    color={planning.loai_quy_hoach === 1 ? "purple" : "cyan"}
+                                    className="rounded-full px-2.5 text-xs border-0 m-0"
+                                >
+                                    {planning.loai_quy_hoach === 1 ? "Đầu nhiệm kỳ" : "Rà soát hằng năm"}
+                                </Tag>
+                                <Tag
+                                    color={planning.trang_thai === 1 ? "green" : "orange"}
+                                    className="rounded-full px-2.5 text-xs border-0 m-0"
+                                >
+                                    {planning.trang_thai === 1 ? "Hoàn thành" : "Đang xử lý"}
+                                </Tag>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="space-y-1">
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5">Loại quy hoạch</p>
-                            <p className="text-sm font-semibold text-gray-700 items-center justify-center">
-                                {planning.loai_quy_hoach === 1 ? 'Đầu nhiệm kỳ' : 'Rà soát hằng năm'}
-                            </p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5"> Năm thực hiện</p>
-                            <p className="text-sm font-semibold text-gray-700">{planning.nam_thuc_hien || '—'}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5"> Số quyết định</p>
-                            <p className="text-sm font-semibold text-indigo-600">{planning.so_qd_phe_duyet || 'Chưa có'}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5"> Ngày quyết định</p>
-                            <p className="text-sm font-semibold text-gray-700">{formatDate(planning.ngay_qd_phe_duyet)}</p>
-                        </div>
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => setAddModalOpen(true)}
+                    >
+                        Thêm nguồn nhân sự
+                    </Button>
+                </div>
+            </div>
+
+            <div className="p-6 space-y-5">
+
+                {/* ── Stat cards ──────────────────────────── */}
+                <div className="grid grid-cols-3 gap-4">
+                    <StatCard title="Tổng viên chức" value={stats.total}  icon={<TeamOutlined />}         color="indigo"  />
+                    <StatCard title="Đang quy hoạch"  value={stats.active} icon={<CheckCircleOutlined />}  color="emerald" />
+                    <StatCard title="Đã ra khỏi QH"   value={stats.exited} icon={<UserOutlined />}         color="amber"   />
+                </div>
+
+                {/* ── Info card ────────────────────────────── */}
+                <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">
+                        Thông tin đợt quy hoạch
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                        <InfoField label="Loại quy hoạch"
+                            value={planning.loai_quy_hoach === 1 ? "Đầu nhiệm kỳ" : "Rà soát hằng năm"} />
+                        <InfoField label="Năm thực hiện"
+                            value={planning.nam_thuc_hien} />
+                        <InfoField label="Số quyết định"
+                            value={planning.so_qd_phe_duyet
+                                ? <span className="text-indigo-600">{planning.so_qd_phe_duyet}</span>
+                                : <span className="text-slate-300 italic text-xs">Chưa có</span>
+                            } />
+                        <InfoField label="Ngày quyết định"
+                            value={formatDate(planning.ngay_qd_phe_duyet)} />
                     </div>
                 </div>
 
-                {/* Danh sach */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-lg font-bold text-gray-800">Danh sách viên chức trong quy hoạch</h2>
-                        <Button
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            onClick={() => setAddModalOpen(true)}
-                            className="bg-indigo-600 hover:bg-indigo-700 rounded-xl h-10 px-5 font-medium shadow-md shadow-indigo-100">Thêm nguồn nhân sự
-                        </Button>
+                {/* ── Staff table ──────────────────────────── */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100">
+                    <div className="px-5 py-4 border-b border-slate-100">
+                        <div className="font-semibold text-slate-800">Danh sách viên chức trong quy hoạch</div>
+                        <div className="text-xs text-slate-400 mt-0.5">{stats.total} viên chức · {stats.active} đang quy hoạch</div>
                     </div>
-
                     <Table
                         dataSource={staffList}
                         columns={columns}
                         rowKey="id"
-                        pagination={false}
-                        className="[&_.ant-table-thead_th]:bg-gray-50/70 [&_.ant-table-thead_th]:text-gray-500 [&_.ant-table-thead_th]:font-semibold [&_.ant-table-thead_th]:text-xs [&_.ant-table-thead_th]:uppercase"
+                        pagination={{
+                            pageSize: 15,
+                            showTotal: (total, range) => `${range[0]}–${range[1]} / ${total} viên chức`,
+                        }}
                     />
                 </div>
             </div>
@@ -137,5 +219,7 @@ export const PlanningDetailPage: React.FC = () => {
                 dotQuyHoachId={Number(id)}
             />
         </div>
-    )
-}
+    );
+};
+
+export default PlanningDetailPage;

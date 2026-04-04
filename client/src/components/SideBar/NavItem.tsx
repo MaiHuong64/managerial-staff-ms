@@ -1,18 +1,27 @@
-// NavItem.tsx — dùng NavIcon thay emoji
-import { NavIcon } from './NavIcon';
+import React from "react";
 
 export const NavItem = ({ icon, label, active, onClick }: {
-    icon?: string; label?: string; active: boolean; onClick: () => void;
+    icon?: React.ReactNode;
+    label?: string;
+    active: boolean;
+    onClick: () => void;
 }) => (
     <div
         onClick={onClick}
-        className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer transition-all
+        className={`
+            flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer
+            transition-all duration-150 border-l-2
             ${active
-                ? 'bg-[#4f46e5] text-white'
-                : 'text-white/40 hover:text-white/70 hover:bg-white/5'
-            }`}
+                ? "bg-indigo-500/20 border-indigo-400 text-white"
+                : "border-transparent text-slate-400 hover:bg-white/5 hover:text-slate-200"
+            }
+        `}
     >
-        {icon && <NavIcon name={icon} />}
-        <span className="text-xs font-medium truncate">{label}</span>
+        {icon && (
+            <span className={`text-base leading-none shrink-0 ${active ? "text-indigo-300" : ""}`}>
+                {icon}
+            </span>
+        )}
+        <span className="text-sm font-medium">{label}</span>
     </div>
 );
