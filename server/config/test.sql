@@ -1,3 +1,6 @@
+
+CREATE DATABASE quan_ly_vien_chuc
+
 CREATE TABLE don_vi (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ma_don_vi VARCHAR(6) UNIQUE NOT NULL,
@@ -80,10 +83,12 @@ CREATE TABLE chi_tiet_quy_hoach (
     dot_quy_hoach_id INT NOT NULL,
     vien_chuc_id INT NOT NULL,
     chuc_danh_id INT NOT NULL,
+    don_vi_id INT NOT NULL, 
     CONSTRAINT fk_ctqh_dqh FOREIGN KEY (dot_quy_hoach_id) REFERENCES dot_quy_hoach(id),
     CONSTRAINT fk_ctqh_vc FOREIGN KEY (vien_chuc_id) REFERENCES vien_chuc(id),
     CONSTRAINT uq_ctqh UNIQUE (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id),
-    CONSTRAINT fk_ctqh_cd FOREIGN KEY (chuc_danh_id) REFERENCES chuc_danh_quan_ly(id)
+    CONSTRAINT fk_ctqh_cd FOREIGN KEY (chuc_danh_id) REFERENCES chuc_danh_quan_ly(id),
+    CONSTRAINT fk_ctqh_dv FOREIGN KEY (don_vi_id) REFERENCES don_vi(id)
 );
 
 CREATE TABLE ket_qua_quy_hoach (
@@ -126,11 +131,10 @@ CREATE TABLE dot_bo_nhiem (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ma_dot_bo_nhiem VARCHAR(6) UNIQUE NOT NULL,
     ten_dot_bo_nhiem VARCHAR(255) NOT NULL,
-    ngay_bat_dau DATE,
+    ngay_bat_dau DATE,	
     ngay_ket_thuc DATE,
     ngay_phe_duyet DATE,
     so_quyet_dinh VARCHAR(50),
-    trang_thai SMALLINT DEFAULT 0,
     nguoi_lap VARCHAR(50)
 );
 
@@ -138,20 +142,21 @@ CREATE TABLE chi_tiet_dot_bo_nhiem (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     dot_bo_nhiem_id INT NOT NULL,
     phieu_chu_truong_id INT,
-    trang_thai SMALLINT DEFAULT 1,
+    trang_thai SMALLINT DEFAULT 1, --0: chưa hoàn thành, 1: hoàn thành
+    buoc_hien_tai SMALLINT DEFAULT 2, --2: vòng 1, 3: vòng 2, 4: cán bộ chủ chốt, 5: vòng cuối, 6: hoàn thành
     CONSTRAINT fk_ctdbn_dbn FOREIGN KEY (dot_bo_nhiem_id) REFERENCES dot_bo_nhiem(id),
     CONSTRAINT fk_ctdbn_pct FOREIGN KEY (phieu_chu_truong_id) REFERENCES phieu_chu_truong(id),
     CONSTRAINT uq_ctdbn UNIQUE (dot_bo_nhiem_id, phieu_chu_truong_id)
 );
 
-CREATE TABLE chi_tiet_bo_nhiem (
+CREATE TABLE chi_tiet_bo_nhiem ( 
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ly_do_vao TEXT,
     ly_do_ra TEXT,
     chi_tiet_dot_bo_nhiem_id INT NOT NULL,
     vien_chuc_id INT NOT NULL,
     chi_tiet_qh_id INT,
-    trang_thai SMALLINT DEFAULT 1,
+    buoc_hoi_nghi SMALLINT DEFAULT 2, -- Chức danh đang vote ở mức nào
     CONSTRAINT fk_ctbn_ctdbn FOREIGN KEY (chi_tiet_dot_bo_nhiem_id) REFERENCES chi_tiet_dot_bo_nhiem(id),
     CONSTRAINT fk_ctbn_vc FOREIGN KEY (vien_chuc_id) REFERENCES vien_chuc(id),
     CONSTRAINT fk_ctbn_ctqh FOREIGN KEY (chi_tiet_qh_id) REFERENCES chi_tiet_quy_hoach(id),
@@ -160,7 +165,7 @@ CREATE TABLE chi_tiet_bo_nhiem (
 
 CREATE TABLE ket_qua_bo_nhiem (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    buoc_hoi_nghi SMALLINT NOT NULL,
+    buoc_hoi_nghi SMALLINT NOT NULL,	-- lịch sử phiếu của các ứng viên
     so_nguoi_trieu_tap INT,
     so_nguoi_co_mat INT,
     so_phieu_phat_ra INT,
@@ -168,7 +173,7 @@ CREATE TABLE ket_qua_bo_nhiem (
     so_phieu_hop_le INT,
     so_phieu_dong_y INT,
     so_phieu_khong_dong_y INT,
-    ket_qua SMALLINT,
+    ket_qua SMALLINT,-- 0: không đạt, 1: đạt 
     chi_tiet_bn_id INT NOT NULL,
     CONSTRAINT fk_kqbn_ctbn FOREIGN KEY (chi_tiet_bn_id) REFERENCES chi_tiet_bo_nhiem(id),
     CONSTRAINT uq_kqbn_buoc UNIQUE (chi_tiet_bn_id, buoc_hoi_nghi)
@@ -181,7 +186,7 @@ CREATE TABLE phuong_an_nhan_su (
     ngay_to_trinh DATE,
     ngay_lap DATE,
     ghi_chu TEXT,
-    trang_thai SMALLINT DEFAULT 1,
+    trang_thai SMALLINT DEFAULT 1, -- 0: từ chối, 1: chờ phê duyệt, 2: đã phê duyệt
     y_kien_bgh TEXT,
     ngay_phe_duyet DATE
 );
@@ -213,7 +218,7 @@ CREATE TABLE chi_tiet_ho_so (
     loai_tai_lieu SMALLINT,
     file_dinh_kem TEXT,
     ngay_cap_nhat DATE,
-    trang_thai SMALLINT DEFAULT 1,
+    -- trang_thai SMALLINT DEFAULT 1,
     ho_so_bn_id INT NOT NULL,
     CONSTRAINT fk_cths_hs FOREIGN KEY (ho_so_bn_id) REFERENCES ho_so_bo_nhiem(id)
 );
@@ -267,70 +272,127 @@ CREATE TABLE tai_khoan (
     vai_tro VARCHAR(20),
     trang_thai SMALLINT DEFAULT 1
 );
-
--- ── 1. Đơn vị ─────────────────────────────────────────────
 INSERT INTO don_vi (ma_don_vi, ten_don_vi, loai_don_vi) VALUES
-('DV001', 'Khoa Kỹ thuật - Công nghệ - Môi trường', 'Khoa'),
-('DV002', 'Khoa Ngoại ngữ - Sư phạm', 'Khoa'),
-('DV003', 'Phòng Tổ chức - Cán bộ', 'Phòng');
+('DV001', 'Phòng Tổ chức - Chính trị', 'Phòng ban'),
+('DV002', 'Phòng Hành chính - Tổng hợp', 'Phòng ban'),
+('DV003', 'Phòng Kế hoạch - Tài vụ', 'Phòng ban'),
+('DV004', 'Phòng Đào tạo', 'Phòng ban'),
+('DV005', 'Phòng Công tác sinh viên', 'Phòng ban'),
+('DV006', 'Khoa Nông nghiệp và Tài nguyên Thiên nhiên', 'Khoa'),
+('DV007', 'Khoa Kỹ thuật - Công nghệ - Môi trường', 'Khoa'),
+('DV008', 'Khoa Sư phạm', 'Khoa'),
+('DV009', 'Khoa Kinh tế và Quản trị kinh doanh', 'Khoa'),
+('DV010', 'Khoa Lý luận chính trị', 'Khoa'),
+('DV011', 'Khoa Ngoại ngữ', 'Khoa'),
+('DV012', 'Bộ môn Toán - Tin học', 'Bộ môn'),
+('DV013', 'Bộ môn Giáo dục thể chất', 'Bộ môn');
 
--- ── 2. Chức danh quản lý ──────────────────────────────────
-INSERT INTO chuc_danh_quan_ly (ma_chuc_danh, ten_chuc_danh, thoi_han_giu_chuc_vu, he_so_phu_cap) VALUES
-('CD001', 'Trưởng khoa', 60, 0.50),
-('CD002', 'Phó trưởng khoa', 60, 0.30),
-('CD003', 'Trưởng phòng', 60, 0.45);
-
--- ── 3. Viên chức ──────────────────────────────────────────
-INSERT INTO vien_chuc (ma_vien_chuc, ho_va_ten, gioi_tinh, so_cccd, ngay_sinh, dan_toc, trinh_do_chuyen_mon, trinh_do_ly_luan_ct, trinh_do_ngoai_ngu, trinh_do_tin_hoc, ngay_ket_nap, ngay_chinh_thuc, ngach, don_vi_id) VALUES
-('0001', 'Nguyễn Văn An',  1, '079123456789', '1980-05-10', 'Kinh', 'Tiến sĩ', 'Cao cấp', 'B1', 'Cơ bản', '2005-03-15', '2007-03-15', 'Giảng viên cao cấp', 1),
-('0002', 'Trần Thị Bích',  0, '079234567890', '1983-08-20', 'Kinh', 'Thạc sĩ',  'Trung cấp', 'B2', 'Cơ bản', '2008-06-01', '2010-06-01', 'Giảng viên chính',   1),
-('0003', 'Lê Minh Khoa',   1, '079345678901', '1979-11-30', 'Kinh', 'Tiến sĩ', 'Cao cấp', 'C1', 'Nâng cao', '2003-01-20', '2005-01-20', 'Giảng viên cao cấp', 2),
-('0004', 'Phạm Thị Lan',   0, '079456789012', '1985-03-15', 'Kinh', 'Thạc sĩ',  'Trung cấp', 'B1', 'Cơ bản', '2010-09-01', '2012-09-01', 'Giảng viên',         2),
-('0005', 'Hoàng Văn Nam',  1, '079567890123', '1978-07-25', 'Kinh', 'Tiến sĩ', 'Cao cấp', 'C1', 'Nâng cao', '2002-04-10', '2004-04-10', 'Giảng viên cao cấp', 3);
-
--- ── 5. Đợt quy hoạch ──────────────────────────────────────
-INSERT INTO dot_quy_hoach (ma_quy_hoach, ten_quy_hoach, loai_quy_hoach, nam_thuc_hien, nhiem_ky, trang_thai)
-VALUES ('QH001', 'Quy hoạch cán bộ 2024-2026', 1, 2024, '2024-2026', 1);
-
--- ── 6. Chi tiết quy hoạch ─────────────────────────────────
-INSERT INTO chi_tiet_quy_hoach (ngay_vao_qh, trang_thai, dot_quy_hoach_id, vien_chuc_id, chuc_danh_id
+INSERT INTO vien_chuc (
+  ma_vien_chuc, ho_va_ten, gioi_tinh, so_cccd, so_dien_thoai, email,
+  dia_chi, ngay_sinh, dan_toc, trinh_do_chuyen_mon,
+  ngay_ket_nap, ngay_chinh_thuc, chuyen_nganh, ngach, nam_tot_nghiep,
+  trinh_do_ly_luan_ct, trinh_do_ngoai_ngu, trinh_do_tin_hoc, don_vi_id
 ) VALUES
-('2024-01-15', 1, 1, 1, 1),  -- Nguyễn Văn An → Trưởng khoa
-('2024-01-15', 1, 1, 2, 2),  -- Trần Thị Bích → Phó trưởng khoa
-('2024-01-15', 1, 1, 3, 2);  -- Lê Minh Khoa  → Phó trưởng khoa
+('001', 'Nguyễn Văn An', 1, '086001234501', '0901234501', 'an.nv@agu.edu.vn',
+  '123 Trần Hưng Đạo, Long Xuyên, An Giang',
+  '1975-03-10', 'Kinh', 'Tiến sĩ', '2000-02-01', '2001-02-01',
+  'Quản trị nhân sự', 'Giảng viên cao cấp', 2000,
+  'Cao cấp', 'C1', 'IC3', 1),
 
--- ── 7. Phiếu chủ trương ───────────────────────────────────
-INSERT INTO phieu_chu_truong (ma_phieu, so_to_trinh_chu_truong, tieu_de, ly_do_de_xuat, so_luong_de_xuat, nguon_nhan_su, ngay_lap, ngay_phe_duyet, trang_thai, don_vi_id, chuc_danh_id, nguoi_lap)
-VALUES('PCT001', '12/TTr-ĐHAG', 'Xin chủ trương bổ nhiệm Trưởng khoa KT-CN-MT', 'Chức danh Trưởng khoa đã hết nhiệm kỳ', 1, 1, '2026-03-01', '2026-03-10', 2, 1, 1, 'Nguyễn Văn An'),
+('002', 'Trần Thị Bích', 0, '086001234502', '0901234502', 'bich.tt@agu.edu.vn',
+  '45 Ngô Gia Tự, Long Xuyên, An Giang',
+  '1980-07-22', 'Kinh', 'Thạc sĩ', '2005-09-01', '2006-09-01',
+  'Kế toán', 'Chuyên viên chính', 2004,
+  'Trung cấp', 'B2', 'IC3', 3),
 
-('PCT002', '13/TTr-ĐHAG',
- 'Xin chủ trương bổ nhiệm Phó trưởng khoa NN-SP',
- 'Bổ sung nhân sự lãnh đạo', 2, 1,
- '2026-03-01', '2026-03-10', 2,
- 2, 2, 'Nguyễn Văn An');
+('003', 'Lê Minh Khoa', 1, '086001234503', '0901234503', 'khoa.lm@agu.edu.vn',
+  '78 Lý Thái Tổ, Long Xuyên, An Giang',
+  '1978-11-05', 'Kinh', 'Tiến sĩ', '2003-04-01', '2004-04-01',
+  'Công nghệ thông tin', 'Giảng viên cao cấp', 2002,
+  'Cao cấp', 'C1', 'IC3', 7),
 
--- ── 8. Đợt bổ nhiệm ───────────────────────────────────────
-INSERT INTO dot_bo_nhiem (
-    ma_dot_bo_nhiem, ten_dot_bo_nhiem,
-    ngay_bat_dau, ngay_ket_thuc,
-    trang_thai, nguoi_lap
-) VALUES
-('000001', 'Đợt bổ nhiệm tháng 3/2026',
- '2026-03-15', '2026-04-15',
- 1, 'Nguyễn Văn An');
+('004', 'Phạm Thị Dung', 0, '086001234504', '0901234504', 'dung.pt@agu.edu.vn',
+  '22 Hùng Vương, Long Xuyên, An Giang',
+  '1985-04-18', 'Kinh', 'Thạc sĩ', '2008-07-01', '2009-07-01',
+  'Sư phạm Toán', 'Giảng viên chính', 2007,
+  'Trung cấp', 'B1', 'IC3', 8),
 
--- ── 9. Chi tiết đợt bổ nhiệm (gom 2 phiếu vào 1 đợt) ─────
-INSERT INTO chi_tiet_dot_bo_nhiem (dot_bo_nhiem_id, phieu_chu_truong_id, trang_thai) VALUES
-(1, 1, 1),  -- Trưởng khoa KT
-(1, 2, 1);  -- Phó trưởng khoa NN
+('005', 'Hoàng Văn Em', 1, '086001234505', '0901234505', 'em.hv@agu.edu.vn',
+  '56 Trần Quốc Toản, Long Xuyên, An Giang',
+  '1982-09-30', 'Kinh', 'Tiến sĩ', '2006-03-01', '2007-03-01',
+  'Kinh tế nông nghiệp', 'Giảng viên cao cấp', 2005,
+  'Cao cấp', 'C1', 'IC3', 6),
 
--- ── 10. Ứng viên ──────────────────────────────────────────
--- Trưởng khoa KT (chi_tiet_dot_bo_nhiem_id = 1): 1 ứng viên từ quy hoạch
-INSERT INTO chi_tiet_bo_nhiem (ly_do_vao, chi_tiet_dot_bo_nhiem_id, vien_chuc_id, chi_tiet_qh_id, trang_thai)
-VALUES ('Trong danh sách quy hoạch', 1, 1, 1, 1);
+('006', 'Võ Thị Phương', 0, '086001234506', '0901234506', 'phuong.vt@agu.edu.vn',
+  '10 Đinh Tiên Hoàng, Long Xuyên, An Giang',
+  '1990-01-14', 'Kinh', 'Thạc sĩ', '2014-06-01', '2015-06-01',
+  'Ngôn ngữ Anh', 'Giảng viên', 2013,
+  'Sơ cấp', 'B2', 'IC3', 11),
 
--- Phó trưởng khoa NN (chi_tiet_dot_bo_nhiem_id = 2): 2 ứng viên
-INSERT INTO chi_tiet_bo_nhiem (ly_do_vao, chi_tiet_dot_bo_nhiem_id, vien_chuc_id, chi_tiet_qh_id, trang_thai)
-VALUES
-('Trong danh sách quy hoạch', 2, 3, 3, 1),
-('Trong danh sách quy hoạch', 2, 4, NULL, 1);
+('007', 'Đỗ Quốc Hùng', 1, '086001234507', '0901234507', 'hung.dq@agu.edu.vn',
+  '34 Nguyễn Huệ, Long Xuyên, An Giang',
+  '1983-06-20', 'Kinh', 'Thạc sĩ', '2007-01-01', '2008-01-01',
+  'Lý luận chính trị', 'Giảng viên chính', 2006,
+  'Cao cấp', 'B1', 'IC3', 10),
+
+('008', 'Nguyễn Thị Kim Loan', 0, '086001234508', '0901234508', 'loan.ntk@agu.edu.vn',
+  '67 Hai Bà Trưng, Long Xuyên, An Giang',
+  '1987-12-03', 'Kinh', 'Thạc sĩ', '2011-08-01', '2012-08-01',
+  'Kỹ thuật môi trường', 'Giảng viên', 2010,
+  'Sơ cấp', 'B1', 'IC3', 7),
+
+('009', 'Phan Văn Tài', 1, '086001234509', '0901234509', 'tai.pv@agu.edu.vn',
+  '89 Lê Lợi, Long Xuyên, An Giang',
+  '1979-05-25', 'Kinh', 'Tiến sĩ', '2004-10-01', '2005-10-01',
+  'Quản trị kinh doanh', 'Giảng viên cao cấp', 2003,
+  'Cao cấp', 'C1', 'IC3', 9),
+
+('010', 'Lâm Thị Hồng', 0, '086001234510', '0901234510', 'hong.lt@agu.edu.vn',
+  '12 Phạm Hồng Thái, Long Xuyên, An Giang',
+  '1988-08-17', 'Kinh', 'Thạc sĩ', '2012-05-01', '2013-05-01',
+  'Giáo dục tiểu học', 'Giảng viên', 2011,
+  'Sơ cấp', 'A2', 'IC3', 8);
+
+  INSERT INTO chuc_danh_quan_ly (ma_chuc_danh, ten_chuc_danh, thoi_han_giu_chuc_vu, he_so_phu_cap) VALUES
+('CD001', 'Trưởng phòng',       5, 0.50),
+('CD002', 'Phó trưởng phòng',   5, 0.35),
+('CD003', 'Trưởng khoa',        5, 0.50),
+('CD004', 'Phó trưởng khoa',    5, 0.35),
+('CD005', 'Trưởng bộ môn',      5, 0.25),
+('CD006', 'Phó trưởng bộ môn',  5, 0.20);
+
+INSERT INTO xep_loai_vc (nam_danh_gia, danh_gia, nhan_xet, vien_chuc_id) VALUES
+(2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Tích cực, có nhiều đóng góp cho đơn vị',         1),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Gương mẫu, trách nhiệm cao',                     1),
+(2022, 'Hoàn thành tốt nhiệm vụ',      'Chấp hành tốt nội quy, quy định',                2),
+(2023, 'Hoàn thành tốt nhiệm vụ',      'Năng lực chuyên môn ổn định',                    2),
+(2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Nghiên cứu khoa học đạt kết quả xuất sắc',       3),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Xuất bản nhiều công trình khoa học',              3),
+(2022, 'Hoàn thành tốt nhiệm vụ',      'Giảng dạy tốt, sinh viên đánh giá cao',          4),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Tiến bộ rõ rệt, hoàn thành vượt chỉ tiêu',      4),
+(2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Dẫn đầu trong nghiên cứu nông nghiệp',           5),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Chủ nhiệm đề tài cấp tỉnh thành công',           5),
+(2022, 'Hoàn thành tốt nhiệm vụ',      'Giảng dạy ngoại ngữ hiệu quả',                   6),
+(2023, 'Hoàn thành tốt nhiệm vụ',      'Tích cực đổi mới phương pháp giảng dạy',         6),
+(2022, 'Hoàn thành tốt nhiệm vụ',      'Nhiệt tình trong công tác tư tưởng',              7),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Hoàn thành tốt nhiệm vụ chính trị được giao',    7),
+(2022, 'Hoàn thành tốt nhiệm vụ',      'Nghiên cứu môi trường đạt kết quả tốt',          8),
+(2023, 'Hoàn thành tốt nhiệm vụ',      'Có nhiều sáng kiến trong giảng dạy',              8),
+(2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Quản lý đào tạo hiệu quả, uy tín cao',           9),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Dẫn đầu khoa trong hoạt động nghiên cứu',        9),
+(2022, 'Hoàn thành tốt nhiệm vụ',      'Tận tâm với nghề, được sinh viên yêu quý',       10),
+(2023, 'Hoàn thành tốt nhiệm vụ',      'Hoàn thành đúng hạn các nhiệm vụ được giao',    10);
+
+INSERT INTO xep_loai_dang_vien (nam_danh_gia, danh_gia, nhan_xet, vien_chuc_id) VALUES
+(2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Tiên phong, gương mẫu trong chi bộ',             1),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Phát huy tốt vai trò đảng viên',                 1),
+(2022, 'Hoàn thành tốt nhiệm vụ',      'Tham gia sinh hoạt chi bộ đầy đủ',               2),
+(2023, 'Hoàn thành tốt nhiệm vụ',      'Chấp hành tốt Điều lệ Đảng',                     2),
+(2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Đóng góp tích cực cho hoạt động chi bộ',         3),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Giữ vững lập trường, phẩm chất đảng viên',       3),
+(2022, 'Hoàn thành tốt nhiệm vụ',      'Thực hiện tốt nghị quyết chi bộ',                5),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Nêu cao tinh thần trách nhiệm đảng viên',        5),
+(2022, 'Hoàn thành tốt nhiệm vụ',      'Nhiệt tình tham gia công tác đảng',               7),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Hoàn thành xuất sắc nhiệm vụ đảng giao',         7),
+(2022, 'Hoàn thành tốt nhiệm vụ',      'Gương mẫu trong lối sống, tác phong',             9),
+(2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Tích cực đấu tranh bảo vệ nền tảng tư tưởng',   9);

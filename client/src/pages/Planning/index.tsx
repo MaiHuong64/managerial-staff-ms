@@ -1,121 +1,171 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axiosClient from "../../utils/AxiosClient";
 import type { DotQuyHoach } from "../../types/QuyHoach";
-import {PlusCircleOutlined, SearchOutlined} from '@ant-design/icons';
-import { Button, Card, Input, Table, Tag } from "antd";
+import {
+    PlusOutlined, SearchOutlined,
+    FundProjectionScreenOutlined, CheckCircleOutlined, SyncOutlined,
+} from "@ant-design/icons";
+import { Button, Input, Table, Tag } from "antd";
 import { useNavigate } from "react-router-dom";
 import { PlanningModal } from "./PlanningModal";
+import { getDotQuyHoachList } from "../../api/dotQuyHoach.api";
+import { PageHeader } from "../../components/common/PageHeader";
+import { StatCard } from "../../components/common/StatCard";
 
 export const PlanningPage: React.FC = () => {
     const [planningList, setPlanningList] = useState<DotQuyHoach[]>([]);
-    const [searchText, setSearchText] = useState<string>("");
+    const [searchText, setSearchText] = useState("");
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
-     
-    const filterSearch = useMemo( ()=> {
-        if(!searchText?.trim()) return planningList;
-        return planningList.filter((item)  => item.ten_quy_hoach.toLowerCase().includes(searchText.toLowerCase()) || item.nam_thuc_hien.toLocaleString().includes(searchText.toLocaleLowerCase()));
-    }, [planningList, searchText]);
- 
-    useEffect(() => {
-        fetchData();
-    }, []);
+    const navigate = useNavigate();
 
-    const fetchData = async () =>{
+    const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await axiosClient.get("/plannings");
+            const res = await getDotQuyHoachList();
             setPlanningList(res.data.data);
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
         }
-    }
-  
+    };
+
+    useEffect(() => { fetchData(); }, []);
+
+    const filtered = useMemo(() => {
+        if (!searchText.trim()) return planningList;
+        const q = searchText.toLowerCase();
+        return planningList.filter(d =>
+            d.ten_quy_hoach.toLowerCase().includes(q) ||
+            d.nam_thuc_hien.toString().includes(q)
+        );
+    }, [planningList, searchText]);
+
+    const stats = useMemo(() => ({
+        total:     planningList.length,
+        dauNhiemKy: planningList.filter(d => d.loai_quy_hoach === 1).length,
+        raSoat:     planningList.filter(d => d.loai_quy_hoach === 2).length,
+        hoanThanh:  planningList.filter(d => d.trang_thai === 1).length,
+    }), [planningList]);
 
     const cols = [
         {
-            title: 'Mã / Tên đợt',
-            dataIndex: 'ten_quy_hoach',
-            key: 'ten_quy_hoach',
-        },
-        {
-            title: 'Loại quy hoạch',
-            dataIndex: 'loai_quy_hoach',
-            key: 'loai_quy_hoach',
-            render: (val: number) => val === 1 ? (<Tag color={"purple"}>Đầu nhiệm kỳ</Tag>) : (<Tag color={"cyan"}>Rà soát</Tag>)
-        },
-         {
-            title: 'Năm thực hiện',
-            dataIndex: 'nam_thuc_hien',
-            key: 'nam_thuc_hien',
-            sorter: (a: DotQuyHoach,b: DotQuyHoach) => a.nam_thuc_hien - b.nam_thuc_hien
-        }, {
-            title: 'Nhiệm kỳ',
-            dataIndex: 'nhiem_ky',
-            render: (val: string) => val || <span className="text-gray-300 italic">null</span>
-        },
-        {
-            title: 'Số người trong QH',
-            dataIndex: 'so_luong',
-            key: 'so_luong',
-            align: "right" as const
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'trang_thai',
-            key: 'trang_thai',
-            render: (val: number) => val === 1 ? <Tag color="green">Hoàn thành</Tag> : <Tag color="orange">Đang xử lý</Tag>,
-        },
-        {
-            title: '',
-            key: 'action',
-            align: 'right' as const,
-            render: (_: unknown, record: DotQuyHoach) => (<Button type="link" size="small" style={{ color: "#534AB7" }}
-                    onClick={() => navigate(`/plannings/${record.id}`)}>Xem</Button>)
-        }
-    ]
-    
-    return (
-        <div className="p-6 bg-gray-50 min-h-screen space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
+            title: "Đợt quy hoạch",
+            dataIndex: "ten_quy_hoach",
+            key: "ten_quy_hoach",
+            render: (text: string, record: DotQuyHoach) => (
                 <div>
-                    <h1 className="text-xl font-semibold text-gray-500">Danh sách đợt quy hoạch</h1>
-                    <p className="text-sm text-gray-500">Quản lý quy hoạch đợt cán bộ</p>
+                    <div className="font-semibold text-slate-800 text-sm">{text}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">Năm {record.nam_thuc_hien}</div>
                 </div>
+            ),
+        },
+        {
+            title: "Loại",
+            dataIndex: "loai_quy_hoach",
+            key: "loai_quy_hoach",
+            width: 140,
+            render: (val: number) =>
+                val === 1
+                    ? <Tag color="purple" className="rounded-full px-3 text-xs border-0">Đầu nhiệm kỳ</Tag>
+                    : <Tag color="cyan"   className="rounded-full px-3 text-xs border-0">Rà soát</Tag>,
+        },
+        {
+            title: "Nhiệm kỳ",
+            dataIndex: "nhiem_ky",
+            width: 120,
+            render: (val: string) => val ?? <span className="text-slate-300 italic text-xs">—</span>,
+        },
+        {
+            title: "Số người",
+            dataIndex: "so_luong",
+            key: "so_luong",
+            width: 100,
+            align: "center" as const,
+            render: (val: number) => (
+                <span className="font-bold text-indigo-600">{val}</span>
+            ),
+        },
+        {
+            title: "Trạng thái",
+            dataIndex: "trang_thai",
+            key: "trang_thai",
+            width: 130,
+            render: (val: number) =>
+                val === 1
+                    ? <Tag color="green"  className="rounded-full px-3 text-xs border-0">Hoàn thành</Tag>
+                    : <Tag color="orange" className="rounded-full px-3 text-xs border-0">Đang xử lý</Tag>,
+        },
+        {
+            title: "",
+            key: "action",
+            width: 48,
+            align: "center" as const,
+            render: () => (
+                <span className="text-slate-300 group-hover:text-indigo-500 transition-colors">→</span>
+            ),
+        },
+    ];
+
+    return (
+        <div className="p-6 min-h-screen bg-slate-50">
+            <PageHeader
+                title="Quy hoạch cán bộ"
+                description="Quản lý các đợt quy hoạch viên chức"
+                action={
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        size="large"
+                        onClick={() => setIsModalOpen(true)}
+                    >
+                        Tạo đợt quy hoạch
+                    </Button>
+                }
+            />
+
+            {/* Stats */}
+            <div className="grid grid-cols-4 gap-4 mb-5">
+                <StatCard title="Tổng đợt quy hoạch" value={stats.total} icon={<FundProjectionScreenOutlined />} color="indigo"  />
+                <StatCard title="Đầu nhiệm kỳ" value={stats.dauNhiemKy} icon={<SyncOutlined />} color="sky" />
+                <StatCard title="Rà soát hằng năm" value={stats.raSoat} icon={<SyncOutlined />} color="amber" />
+                <StatCard title="Hoàn thành" value={stats.hoanThanh} icon={<CheckCircleOutlined />} color="emerald" />
             </div>
 
-             <div className="grid grid-cols-4 gap-4">
-                <Card>
-                    <div className="text-2xl font-bold">{filterSearch.length}</div>
-                    <div className="text-gray-500">Tổng đợt quy hoạch</div>
-                </Card>
-                <Card>
-                    <div className="text-2xl font-bold">{filterSearch.filter(d => d.loai_quy_hoach === 1).length}</div>
-                    <div className="text-gray-500">Đầu nhiệm kỳ</div>
-                </Card>
-                <Card>
-                    <div className="text-2xl font-bold">{filterSearch.filter(d => d.loai_quy_hoach === 2).length}</div>
-                    <div className="text-gray-500">Rà soát hằng năm</div>
-                </Card>
+            {/* Table card */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100">
+                <div className="px-4 py-3 border-b border-slate-100">
+                    <Input
+                        prefix={<SearchOutlined className="text-slate-400" />}
+                        placeholder="Tìm kiếm đợt quy hoạch..."
+                        allowClear
+                        style={{ width: 300 }}
+                        onChange={e => setSearchText(e.target.value)}
+                    />
+                </div>
+                <Table
+                    dataSource={filtered}
+                    columns={cols}
+                    rowKey="id"
+                    loading={loading}
+                    onRow={record => ({
+                        onClick: () => navigate(`/dot-quy-hoach/${record.id}`),
+                        className: "cursor-pointer group hover:bg-slate-50 transition-colors",
+                    })}
+                    pagination={{
+                        pageSize: 10,
+                        showTotal: (total, range) => `${range[0]}–${range[1]} / ${total} đợt`,
+                    }}
+                />
             </div>
-        
-            <Button type="primary" icon={<PlusCircleOutlined />} className="rounded-2xl" onClick={() => setIsModalOpen(true)}>Tạo đợt quy hoạch</Button>
-            <div className="bg-white p-4 rounded-xl shadow-sm flex gap-4">
-                <Input prefix={<SearchOutlined />} placeholder="Tìm kiếm..." onChange={(e) => setSearchText(e.target.value)}></Input>
-            </div>
-            <div className="bg-white rounded-xl shadow">
-               <Table dataSource={filterSearch} columns={cols} rowKey={"id"} loading={loading}/>
-            </div>
-            <PlanningModal 
-                open={isModalOpen} 
-                onClose={() => setIsModalOpen(false)} 
+
+            <PlanningModal
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
                 onSuccess={fetchData}
             />
         </div>
-    )
-}
+    );
+};
+
 export default PlanningPage;
