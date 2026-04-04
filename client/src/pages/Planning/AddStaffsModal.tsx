@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Modal, Select, Button, Table, Tag, message, Form } from "antd";
 import { SearchOutlined, UserAddOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import { getDonViList } from "../../api/donVi.api";
+import { getChucDanhList } from "../../api/chucDanh.api";
+import { addCandidates, filterPlanningCandidates } from "../../api/dotQuyHoach.api";
 
 interface FilteredStaff {
     id: number;
@@ -54,7 +57,8 @@ export const AddStaffsModal: React.FC<AddStaffsModalProps> = ({
 
         const fetchMaster = async () => {
             const [deptRes, posRes] = await Promise.all([
-                
+                getDonViList(),
+                getChucDanhList(),
             ]);
             setDepartments(deptRes.data?.data ?? []);
             setPositions(posRes.data?.data ?? []);
@@ -66,13 +70,7 @@ export const AddStaffsModal: React.FC<AddStaffsModalProps> = ({
         setSearching(true);
         setSelectedRowKeys([]);
         try {
-            const res = await axiosClient.get("/plannings/filter", {
-                params: {
-                    don_vi_id: values.don_vi_id,
-                    trinh_do_chuyen_mon: values.trinh_do_chuyen_mon,
-                    dot_quy_hoach_id: dotQuyHoachId,
-                },
-            });
+            const res = await filterPlanningCandidates(values.don_vi_id, values.trinh_do_chuyen_mon, dotQuyHoachId);
             setFilteredStaff(res.data?.data ?? []);
             setHasSearched(true);
         } catch {
@@ -95,13 +93,7 @@ export const AddStaffsModal: React.FC<AddStaffsModalProps> = ({
         setSubmitting(true);
         try {
             await Promise.all(
-                selectedRowKeys.map(vcId =>
-                    axiosClient.post(`/plannings/${dotQuyHoachId}/candidate`, {
-                        dot_quy_hoach_id: dotQuyHoachId,
-                        vien_chuc_id: vcId,
-                        chuc_danh_id: chucDanhId,
-                    })
-                )
+                selectedRowKeys.map(vcId => addCandidates(dotQuyHoachId, { vien_chuc_id: vcId, chuc_danh_id: chucDanhId, don_vi_id: form.getFieldValue("don_vi_id") }))
             );
             message.success(`Đã thêm ${selectedRowKeys.length} viên chức vào quy hoạch`);
             onSuccess();

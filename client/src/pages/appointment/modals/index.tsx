@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState, useEffect } from "react";
-import { Modal, Form, Button, Card, message, Select, Tag, Avatar, Divider, Tooltip } from "antd";
+import { Modal, Form, Button, Card, message, Tag, Avatar, Divider, Tooltip } from "antd";
 import { DeleteOutlined, UserOutlined, TeamOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import type { VienChuc, PCT, ChucDanhItem } from "../../../types/BoNhiem";
@@ -18,7 +18,7 @@ interface CreateBatchModalProps {
     onSuccess: () => void;
 }
 
-interface FormValues {s
+interface FormValues {
     ten_dot_bo_nhiem: string;
     ngay_bat_dau: dayjs.Dayjs;
     ngay_ket_thuc?: dayjs.Dayjs;
@@ -30,7 +30,7 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
     const { user } = useAuth();
 
     // Các State chứa dữ liệu danh mục
-    const [allStaff, setAllStaff] = useState<VienChuc[]>([]);
+    // const [allStaff, setAllStaff] = useState<VienChuc[]>([]);
     const [pctList, setPctList] = useState<PCT[]>([]);
     const [selectedPctId, setSelectedPctId] = useState<number | null>(null)
     
@@ -50,11 +50,11 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
         const fetchMasterData = async () => {
             try {
                 // Gom 3 API chạy cùng lúc cho nhanh
-                const [staffRes, pctRes] = await Promise.all([
+                const [ pctRes] = await Promise.all([
                     getVienChucList(),
                     getPhieuChuTruongList(), 
                 ]);
-                setAllStaff(staffRes.data?.data ?? []);
+                // setAllStaff(staffRes.data?.data ?? []);
                 setPctList((pctRes.data?.data ?? []).filter((p: PCT) => p.trang_thai === 1));
               
 
@@ -66,26 +66,25 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
 
         fetchMasterData();
     }, [visible, form]);
-    const handleAddManualStaff = (tempId: string, vcId: number) => {
-        const vc = allStaff.find(s => s.id === vcId);
-        if (!vc) return;
+    // const handleAddManualStaff = (tempId: string, vcId: number) => {
+    //     const vc = allStaff.find(s => s.id === vcId);
+    //     if (!vc) return;
         
-        setChucDanhList(prev => prev.map(cd => {
-            if (cd.tempId !== tempId) return cd;
-            // Nếu đã thêm người này rồi thì bỏ qua
-            if (cd.ung_vien.find(u => u.vien_chuc_id === vc.id)) return cd; 
-            return {
-                ...cd,
-                ung_vien: [...cd.ung_vien, {
-                    vien_chuc_id: vc.id,
-                    ma_vien_chuc: vc.ma_vien_chuc,
-                    ho_va_ten: vc.ho_va_ten,
-                    ten_don_vi: vc.ten_don_vi,
-                    nguon: "thu_cong",
-                }],
-            };
-        }));
-    };
+    //     setChucDanhList(prev => prev.map(cd => {
+    //         if (cd.tempId !== tempId) return cd;
+    //         if (cd.ung_vien.find(u => u.vien_chuc_id === vc.id)) return cd; 
+    //         return {
+    //             ...cd,
+    //             ung_vien: [...cd.ung_vien, {
+    //                 vien_chuc_id: vc.id,
+    //                 ma_vien_chuc: vc.ma_vien_chuc,
+    //                 ho_va_ten: vc.ho_va_ten,
+    //                 ten_don_vi: vc.ten_don_vi,
+    //                 nguon: "thu_cong",
+    //             }],
+    //         };
+    //     }));
+    // };
 
     const handleAddPct = async () => {
         const pct = pctList.find(p => p.id === selectedPctId);
@@ -245,7 +244,7 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
                                     )}
 
                                     {/* Nút chọn thêm ứng viên thủ công */}
-                                    <Select
+                                    {/* <Select
                                         placeholder="🔍 Gõ tên để thêm ứng viên..."
                                         size="middle"
                                         style={{ width: "100%" }}
@@ -256,7 +255,7 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
                                         options={allStaff
                                             .filter(v => !cd.ung_vien.find(u => u.vien_chuc_id === v.id))
                                             .map(v => ({ value: v.id, label: `${v.ho_va_ten} — ${v.ten_don_vi}` }))}
-                                    />
+                                    /> */}
                                 </Card>
                             ))
                         )}

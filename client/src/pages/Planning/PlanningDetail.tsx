@@ -22,21 +22,25 @@ const InfoField = ({ label, value }: { label: string; value: React.ReactNode }) 
 );
 
 export const PlanningDetailPage: React.FC = () => {
-    const { id }    = useParams();
-    const navigate  = useNavigate();
+    const { id } = useParams();
+    const navigate = useNavigate();
 
     const [staffList, setStaffList] = useState<ChiTietQuyHoach[]>([]);
-    const [planning, setPlanning]   = useState<ChiTietQuyHoach | null>(null);
-    const [loading, setLoading]     = useState(true);
+    const [planning, setPlanning] = useState<ChiTietQuyHoach | null>(null);
+    const [loading, setLoading] = useState(true);
     const [addModalOpen, setAddModalOpen] = useState(false);
 
     const fetchData = async () => {
         setLoading(true);
         try {
             const result = await getDotQuyHoachDetailById(Number(id));
-            const { planning, staff } = result.data;
+            console.log(result.data);
+            const { planning, staff } = result.data.data;
             setPlanning(planning);
             setStaffList(staff);
+            console.log("full result.data:", result.data);
+              console.log("planning:", result.data.planning);
+        console.log("staff:", result.data.staff);
         } catch (err) {
             console.error(err);
         } finally {
@@ -47,9 +51,9 @@ export const PlanningDetailPage: React.FC = () => {
     useEffect(() => { fetchData(); }, [id]);
 
     const stats = useMemo(() => ({
-        total:     staffList.length,
-        active:    staffList.filter(s => s.trang_thai === 1).length,
-        exited:    staffList.filter(s => s.trang_thai !== 1).length,
+        total: staffList.length,
+        active: staffList.filter(s => s.trang_thai === 1).length,
+        exited: staffList.filter(s => s.trang_thai !== 1).length,
     }), [staffList]);
 
     const columns: ColumnsType<ChiTietQuyHoach> = [
