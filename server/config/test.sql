@@ -1,6 +1,3 @@
-
-CREATE DATABASE quan_ly_vien_chuc
-
 CREATE TABLE don_vi (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ma_don_vi VARCHAR(6) UNIQUE NOT NULL,
@@ -22,7 +19,7 @@ CREATE TABLE vien_chuc (
     trinh_do_chuyen_mon VARCHAR(30),
     ngay_ket_nap DATE,
     ngay_chinh_thuc DATE,
-    chuyen_nganh VARCHAR(40),
+    chuyen_nganh VARCHAR(40),+
     ngach VARCHAR(50),
     nam_tot_nghiep SMALLINT,
     trinh_do_ly_luan_ct VARCHAR(50),
@@ -60,6 +57,36 @@ CREATE TABLE xep_loai_dang_vien (
     CONSTRAINT fk_xldv_vc FOREIGN KEY (vien_chuc_id) REFERENCES vien_chuc(id)
 );
 
+-- ① Bảng mới: phiếu đề xuất từ đơn vị/khoa
+CREATE TABLE phieu_de_xuat_nhan_su_quy_hoach (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    ma_phieu_de_xuat VARCHAR(6) UNIQUE NOT NULL,
+    tieu_de VARCHAR(255) NOT NULL,
+    noi_dung TEXT,
+    so_luong_de_xuat SMALLINT,
+    ngay_lap DATE DEFAULT CURRENT_DATE,
+    ngay_phe_duyet DATE,
+    trang_thai SMALLINT DEFAULT 0, -- 0: chờ duyệt, 1: đã duyệt, 2: từ chối
+    ghi_chu TEXT,
+    don_vi_id INT NOT NULL,
+    chuc_danh_id INT NOT NULL,
+    nguoi_lap VARCHAR(100),
+    CONSTRAINT fk_pdxqh_dv  FOREIGN KEY (don_vi_id) REFERENCES don_vi(id),
+    CONSTRAINT fk_pdxqh_cd  FOREIGN KEY (chuc_danh_id) REFERENCES chuc_danh_quan_ly(id)
+);
+
+CREATE TABLE chi_tiet_phieu_de_xuat (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    phieu_de_xuat_id INT NOT NULL,
+    vien_chuc_id INT NOT NULL,
+    ghi_chu TEXT,
+    du_dieu_kien SMALLINT DEFAULT 0, -- 0: chưa xét, 1: đủ, 2: không đủ
+    ly_do_khong_du TEXT,
+    CONSTRAINT fk_ctpdx_pdx FOREIGN KEY (phieu_de_xuat_id) REFERENCES phieu_de_xuat_nhan_su_quy_hoach(id),
+    CONSTRAINT fk_ctpdx_vc FOREIGN KEY (vien_chuc_id) REFERENCES vien_chuc(id),
+    CONSTRAINT uq_ctpdx UNIQUE (phieu_de_xuat_id, vien_chuc_id)
+);
+
 CREATE TABLE dot_quy_hoach (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ma_quy_hoach VARCHAR(6) UNIQUE NOT NULL,
@@ -76,6 +103,7 @@ CREATE TABLE chi_tiet_quy_hoach (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ngay_vao_qh DATE,
     ngay_ra_qh DATE,
+    buoc_hien_tai SMALLINT DEFAULT 2, -- 2: vòng 2, 3: hội nghị CB chủ chốt, 4: hoàn thành
     so_qd_ra_khoi_quy_hoach VARCHAR(50),
     ngay_qd_ra_khoi_quy_hoach DATE,
     ly_do_ra_khoi_quy_hoach TEXT,
@@ -83,12 +111,12 @@ CREATE TABLE chi_tiet_quy_hoach (
     dot_quy_hoach_id INT NOT NULL,
     vien_chuc_id INT NOT NULL,
     chuc_danh_id INT NOT NULL,
-    don_vi_id INT NOT NULL, 
+    chi_tiet_de_xuat_id INT, -- liên kết đến chi tiết phiếu đề xuất nếu có
     CONSTRAINT fk_ctqh_dqh FOREIGN KEY (dot_quy_hoach_id) REFERENCES dot_quy_hoach(id),
     CONSTRAINT fk_ctqh_vc FOREIGN KEY (vien_chuc_id) REFERENCES vien_chuc(id),
     CONSTRAINT uq_ctqh UNIQUE (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id),
     CONSTRAINT fk_ctqh_cd FOREIGN KEY (chuc_danh_id) REFERENCES chuc_danh_quan_ly(id),
-    CONSTRAINT fk_ctqh_dv FOREIGN KEY (don_vi_id) REFERENCES don_vi(id)
+    CONSTRAINT fk_ctqh_ctpdx FOREIGN KEY (chi_tiet_de_xuat_id) REFERENCES chi_tiet_phieu_de_xuat(id)
 );
 
 CREATE TABLE ket_qua_quy_hoach (
@@ -105,6 +133,28 @@ CREATE TABLE ket_qua_quy_hoach (
     chi_tiet_qh_id INT NOT NULL,
     CONSTRAINT fk_kqqh_ctqh FOREIGN KEY (chi_tiet_qh_id) REFERENCES chi_tiet_quy_hoach(id),
     CONSTRAINT uq_kqqh_buoc UNIQUE (chi_tiet_qh_id, buoc_hoi_nghi)
+);
+
+CREATE TABLE ho_so_quy_hoach (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    ma_ho_so VARCHAR(10) UNIQUE NOT NULL,
+    ngay_lap DATE DEFAULT CURRENT_DATE,
+    trang_thai SMALLINT DEFAULT 0,
+    -- 0: chưa đủ, 1: đầy đủ, 2: cần bổ sung
+    ghi_chu TEXT,
+    chi_tiet_qh_id INT NOT NULL UNIQUE,
+    CONSTRAINT fk_hsqh_ctqh FOREIGN KEY (chi_tiet_qh_id) REFERENCES chi_tiet_quy_hoach(id)
+);
+
+-- Danh mục tài liệu trong hồ sơ
+CREATE TABLE chi_tiet_ho_so_quy_hoach (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    ten_tai_lieu VARCHAR(255) NOT NULL,
+    loai_tai_lieu SMALLINT, -- 1: sơ yếu lý lịch, 2: bản nhận xét đánh giá, 3: kết luận tiêu chuẩn chính trị, 4: bản kê khai tài sản, 5: khác
+    file_dinh_kem TEXT,
+    ngay_cap_nhat DATE DEFAULT CURRENT_DATE,
+    ho_so_qh_id INT NOT NULL,
+    CONSTRAINT fk_cthsqh_hsqh FOREIGN KEY (ho_so_qh_id) REFERENCES ho_so_quy_hoach(id)
 );
 
 CREATE TABLE phieu_chu_truong (
@@ -272,6 +322,9 @@ CREATE TABLE tai_khoan (
     vai_tro VARCHAR(20),
     trang_thai SMALLINT DEFAULT 1
 );
+
+
+
 INSERT INTO don_vi (ma_don_vi, ten_don_vi, loai_don_vi) VALUES
 ('DV001', 'Phòng Tổ chức - Chính trị', 'Phòng ban'),
 ('DV002', 'Phòng Hành chính - Tổng hợp', 'Phòng ban'),
