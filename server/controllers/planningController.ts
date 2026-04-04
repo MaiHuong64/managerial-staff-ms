@@ -137,21 +137,21 @@ const PlanningController = {
         }
     },
 
-    filterStaff: async (req: Request, res: Response) => {
-        try {
-            const {trinh_do_chuyen_mon, don_vi_id, dot_quy_hoach_id} = req.query;
-            const query = `select id, ma_vien_chuc, ho_va_ten, trinh_do_chuyen_mon
-                            from vien_chuc
-                            where trinh_do_chuyen_mon = $1 and don_vi_id = $2 and id not in 
-                            (select vien_chuc_id from chi_tiet_quy_hoach where dot_quy_hoach_id = $3 and trang_thai = $4)`;
-            const result = await pool.query(query, [trinh_do_chuyen_mon, don_vi_id, dot_quy_hoach_id, 1]);
-            
-            return res.status(200).json({ success: true, data: result.rows }); 
-        } catch (error) {
-            console.error("Error fetching staff:", error);
-            res.status(500).send("Internal server error");
-        }
-    },
+        filterStaff: async (req: Request, res: Response) => {
+            try {
+                const {trinh_do_chuyen_mon, don_vi_id, dot_quy_hoach_id} = req.query;
+                const query = `select id, ma_vien_chuc, ho_va_ten, trinh_do_chuyen_mon
+                                from vien_chuc
+                                where trinh_do_chuyen_mon = $1 and don_vi_id = $2 and id not in 
+                                (select vien_chuc_id from chi_tiet_quy_hoach where dot_quy_hoach_id = $3 and trang_thai = $4)`;
+                const result = await pool.query(query, [trinh_do_chuyen_mon, don_vi_id, dot_quy_hoach_id, 1]);
+                
+                return res.status(200).json({ success: true, data: result.rows }); 
+            } catch (error) {
+                console.error("Error fetching staff:", error);
+                res.status(500).send("Internal server error");
+            }
+        },
     addCandidate: async (req: Request, res: Response) => {
         try {
             const {dot_quy_hoach_id, vien_chuc_id, chuc_danh_id} = req.body;

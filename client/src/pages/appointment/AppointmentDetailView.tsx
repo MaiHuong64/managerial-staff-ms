@@ -13,13 +13,13 @@ import { getVienChucList } from "../../api/vienChuc.api";
 import { getDotBoNhiemById, getCandidatesByChiTietDot, addCandidateToChiTietDot, startVotingProcess } from "../../api/dotBoNhiem.api";
 
 const STATE_MAP: Record<number, { label: string; color: string; badgeStatus: "default" | "warning" | "processing" | "success" | "error" }> = {
-    0: { label: "Đã dừng",                    color: "error",      badgeStatus: "error"      },
-    1: { label: "Đang soạn thảo",             color: "default",    badgeStatus: "default"    },
+    0: { label: "Đã dừng", color: "error", badgeStatus: "error" },
+    1: { label: "Đang soạn thảo", color: "default",    badgeStatus: "default"    },
     2: { label: "Hội nghị lãnh đạo (vòng 1)", color: "processing", badgeStatus: "processing" },
     3: { label: "Hội nghị lãnh đạo (vòng 2)", color: "processing", badgeStatus: "processing" },
-    4: { label: "Hội nghị cán bộ chủ chốt",   color: "processing", badgeStatus: "processing" },
-    5: { label: "Hội nghị lãnh đạo (cuối)",   color: "processing", badgeStatus: "processing" },
-    6: { label: "Hoàn thành",                 color: "success",    badgeStatus: "success"    },
+    4: { label: "Hội nghị cán bộ chủ chốt", color: "processing", badgeStatus: "processing" },
+    5: { label: "Hội nghị lãnh đạo (cuối)", color: "processing", badgeStatus: "processing" },
+    6: { label: "Hoàn thành", color: "success", badgeStatus: "success"    },
 };
 
 const STEP_INDEX: Record<number, number> = { 2: 0, 3: 1, 4: 2, 5: 3, 6: 4 };
@@ -50,13 +50,13 @@ export const AppointmentDetailView: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const [batchInfo, setBatchInfo]             = useState<DotBoNhiem | null>(null);
-    const [candidates, setCandidates]           = useState<UngVien[]>([]);
+    const [batchInfo, setBatchInfo] = useState<DotBoNhiem | null>(null);
+    const [candidates, setCandidates] = useState<UngVien[]>([]);
     const [selectedChucDanh, setSelectedChucDanh] = useState<ChucDanh | null>(null);
-    const [loading, setLoading]                 = useState(true);
+    const [loading, setLoading] = useState(true);
     const [loadingCandidates, setLoadingCandidates] = useState(false);
     const [voteModalVisible, setVoteModalVisible] = useState(false);
-    const [allStaff, setAllStaff]               = useState<{ id: number; ho_va_ten: string; ma_vien_chuc: string | null }[]>([]);
+    const [allStaff, setAllStaff] = useState<{ id: number; ho_va_ten: string; ma_vien_chuc: string | null }[]>([]);
     const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
     const [addingCandidate, setAddingCandidate] = useState(false);
 
