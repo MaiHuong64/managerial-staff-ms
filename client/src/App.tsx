@@ -1,7 +1,8 @@
 import {Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import './App.css'
-import Login from './pages/Login' 
+import Login from './pages/Login'
 import { SideBar } from './components/SideBar'
+import { TopBar } from './components/TopBar'
 import ProfilePage from './pages/ProfilePage'
 import type React from 'react'
 import { StaffPage } from './pages/StaffListPage'
@@ -27,7 +28,8 @@ const MainLayout: React.FC = () => {
   return(
     <div className='flex min-h-screen bg-gray-50'>
       <SideBar />
-      <main className='flex-1 ml-58 overflow-hidden'>
+      <TopBar />
+      <main className='flex-1 ml-58 mt-14 overflow-hidden'>
         <Outlet />
       </main>
   </div>
@@ -47,14 +49,14 @@ function App() {
           {/*All Pages to render */}
           <Route path='dashboard' element={<DashboardPage/>}></Route>
           <Route path='profile' element={<ProfilePage />}></Route>
-          <Route path='staffs' element={<StaffPage />}></Route>
-          <Route path='plannings' element={<PlanningPage />}></Route>
-          <Route path='plannings/:id' element={<PlanningDetailPage />}></Route>
-          <Route path='appointments' element={<AppointmentPage />}></Route>
-          <Route path="appointments/:id" element={<AppointmentDetailView />} />
-          <Route path='/personnel' element={<PersonnelProposalPage/>}></Route>
-          <Route path='/personnel/:id' element={<PersonnelPlanDetailPage />}></Route>
-          <Route path='/pct' element={<PhieuChuTruongPage/>}></Route>
+          <Route path='vien-chuc' element={<StaffPage />}></Route>
+          <Route path='dot-quy-hoach' element={<PlanningPage />}></Route>
+          <Route path='dot-quy-hoach/:id' element={<PlanningDetailPage />}></Route>
+          <Route path='dot-bo-nhiem' element={<AppointmentPage />}></Route>
+          <Route path="dot-bo-nhiem/:id" element={<AppointmentDetailView />} />
+          <Route path='/phuong-an-nhan-su' element={<PersonnelProposalPage/>}></Route>
+          <Route path='/phuong-an-nhan-su/:id' element={<PersonnelPlanDetailPage />}></Route>
+          <Route path='/phieu-chu-truong' element={<PhieuChuTruongPage/>}></Route>
           <Route path='notification' element={<NotificationPage />} />
           <Route path='don-vi' element={<DepartmentPage />} />
           <Route path='approvePlanning' element={<ApprovePhuongAnPage />} />

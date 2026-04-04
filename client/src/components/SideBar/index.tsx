@@ -1,74 +1,61 @@
-import { useLocation, useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom";
 import { NAV_ITEMS } from "./SideBar";
 import { NavItem } from "./NavItem";
 import { useAuth } from "../../hook/useAuth";
-import { Avatar } from "antd";
-import { UserOutlined } from '@ant-design/icons';
+import logoAGU from "../../assets/logo/LogoAGU.png";
 
 export const SideBar = () => {
-    const {user, logout} = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
-    // console.log( `${user}`)
-    // console.log(`"${user?.vai_tro}"`);
+    const filteredItems = NAV_ITEMS.filter(item => {
+        if (!item.roles) return true;
+        if (!user) return false;
+        return item.roles.includes(user.vai_tro);
+    });
 
-    const filteredItems = NAV_ITEMS.filter(item =>{
-    if (!item.roles) return true;
-    if (!user) return false;
-    const hasRole = item.roles.includes(user.vai_tro);
-    return hasRole;
-    })
+    const isActive = (path: string) =>
+        location.pathname === path || location.pathname.startsWith(path + "/");
 
-    const isActive = (path: string) => location.pathname === path;
-    return(
-        <aside className="fixed top-0 left-0 h-screen flex flex-col z-50 w-58 bg-[#111827]">
-      
-        <div className="flex items-center gap-3 px-4 py-5 border-b border-white/5">
-        <div className="flex items-center justify-center rounded-lg bg-[#4f46e5] text-white font-extrabold text-sm w-7 h-7">A</div>
-        <div>
-            <div className="text-white font-bold text-sm">AGU Portal</div>
-            <div className="text-xs text-white/30">Quản lý nhân sự</div>
-        </div>
-        </div>
+    return (
+        <aside className="fixed top-0 left-0 h-screen flex flex-col z-50 w-58 bg-[#0f172a]">
 
-        <nav className="flex-1 overflow-y-auto px-2 py-2">
-            {filteredItems.map((item, idx) => {
-            if (item.section) {
-                return (
-                <div key={`sec-${idx}`} className="px-2 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-white/20">
-                    {item.section}
+            {/* Logo */}
+            <div className="flex items-center gap-2.5 px-4 py-4 border-b border-white/5 shrink-0">
+                <img src={logoAGU} className="w-8 h-8 rounded-md" />
+                <div>
+                    <div className="text-sm font-bold text-white leading-tight">AGU</div>
+                    <div className="text-[10px] text-slate-400 leading-tight">Quản lý viên chức</div>
                 </div>
-                );
-            }
-            return (
-                <NavItem
-                key={item.path}
-                icon={item.icon}
-                label={item.label}
-                active={isActive(item.path!)}
-                onClick={() => navigate(item.path!)}
-                />
-            );
-            })}
-        </nav>
+            </div>
 
-        {/* User Footer */}
-        <div className="px-2 pb-3 pt-2 border-t border-white/5">
-            <div className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-white/5 text-white transition-all cursor-pointer">
-            <div className="flex items-center justify-center rounded-md bg-[#4f46e5] text-white font-bold w-7 h-7 text-[10px]">
-              <Avatar src={user?.avatar} icon={<UserOutlined />} />
-            </div>
-            <div className="flex-1 min-w-0">
-                <div className="text-xs font-semibold truncate">{user?.ho_va_ten}</div>
-            </div>
-            <button 
-                onClick={() => { logout(); navigate('/login'); }}
-                className="text-white/25 hover:text-white transition-colors">
-                ⏻
-            </button>
-            </div>
-        </div>
-    </aside>
-  );
-}
+            {/* Nav */}
+            <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+                {filteredItems.map((item, idx) => {
+                    if (item.section) {
+                        return (
+                            <div key={`sec-${idx}`} className="px-3 pt-4 pb-1.5 flex items-center gap-2">
+                                <div className="h-px flex-1 bg-white/5" />
+                                <span className="text-[9px] font-semibold uppercase tracking-widest text-slate-500 shrink-0">
+                                    {item.section}
+                                </span>
+                                <div className="h-px flex-1 bg-white/5" />
+                            </div>
+                        );
+                    }
+                    return (
+                        <NavItem
+                            key={item.path}
+                            icon={item.icon}
+                            label={item.label}
+                            active={isActive(item.path!)}
+                            onClick={() => navigate(item.path!)}
+                        />
+                    );
+                })}
+            </nav>
+
+        </aside>
+    );
+};

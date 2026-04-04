@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import pool from "../config/db";
 
 interface VoteItem {
@@ -48,7 +49,7 @@ const validateInput = (data: VoteInput) => {
 const handleStep2 = async (client: any, data: VoteInput) => {
     for (const uv of data.ket_qua_ung_vien) {
         await client.query(
-            `INSERT INTO ket_qua_bo_nhiem
+            `INSERT INTO ket_qua_bo_nhie
              (chi_tiet_bn_id, buoc_hoi_nghi, so_nguoi_trieu_tap, so_nguoi_co_mat,
               so_phieu_phat_ra, so_phieu_thu_ve, so_phieu_hop_le,
               so_phieu_dong_y, so_phieu_khong_dong_y, ket_qua)
@@ -213,7 +214,7 @@ export const getByID = async (req: Request, res: Response) => {
                 AND ctbn.trang_thai != 0
             WHERE dbn.id = $1
             GROUP BY dbn.id, ctdbn.id, pct.id, cd.ten_chuc_danh, dv.ten_don_vi
-        `, [id]);
+        `, [id]); 
         if (result.rows.length === 0)
             return res.status(404).json({ success: false, message: "Không tìm thấy đợt bổ nhiệm" });
  
@@ -474,7 +475,8 @@ export const startVotingProcess = async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, message: "Đợt bổ nhiệm không ở trạng thái soạn thảo" });
 
         const candidateCount = await client.query(
-            "SELECT COUNT(*) as count FROM chi_tiet_bo_nhiem WHERE chi_tiet_dot_bo_nhiem_id IN (SELECT id FROM chi_tiet_dot_bo_nhiem WHERE dot_bo_nhiem_id = $1) AND trang_thai = 1", [id]
+            `SELECT COUNT(*) as count FROM chi_tiet_bo_nhiem WHERE chi_tiet_dot_bo_nhiem_id IN (SELECT id FROM chi_tiet_dot_bo_nhiem WHERE dot_bo_nhiem_id = $1) AND trang_thai = 1`,
+            [id]
         );
         const validCount = parseInt(candidateCount.rows[0].count);
         if (validCount === 0)
