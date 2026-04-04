@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Modal, Select, Button, Table, Tag, message, Form } from "antd";
 import { SearchOutlined, UserAddOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import axiosClient from "../../utils/AxiosClient";
 
 interface FilteredStaff {
     id: number;
@@ -29,7 +28,7 @@ interface AddStaffsModalProps {
 }
 
 const TRINH_DO_OPTIONS = [
-    "Trung cấp", "Cao đẳng", "Đại học", "Thạc sĩ", "Tiến sĩ", "Tiến sĩ khoa học",
+    "Thạc sĩ", "Tiến sĩ", "Tiến sĩ khoa học",
 ];
 
 export const AddStaffsModal: React.FC<AddStaffsModalProps> = ({
@@ -55,8 +54,7 @@ export const AddStaffsModal: React.FC<AddStaffsModalProps> = ({
 
         const fetchMaster = async () => {
             const [deptRes, posRes] = await Promise.all([
-                axiosClient.get("/departments"),
-                axiosClient.get("/positions"),
+                
             ]);
             setDepartments(deptRes.data?.data ?? []);
             setPositions(posRes.data?.data ?? []);

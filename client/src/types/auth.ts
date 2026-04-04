@@ -9,7 +9,7 @@ export interface AuthUser {
   ten_dang_nhap: string;
   vai_tro: VaiTro;
   ho_va_ten: string;
-  avatar: string;
+  avatar?: string;
   don_vi_id: number;
 }
 export interface AuthContextType{

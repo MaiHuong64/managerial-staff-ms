@@ -1,11 +1,12 @@
-export interface DotBoNhiem{
+export interface DotBoNhiem {
     id: number;
     ma_dot_bo_nhiem: string;
     ten_dot_bo_nhiem: string;
-    trang_thai: number;
-    so_luong_de_xuat: number;
-    ten_chuc_danh: string;
-    ten_don_vi: string;
+    ngay_bat_dau: string;
+    ngay_ket_thuc: string;
+    so_quyet_dinh: string;
+    so_phieu: number;
+    buoc_hien_tai: number | null;
 }
 export interface ChiTietBoNhiem{
     chi_tiet_bn_id: number;
