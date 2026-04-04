@@ -18,8 +18,8 @@ export const AppointmentPage: React.FC = () => {
     const [filterStatus, setFilterStatus] = useState<number | null>(null);
 
     const statistics = useMemo(() => {
-        const total      = data.length;
-        const completed  = data.filter(d => d.buoc_hien_tai === 6).length;
+        const total = data.length;
+        const completed = data.filter(d => d.buoc_hien_tai === 6).length;
         const inProgress = data.filter(d => d.buoc_hien_tai !== null && d.buoc_hien_tai >= 2 && d.buoc_hien_tai <= 5).length;
         const notStarted = data.filter(d => d.buoc_hien_tai === null).length;
         return { total, completed, inProgress, notStarted };

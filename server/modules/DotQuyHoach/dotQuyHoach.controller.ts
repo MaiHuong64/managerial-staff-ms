@@ -1,5 +1,5 @@
 import {Request, Response } from "express";
-import { addPlanningCandidates, createPlanningBatch, fetchAllPlanning, findPlanningBatchById, fetchCandidatesForChucDanh } from "./dotQuyHoach.service";
+import { addPlanningCandidates, createPlanningBatch, fetchAllPlanning, findPlanningBatchById, fetchCandidatesForChucDanh, filterPlanningCandidates } from "./dotQuyHoach.service";
 import { AddPlanningBatchDetailDTO } from "./dotQuyHoach.dto";
 
 export const create = async (req: Request, res: Response) => {
@@ -55,6 +55,7 @@ export const getById = async (req: Request, res: Response) => {
         const data = await findPlanningBatchById(id);
         return res.status(200).json({success:true, data});
     } catch (error: any) {
+            console.error("getById error:", error.message);
         return res.status(400).json({success: false, message: error.message})
     }
 }
@@ -75,4 +76,16 @@ export const getCandidatesHandler  = async (req: Request, res: Response) => {
         console.error("ERROR:", error);
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }   
+}
+export const filterCandidatesHandler = async (req: Request, res: Response) => {
+    try {        
+        const donViId = Number(req.query.don_vi_id);
+        const trinhDoChuyenMon = String(req.query.trinh_do_chuyen_mon);
+        const dotQuyHoachId = Number(req.query.dot_quy_hoach_id);
+        const data = await filterPlanningCandidates(donViId, trinhDoChuyenMon, dotQuyHoachId);
+        return res.status(200).json({success: true, data});
+    } catch (error) {
+        console.error("ERROR:", error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
 }

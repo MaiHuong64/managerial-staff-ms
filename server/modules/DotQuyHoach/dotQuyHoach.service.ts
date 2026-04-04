@@ -1,16 +1,17 @@
 import pool from "../../config/db";
 import { AddPlanningBatchDetailDTO, CreatePlanningBatchDTO } from "./dotQuyHoach.dto";
-import { getAllPlanning, getCandidatesByChucDanhId, getDetail, insertPlanningBatch, insertPlanningDetail } from "./dotQuyHoach.repository";
+import { filterCandidates, getAllPlanning, getCandidatesByChucDanhId, getDetail, getPlanningById, insertPlanningBatch, insertPlanningDetail } from "./dotQuyHoach.repository";
 
 export const fetchAllPlanning = async () => {
     const data = await getAllPlanning();
     return data;
 }
 export const findPlanningBatchById = async (id: number) => {
-    const data = await getDetail(id);
-    if(!data)
+    const planning = await getPlanningById(id);
+    if (!planning)
         throw new Error(`Không tìm thấy đợt quy hoạch với id: ${id}`);
-    return data;
+    const staff = await getDetail(id);
+    return { planning, staff };
 }
 export const createPlanningBatch = async(payload: CreatePlanningBatchDTO) => {
     const client = await pool.connect();
@@ -42,4 +43,8 @@ export const addPlanningCandidates = async(payload: AddPlanningBatchDetailDTO) =
 }
 export const fetchCandidatesForChucDanh  = async (chucDanhId: number) => {
     return await getCandidatesByChucDanhId(chucDanhId);
+}
+export const filterPlanningCandidates = async (donViId: number, trinhDoChuyenMon: string, dotQuyHoachId: number) => {
+    const result = await filterCandidates(donViId, trinhDoChuyenMon, dotQuyHoachId);
+    return result;
 }
