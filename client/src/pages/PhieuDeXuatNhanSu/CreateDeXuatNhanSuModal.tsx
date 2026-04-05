@@ -1,8 +1,10 @@
 import { Form, Input, InputNumber, message, Modal, Select, Table } from "antd";
 import { useEffect, useState } from "react";
-import { createPhieuDeXuatNhanSu } from "../../api/phieuDeXuat.api";
 import { getChucDanhList } from "../../api/chucDanh.api";
+import { getVienChucTheoDonVi } from "../../api/vienChuc.api";
+import type { ChucDanh } from "../../types/ChucDanh";
 import type { VienChuc } from "../../types/VienChuc";
+import { createPhieuDeXuatNhanSu } from "../../api/phieuDeXuat.api";
 
 interface Props {
     isVisible: boolean;
@@ -13,46 +15,54 @@ interface Props {
 export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, onSuccess }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [chucDanhList, setChucDanhList] = useState<{ id: number; ten_chuc_danh: string }[]>([]);
-    const [selectedVienChuc, setSelectedVienChuc] = useState<VienChuc[]>([]);
+    const [chucDanhList, setChucDanhList] = useState<ChucDanh[]>([]);
+    const [vienChucList, setVienChucList] = useState<VienChuc[]>([]);
+    const [selectedVienChucIds, setSelectedVienChucIds] = useState<number[]>([]);
+
     useEffect(() => {
         if (!isVisible) return;
         form.resetFields();
-        getChucDanhList().then(res => {
-            setChucDanhList(res.data.data ?? []);
-        });
-        setSelectedVienChuc([])
+        setSelectedVienChucIds([]);
+        const fetchData = async () => {
+            const [vienChucRes, chucDanhRes] = await Promise.all([
+                getVienChucTheoDonVi(),
+                getChucDanhList(),
+            ]);
+            setChucDanhList(chucDanhRes.data.data ?? []);
+            console.log("chucDanhList:", chucDanhRes.data.data);
+            setVienChucList(vienChucRes.data.data ?? []);
+        };
+        fetchData();
     }, [isVisible, form]);
 
     const handleSubmit = async () => {
         try {
             setLoading(true);
             const values = await form.validateFields();
-            if(selectedVienChuc.length === 0){
-                message.warning("Vui lòng chọn ít nhất 1 nhân sự");
-                setLoading(false);
-                return;
-            }
-            if(selectedVienChuc.length > values.so_luong_de_xuat){
-                message.error(`Số lượng nhân sự (${selectedVienChuc.length}) vượt quá giới hạn đề xuất (${values.so_luong_de_xuat})!`);
-                setLoading(false);
-                return;
-            }
-            
-            await createPhieuDeXuatNhanSu(values);
+            const payload = {
+                tieuDe: values.tieuDe,
+                noiDung: values.noiDung,
+                chucDanhId: values.chucDanhId,
+                soLuongDeXuat: values.soLuongDeXuat,
+                ngayLap: new Date(),
+                vienChucList: selectedVienChucIds.map(id => ({ vienChucId: id })),
+            };
+            await createPhieuDeXuatNhanSu(payload);
             message.success("Lập phiếu đề xuất nhân sự thành công!");
             onSuccess();
         } catch (error: any) {
-            message.error(error?.response?.data?.message || "Lỗi khi tạo phiếu chủ trương");
+            message.error(error?.response?.data?.message || "Lỗi khi tạo phiếu đề xuất!");
         } finally {
             setLoading(false);
         }
     };
+
     const columns = [
-        { title: 'Mã VC', dataIndex: 'ma_vien_chuc', width: 100 },
-        { title: 'Họ và tên', dataIndex: 'ho_va_ten', width: 180, render: (text: string) => <span className="font-medium text-slate-700">{text}</span> },
-        { title: 'Đơn vị', dataIndex: 'ten_don_vi', width: 200 }
+        { title: "Họ và tên", dataIndex: "ho_va_ten" },
+        { title: "Ngạch", dataIndex: "ngach" },
+        { title: "Trình độ CM", dataIndex: "trinh_do_chuyen_mon" },
     ];
+
     return (
         <Modal
             title="Lập phiếu đề xuất nhân sự quy hoạch"
@@ -62,35 +72,70 @@ export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, 
             confirmLoading={loading}
             okText="Gửi phiếu"
             cancelText="Hủy"
-            width={850}
+            width={900}
             style={{ top: 20 }}
         >
-            <Form form={form} layout="vertical" className="mt-4" initialValues={{so_luong_de_xuat: 1}}>
-                <div className="grid grid-cols-3 gap-4">
-                    <Form.Item className="col-span-2" label={<span className="font-semibold text-slate-500">Chức danh</span>} name="chuc_danh_id" rules={[{required: true, message:"Vui lòng chọn chức danh"}]}>
-                        <Select placeholder="--Chọn chức danh--" showSearch optionFilterProp="children"  options={chucDanhList.map(cd => ({ value: cd.id, label: cd.ten_chuc_danh }))}/>
+            <Form form={form} layout="vertical" className="mt-4">
+                <Form.Item
+                    name="tieuDe"
+                    label="Tiêu đề"
+                    rules={[{ required: true, message: "Vui lòng nhập tiêu đề" }]}
+                >
+                    <Input placeholder="Nhập tiêu đề phiếu đề xuất" />
+                </Form.Item>
+
+                <div className="flex gap-4">
+                    <Form.Item
+                        name="chucDanhId"
+                        label="Chức danh đề xuất"
+                        className="flex-1"
+                        rules={[{ required: true, message: "Vui lòng chọn chức danh" }]}
+                    >
+                        <Select
+                            showSearch
+                            placeholder="Tìm và chọn chức danh"
+                            optionFilterProp="label"
+                            options={chucDanhList.map(cd => ({ value: cd.id, label: cd.ten_chuc_danh }))}
+                        />
                     </Form.Item>
-                    <Form.Item className="col-span-1" label={<span className="font-semibold text-slate-800">Số lượng đề xuất</span>} name="so_luong_de_xuat" rules={[{ required: true, message: 'Vui lòng nhập số lượng!' }]}>
-                        <InputNumber min={1} max={3} style={{ width: '100%' }} />
+
+                    <Form.Item
+                        name="soLuongDeXuat"
+                        label="Số lượng đề xuất"
+                        initialValue={1}
+                        rules={[{ required: true }]}
+                    >
+                        <InputNumber min={1} />
                     </Form.Item>
                 </div>
 
-                 <Form.Item label={<span className="font-semibold text-slate-800">Tiêu đề tờ trình</span>} name="tieu_de" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}>
-                    <Input placeholder="VD: V/v đề xuất nhân sự quy hoạch chức danh Trưởng khoa..." />
+                <Form.Item name="noiDung" label="Nội dung">
+                    <Input.TextArea rows={2} placeholder="Ghi chú thêm (không bắt buộc)" />
                 </Form.Item>
 
-                <Form.Item label={<span className="font-semibold text-slate-800">Nội dung chi tiết</span>} name="noi_dung" >
-                    <Input.TextArea rows={4}  placeholder="Trình bày lý do, căn cứ đề xuất..."  className="resize-none" />
-                </Form.Item>
+                <div className="mb-2 font-medium">
+                    Chọn viên chức đề xuất
+                    {selectedVienChucIds.length > 0 && (
+                        <span className="ml-2 text-blue-500 font-normal">
+                            Đã chọn {selectedVienChucIds.length} người
+                        </span>
+                    )}
+                </div>
 
-                <Form.Item
-                    label={<span className="font-semibold text-slate-800">Ghi chú thêm</span>} name="ghi_chu" >
-                    <Input placeholder="Các lưu ý khác (nếu có)..." />
-                </Form.Item>
-
-                <Table dataSource={selectedVienChuc} columns={columns} rowKey="id" pagination={false} size="small" bordered locale={{emptyText:"Chưa có nhân sự nào được chọn"}}/>
+                <Table
+                    dataSource={vienChucList}
+                    columns={columns}
+                    rowKey="id"
+                    size="small"
+                    pagination={{ pageSize: 5 }}
+                    rowSelection={{
+                        selectedRowKeys: selectedVienChucIds,
+                        onChange: (keys) => setSelectedVienChucIds(keys as number[]),
+                    }}
+                />
             </Form>
         </Modal>
     );
 };
-export default CreateDeXuatNhanSuModal
+
+export default CreateDeXuatNhanSuModal;

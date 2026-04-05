@@ -10,6 +10,7 @@ import {
     insertTaiKhoan,
     softDeleteById,
     updateById,
+    getVienChucByDonVi,
 } from "./vienChuc.repository";
 
 // Whitelist các field được phép cập nhật để tránh SQL injection
@@ -78,3 +79,6 @@ export const updateStaff = async (id: number, fields: Record<string, any>) => {
 export const deleteStaff = async (id: number) => {
     await softDeleteById(id);
 };
+  export const getStaffbyDepartment = async (donViId: number) => {
+      return getVienChucByDonVi(donViId);
+  }
