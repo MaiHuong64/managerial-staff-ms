@@ -146,3 +146,9 @@ export const softDeleteById = async (id: number) => {
         [id]
     );
 };
+export const getVienChucByDonVi = async (donViId: number) => {
+    const res = await pool.query(
+        `SELECT * FROM vien_chuc WHERE don_vi_id = $1`, [donViId]
+    )
+    return res.rows;
+}
