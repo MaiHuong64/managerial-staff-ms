@@ -16,5 +16,7 @@ export const updateVienChuc = (id: number, data: unknown) =>
     axiosClient.put(`/vien-chuc/${id}`, data);
 
 export const deleteVienChuc = (id: number) =>
-    axiosClient.delete(`/vien-chuc/${id}`); 
- 
+    axiosClient.delete(`/vien-chuc/${id}`);
+
+export const getVienChucTheoDonVi = () => 
+    axiosClient.get("/vien-chuc/don-vi")

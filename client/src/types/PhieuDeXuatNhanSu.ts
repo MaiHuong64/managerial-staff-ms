@@ -1,3 +1,6 @@
+import type { ChucDanh } from "./ChucDanh";
+import type { VienChuc } from "./VienChuc";
+
 export interface PhieuDeXuat {
     id: number;
     ma_phieu_de_xuat: string;
@@ -18,19 +21,23 @@ export interface PhieuDeXuat {
 }
 
 export interface ChiTietPhieuDeXuat {
-    id: number; // chi_tiet_id
+    id: number; 
     vien_chuc_id: number;
     ho_va_ten: string;
     du_dieu_kien: number; // 0: chưa xét, 1: đủ, 2: không đủ
     ly_do_khong_du: string | null;
     ghi_chu: string | null;
 }
-
+export interface ChucDanhWithVienChuc{
+    chucDanh: ChucDanh,
+    vienChucList: VienChuc[]
+}
 export interface PhieuDeXuatDetail extends Omit<PhieuDeXuat, 'so_nguoi_de_xuat'> {
     nhanSu: ChiTietPhieuDeXuat[];
 }
 
 export const TRANG_THAI_PHIEU_DE_XUAT: Record<number, { label: string; color: string }> = {
+    [-1]: { label: 'Nháp', color: 'default' },
     0: { label: 'Chờ duyệt', color: 'orange' },
     1: { label: 'Đã duyệt', color: 'green' },
     2: { label: 'Từ chối', color: 'red' },
