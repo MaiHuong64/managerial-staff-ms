@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import axiosClient from "../utils/AxiosClient";
-import type { VienChuc } from "../types/VienChuc";
+import type { VienChuc } from "../../types/VienChuc";
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Button, Input, Table } from "antd";
+import { getVienChucList } from "../../api/vienChuc.api";
 
 export const StaffPage: React.FC = () => {
     const [staffList, setStaffList] = useState<VienChuc[]>([]);
@@ -10,7 +10,7 @@ export const StaffPage: React.FC = () => {
     // const [setLoading] = useState(true);
     
     useEffect(() => {
-        axiosClient.get('/staffs')
+        getVienChucList()
         .then(res => setStaffList(res.data.data))
         .catch(console.error);
     }, [])
