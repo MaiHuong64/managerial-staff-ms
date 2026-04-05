@@ -13,19 +13,25 @@ interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
     { section: 'Tổng quan' },
-    { icon: <DashboardOutlined />, label: 'Dashboard', path: '/dashboard', roles: ['VC','VCQL','BGH','PTCCT'] },
-    { icon: <TeamOutlined />, label: 'Danh sách viên chức', path: '/vien-chuc', roles: ['VCQL','BGH','PTCCT'] },
-    { icon: <FileTextOutlined />, label: 'Phiếu chủ trương', path: '/phieu-chu-truong', roles: ['VCQL'] },
-    { section: 'Phê duyệt' },
-    { icon: <CheckOutlined />, label: 'Duyệt quy hoạch', path: '/approvePlanning', roles: ['BGH'] },
-    { icon: <BarChartOutlined />, label: 'Duyệt bổ nhiệm', path: '/approveAppointment', roles: ['BGH'] },
-    { section: 'Danh mục' },
-    { icon: <TagsOutlined />, label: 'Quản lý chức danh', path: '/chuc-danh', roles: ['PTCCT'] },
-    { icon: <ApartmentOutlined />, label: 'Quản lý đơn vị', path: '/don-vi', roles: ['PTCCT'] },
-    { section: 'Nghiệp vụ' },
-    { icon: <BarChartOutlined />, label: 'Quy hoạch cán bộ', path: '/dot-quy-hoach', roles: ['PTCCT'] },
-    { icon: <PlusOutlined />, label: 'Bổ nhiệm viên chức', path: '/dot-bo-nhiem', roles: ['PTCCT', 'BGH'] },
-    { icon: <FileTextOutlined />, label: 'Phương án nhân sự', path: '/phuong-an-nhan-su', roles: ['PTCCT', 'BGH'] },
+    { icon: <DashboardOutlined />, label: 'Dashboard',              path: '/dashboard',           roles: ['VC','VCQL','BGH','PTCCT'] },
+    { icon: <TeamOutlined />,      label: 'Danh sách viên chức',   path: '/vien-chuc',           roles: ['VCQL','BGH','PTCCT'] },
+
+    { section: 'Quy hoạch', roles: ['VCQL','PTCCT'] },
+    { icon: <FileTextOutlined />,  label: 'Phiếu Đề Xuất',         path: '/phieu-de-xuat',       roles: ['VCQL','PTCCT'] },
+    { icon: <BarChartOutlined />,  label: 'Đợt Quy Hoạch',         path: '/dot-quy-hoach',       roles: ['PTCCT'] },
+
+    { section: 'Bổ nhiệm', roles: ['VCQL','BGH','PTCCT'] },
+    { icon: <FileTextOutlined />,  label: 'Phiếu Chủ Trương',      path: '/phieu-chu-truong',    roles: ['VCQL','BGH'] },
+    { icon: <PlusOutlined />,      label: 'Đợt Bổ Nhiệm',          path: '/dot-bo-nhiem',        roles: ['PTCCT','BGH'] },
+    { icon: <FileTextOutlined />,  label: 'Phương Án Nhân Sự',     path: '/phuong-an-nhan-su',   roles: ['PTCCT','BGH'] },
+
+    { section: 'Phê duyệt', roles: ['BGH'] },
+    { icon: <CheckOutlined />,     label: 'Duyệt quy hoạch',       path: '/approvePlanning',     roles: ['BGH'] },
+    { icon: <BarChartOutlined />,  label: 'Duyệt bổ nhiệm',        path: '/approveAppointment',  roles: ['BGH'] },
+
+    { section: 'Danh mục', roles: ['PTCCT'] },
+    { icon: <TagsOutlined />,      label: 'Quản lý chức danh',     path: '/chuc-danh',           roles: ['PTCCT'] },
+    { icon: <ApartmentOutlined />, label: 'Quản lý đơn vị',        path: '/don-vi',              roles: ['PTCCT'] },
 ];
 export const ROLE_LABEL: Record<string, string> = {
     VC: 'Viên Chức',

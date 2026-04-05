@@ -131,17 +131,17 @@ export const AppointmentDetailView: React.FC = () => {
         <div className="flex justify-center items-center min-h-screen text-red-500">Không tìm thấy dữ liệu</div>
     );
 
-    const stateInfo    = STATE_MAP[batchInfo.trang_thai];
-    const stepIndex    = STEP_INDEX[selectedChucDanh?.buoc_hien_tai ?? 2] ?? 0;
+    const stateInfo = STATE_MAP[batchInfo.trang_thai];
+    const stepIndex = STEP_INDEX[selectedChucDanh?.buoc_hien_tai ?? 2] ?? 0;
     const canStartVoting = batchInfo.trang_thai === 1;
     const canVote = [2, 3, 4, 5].includes(batchInfo.trang_thai)
         && selectedChucDanh !== null
         && [2, 3, 4, 5].includes(selectedChucDanh.buoc_hien_tai);
 
     const totalAllChucDanh = batchInfo.chuc_danh_list.reduce((sum, cd) => sum + Number(cd.so_ung_vien), 0);
-    const validCandidates   = candidates.filter(c => c.trang_thai === 1);
-    const passedCandidates  = candidates.filter(c => c.trang_thai === 3);
-    const failedCandidates  = candidates.filter(c => c.trang_thai === 2);
+    const validCandidates = candidates.filter(c => c.trang_thai === 1);
+    const passedCandidates = candidates.filter(c => c.trang_thai === 3);
+    const failedCandidates = candidates.filter(c => c.trang_thai === 2);
     const removedCandidates = candidates.filter(c => c.trang_thai === 0);
 
     const candidateColumns = [

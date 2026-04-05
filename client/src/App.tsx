@@ -15,6 +15,7 @@ import PersonnelProposalPage from './pages/PhuongAnNhanSu/index'
 import PersonnelPlanDetailPage from './pages/PhuongAnNhanSu/DetailPage'
 import ApprovePhuongAnPage from './pages/ApprovePhuongAn/index'
 import PhieuChuTruongPage from './pages/PhieuChuTruong'
+import PhieuDeXuatNhanSuPage from './pages/PhieuDeXuatNhanSu'
 import { NotificationPage } from './pages/NotificationPage'
 import { DepartmentPage } from './pages/DepartmentPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
@@ -57,6 +58,7 @@ function App() {
           <Route path='/phuong-an-nhan-su' element={<PersonnelProposalPage/>}></Route>
           <Route path='/phuong-an-nhan-su/:id' element={<PersonnelPlanDetailPage />}></Route>
           <Route path='/phieu-chu-truong' element={<PhieuChuTruongPage/>}></Route>
+           <Route path='/phieu-de-xuat' element={<PhieuDeXuatNhanSuPage/>}></Route>
           <Route path='notification' element={<NotificationPage />} />
           <Route path='don-vi' element={<DepartmentPage />} />
           <Route path='approvePlanning' element={<ApprovePhuongAnPage />} />
