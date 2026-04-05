@@ -8,3 +8,7 @@ export interface PhuongAnNhanSu {
     so_nhan_su?: number ;
     ghi_chu?: string;
 }
+export interface ChucDanhWithVienChuc{
+    chucDanhId: number;
+    vienChucId: number;
+}

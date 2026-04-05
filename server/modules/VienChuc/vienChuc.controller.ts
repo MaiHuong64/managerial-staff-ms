@@ -7,6 +7,7 @@ import {
     createStaff,
     updateStaff,
     deleteStaff,
+    getStaffbyDepartment,
 } from "./vienChuc.service";
 
 export const getAll = async (req: AuthRequest, res: Response) => {
@@ -82,3 +83,13 @@ export const remove = async (req: AuthRequest, res: Response) => {
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 };
+
+export const getByDonVi = async (req: AuthRequest, res: Response) => {
+    try {
+        const donviId = req.user!.don_vi_id;
+        const data = await getStaffbyDepartment(donviId);
+        return res.status(200).json({success: true, data})
+    } catch (error) {
+         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+}

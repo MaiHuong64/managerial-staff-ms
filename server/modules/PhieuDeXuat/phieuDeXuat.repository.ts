@@ -38,32 +38,42 @@ export const getPhieuDeXuatById = async (id: number) => {
         WHERE p.id = $1
         `, [id]
     )
-    return result.rows[0];
+    return result.rows;
 }
 
 export const insertPhieuDeXuat = async (client: any, payload: CreatePhieuDeXuatDTO , user: any, maPhieu: string) => {
-    const { ho_va_ten } = user;
+    const { ho_va_ten, don_vi_id } = user;
     const result = await client.query (
         `
-        INSERT INTO phieu_de_xuat_nhan_su_quy_hoach 
+        INSERT INTO phieu_de_xuat_nhan_su_quy_hoach
         (ma_phieu_de_xuat, tieu_de, noi_dung, so_luong_de_xuat,
         chuc_danh_id, don_vi_id, nguoi_lap, ngay_lap, trang_thai) VALUES
         ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
-        `,[maPhieu, payload.tieuDe, payload.soLuongDeXuat, payload.chucDanhId, payload.ngayLap ?? new Date(), ho_va_ten, 0]
+        `,[maPhieu, payload.tieuDe, payload.noiDung, payload.soLuongDeXuat, payload.chucDanhId, don_vi_id, ho_va_ten, payload.ngayLap ?? new Date(), -1]
     )
     return result.rows[0];
 };
 export const insertChiTietPhieu = async (client: any, phieuDeXuatId: number, payload: AddNhanSuDTO) => {
     const result = await client.query(
         `
-        INSERT chi_tiet_phieu_de_xuat (phieu_de_xuat_id, vien_chuc_id, ghi_chu, du_dieu_kien) VALUES
+        INSERT INTO chi_tiet_phieu_de_xuat (phieu_de_xuat_id, vien_chuc_id, ghi_chu, du_dieu_kien) VALUES
         ($1, $2, $3, $4)`, [phieuDeXuatId, payload.vienChucId, payload.ghiChu, 0]
     )
     return result.rows[0];
 }
 
 
-export const updateTrangThaiPhieu = async (client: any, trangThai: number, phieuId: number, ghiChu?: string) => {
+export const submitPhieuDeXuat = async (client: any, id: number) => {
+    const result = await client.query(
+        `UPDATE phieu_de_xuat_nhan_su_quy_hoach
+         SET trang_thai = 0
+         WHERE id = $1 AND trang_thai = -1
+         RETURNING *`,
+        [id]
+    );
+    return result.rows[0];
+}
+export const updateTrangThaiPhieu= async (client: any, trangThai: number, phieuId: number, ghiChu?: string) => {
     const result = await client.query(
         `UPDATE phieu_de_xuat_nhan_su_quy_hoach
         SET trang_thai = $1, ngay_phe_duyet = CURRENT_DATE, ghi_chu = $2

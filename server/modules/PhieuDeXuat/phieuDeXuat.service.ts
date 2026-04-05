@@ -1,6 +1,6 @@
 import pool from "../../config/db";
-import { AddNhanSuDTO, CreatePhieuDeXuatDTO, UpdateTrangThaiPhieu } from "./phieuDeXuat.dto";
-import { getAllPhieuDeXuat, getCode, getPhieuDeXuatById, insertChiTietPhieu, insertPhieuDeXuat, updateTrangThaiPhieu } from "./phieuDeXuat.repository";
+import { CreatePhieuDeXuatDTO, UpdateTrangThaiPhieu } from "./phieuDeXuat.dto";
+import { getAllPhieuDeXuat, getCode, getPhieuDeXuatById, insertChiTietPhieu, insertPhieuDeXuat, submitPhieuDeXuat, updateTrangThaiPhieu } from "./phieuDeXuat.repository";
 
 export const createPhieuDeXuat = async (payload: CreatePhieuDeXuatDTO, user: any) => {
     const client = await pool.connect();
@@ -8,21 +8,12 @@ export const createPhieuDeXuat = async (payload: CreatePhieuDeXuatDTO, user: any
         await client.query('BEGIN');
         const maPhieu = await getCode(client);
         const phieu = await insertPhieuDeXuat(client, payload, user, maPhieu);
+
+        for(const vc of payload.vienChucList){
+            await insertChiTietPhieu(client, phieu.id, vc)
+        }
         await client.query("COMMIT");
         return phieu;
-    } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-    } finally {
-        client.release();
-    }
-}
-export const addNhanSu = async (phieuDeXuatId: number, payload: AddNhanSuDTO) => {
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN');
-        const chiTiet = await insertChiTietPhieu(client, phieuDeXuatId, payload);
-        return chiTiet; 
     } catch (err) {
         await client.query('ROLLBACK');
         throw err;
@@ -47,6 +38,23 @@ export const getDetail = async (id: number) => {
             ly_do_khong_du: r.ly_do_khong_du,
             ghi_chu: r.ghi_chu_ct,
         }))
+    }
+}
+export const submitPDX = async (id: number, user: any) => {
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+        if (user.vai_tro !== 'VCQL')
+            throw new Error("Không có quyền gửi phiếu");
+        const result = await submitPhieuDeXuat(client, id);
+        if (!result) throw new Error("Phiếu không tồn tại hoặc đã được gửi");
+        await client.query("COMMIT");
+        return result;
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
+        client.release();
     }
 }
 export const approvePDX = async (id: number, user: any, payload: UpdateTrangThaiPhieu) => {

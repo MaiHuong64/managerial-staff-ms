@@ -6,6 +6,7 @@ export interface CreatePhieuDeXuatDTO {
     ngayLap: Date;
     nguoiLap: string;
     trangThai: string;
+    vienChucList: AddNhanSuDTO[];
 }
 export interface AddNhanSuDTO{
     vienChucId: number;
