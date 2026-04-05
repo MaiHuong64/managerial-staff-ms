@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { verifyToken } from "../../middleware/auth.middleware";
-import { getAllPhieu, getById, approve, create, reject } from "./phieuDeXuat.controller";
+import { getAllPhieuDeXuatNhanSu, gePhieuDeXuatNhanSutById, approvePhieuDeXuatNhanSu, createPhieuDeXuatNhanSu, rejectPhieuDeXuatNhanSu } from "./phieuDeXuat.controller";
 
 const router = Router();
 
 router.use(verifyToken);
 
-router.get("/", getAllPhieu);
-router.get("/:id", getById);
-router.post("/", create);
-router.post("/:id/approve", approve);
-router.post("/:id/reject", reject);
+router.get("/", getAllPhieuDeXuatNhanSu);
+router.get("/:id", gePhieuDeXuatNhanSutById);
+router.post("/", createPhieuDeXuatNhanSu);
+router.post("/:id/approve", approvePhieuDeXuatNhanSu);
+router.post("/:id/reject", rejectPhieuDeXuatNhanSu);
 export default router;

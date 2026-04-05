@@ -128,7 +128,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                 })),
             };
 
-            const res = await axiosClient.post(`/appointments/vote-results`, payload);
+            const res = await 
             message.success(res.data.message ?? "Ghi nhận kết quả thành công!");
             onSuccess();
             handleCancel();
