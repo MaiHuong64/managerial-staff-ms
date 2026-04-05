@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Divider } from 'antd';
-import axiosClient from "../utils/AxiosClient";
 import type { profile } from "../types/profile";
 import { useAuth } from "../hook/useAuth";
 import { Navigate } from "react-router-dom";
 import { UserOutlined, CalendarOutlined, IdcardOutlined, PhoneOutlined, MailOutlined, BankOutlined } from '@ant-design/icons';
+import { getProfile } from "../api/vienChuc.api";
 
 const format = (d: string) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
 
@@ -31,10 +31,10 @@ const ProfilePage: React.FC = () => {
     const [profile, setProfile] = useState<profile | null>(null);
 
     useEffect(() => {
-        axiosClient.get('/staffs/profile')
-            .then(res => setProfile(res.data.data))
+        getProfile()
+            .then(res => setProfile(res.data.data.profile))
             .catch(console.error);
-    }, []);
+    },[]);
 
     if (!user) return <Navigate to="/login" replace />;
     if (!profile) return (
@@ -62,9 +62,6 @@ const ProfilePage: React.FC = () => {
                     <div className="flex-1 text-center md:text-left z-10">
                         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
                             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{profile.ho_va_ten}</h1>
-                            {/* <Tag color={colorRole[user?.vai_tro]} className="w-fit mx-auto md:mx-0 border-none px-4 py-0.5 rounded-full font-bold uppercase text-[10px] shadow-sm">
-                                {user.vai_tro}
-                            </Tag> */}
                         </div>
                         <div className="flex flex-wrap justify-center md:justify-start gap-y-2 gap-x-5 text-sm">
                             <span className="text-indigo-600 font-bold flex items-center gap-2">
