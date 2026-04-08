@@ -9,6 +9,7 @@ import quyHoachRouter from "../modules/DotQuyHoach/dotQuyHoach.route"
 import phieuChuTruongRouter from "../modules/PhieuChuTruong/phieuChuTruong.route";
 import phieuDeXuatRoute from "../modules/PhieuDeXuat/phieuDeXuat.route"
 import phuongAnNhanSuRouter from "../modules/PhuongAnNhanSu/phuongAnNhanSu.route";
+import hoSoBoNhiemRouter from "../modules/HoSoBoNhiem/hoSoBoNhiem.route"
 const router = Router();
 
 router.use("/auth", authRouter);
@@ -20,4 +21,5 @@ router.use("/quy-hoach", quyHoachRouter);
 router.use('/phieu-de-xuat', phieuDeXuatRoute)
 router.use("/phieu-chu-truong", phieuChuTruongRouter)
 router.use("/phuong-an-nhan-su", phuongAnNhanSuRouter);
+router.use("/ho-so-bo-nhiem", hoSoBoNhiemRouter)
 export default router;

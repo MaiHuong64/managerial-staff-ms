@@ -78,6 +78,7 @@ export const PlanningPage: React.FC = () => {
             width: 120,
             render: (val: string) => val ?? <span className="text-slate-300 italic text-xs">—</span>,
         },
+        
         {
             title: "Số người",
             dataIndex: "so_luong",

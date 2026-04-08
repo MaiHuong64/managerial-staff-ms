@@ -2,7 +2,7 @@ import { Button, Descriptions, message, Modal, Table, Tag } from "antd";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hook/useAuth";
 import { getPhieuDeXuatNhanSuById, guiPhieuDeXuatNhanSu } from "../../api/phieuDeXuat.api";
-import { DU_DIEU_KIEN, TRANG_THAI_PHIEU_DE_XUAT, type ChiTietPhieuDeXuat, type PhieuDeXuatDetail } from "../../types/PhieuDeXuatNhanSu";
+import { DU_DIEU_KIEN, TRANG_THAI_PHIEU_DE_XUAT, type PhieuDeXuatDetail } from "../../types/PhieuDeXuatNhanSu";
 import dayjs from "dayjs";
 
 interface Props {
@@ -78,7 +78,7 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
                     <Descriptions bordered size="small" column={2} className="mb-4">
                         <Descriptions.Item label="Mã phiếu">{data.ma_phieu_de_xuat}</Descriptions.Item>
                         <Descriptions.Item label="Trạng thái">
-                            <Tag color={trangThai?.color}>{trangThai?.label}</Tag>
+                        <Tag color={trangThai?.color}>{trangThai?.label}</Tag>
                         </Descriptions.Item>
                         <Descriptions.Item label="Tiêu đề" span={2}>{data.tieu_de}</Descriptions.Item>
                         <Descriptions.Item label="Chức danh">{data.ten_chuc_danh}</Descriptions.Item>

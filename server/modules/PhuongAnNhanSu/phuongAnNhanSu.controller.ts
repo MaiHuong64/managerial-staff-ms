@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getAll as getAllService, getById as getByIdService, createPANS, updateStatusPANS } from "./phuongAnNhanSu.service";
+import { getAll as getAllService, getById as getByIdService, createPANS, updateStatusPANS, submitPANS, getCandidatesList } from "./phuongAnNhanSu.service";
 import { TrangThaiPANS } from "./phuongAnNhanSu.type";
 
 export const getAll = async (req: Request, res: Response) => {
@@ -28,6 +28,15 @@ export const create = async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: error.message });
     }
 }
+export const submit = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    try {
+        await submitPANS(id);
+        res.status(200).json({ success: true, message: "Trình phương án lên BGH thành công" });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
 export const approve = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const { yKienBGH } = req.body;
@@ -46,5 +55,13 @@ export const reject = async (req: Request, res: Response) => {
         res.status(200).json({ success: true, message: "Từ chối thành công" });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
+    }
+}
+export const getCandidates = async (req: Request, res: Response) => {
+    try {
+        const data = await getCandidatesList();
+        return res.status(200).json({ success: true, data });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 }

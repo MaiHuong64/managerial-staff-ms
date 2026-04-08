@@ -29,7 +29,7 @@ export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, 
                 getChucDanhList(),
             ]);
             setChucDanhList(chucDanhRes.data.data ?? []);
-            console.log("chucDanhList:", chucDanhRes.data.data);
+            // console.log("chucDanhList:", chucDanhRes.data.data);
             setVienChucList(vienChucRes.data.data ?? []);
         };
         fetchData();

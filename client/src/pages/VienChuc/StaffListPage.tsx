@@ -2,17 +2,26 @@ import React, { useEffect, useState } from "react";
 import type { VienChuc } from "../../types/VienChuc";
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Button, Input, Table } from "antd";
-import { getVienChucList } from "../../api/vienChuc.api";
+import { getVienChucList, getVienChucTheoDonVi } from "../../api/vienChuc.api";
+import { useAuth } from "../../hook/useAuth";
 
 export const StaffPage: React.FC = () => {
+    const  {user} = useAuth()
     const [staffList, setStaffList] = useState<VienChuc[]>([]);
     const [searchText, setSearchText] = useState('');
     // const [setLoading] = useState(true);
     
     useEffect(() => {
-        getVienChucList()
-        .then(res => setStaffList(res.data.data))
-        .catch(console.error);
+        if(user?.vai_tro === "VCQL"){
+            getVienChucTheoDonVi()
+            .then(res => setStaffList(res.data.data))
+            .catch(console.error);
+        }
+        else{
+             getVienChucList()
+            .then(res => setStaffList(res.data.data))
+            .catch(console.error);
+        }
     }, [])
     if(!staffList) return(
         <div className="flex justify-center items-center h-screen text-gray-400 italic font-light">

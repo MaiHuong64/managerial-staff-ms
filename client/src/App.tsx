@@ -30,7 +30,7 @@ const MainLayout: React.FC = () => {
     <div className='flex min-h-screen bg-gray-50'>
       <SideBar />
       <TopBar />
-      <main className='flex-1 ml-58 mt-14 overflow-hidden'>
+      <main className='flex-1 ml-58 mt-14 overflow-y-auto'>
         <Outlet />
       </main>
   </div>

@@ -4,7 +4,8 @@ import { AddPlanningBatchDetailDTO } from "./dotQuyHoach.dto";
 
 export const create = async (req: Request, res: Response) => {
     try {
-        const { ten_quy_hoach, loai_quy_hoach, nam_thuc_hien, nhiem_ky, so_qd_phe_duyet, ngay_qd_phe_duyet } = req.body;
+        const { ten_quy_hoach, loai_quy_hoach, nam_thuc_hien, nhiem_ky,
+                so_qd_phe_duyet, ngay_qd_phe_duyet, dot_goc_id } = req.body;
         const payload = {
             tenQuyHoach: ten_quy_hoach,
             loaiQuyHoach: loai_quy_hoach,
@@ -12,6 +13,7 @@ export const create = async (req: Request, res: Response) => {
             nhiemKy: nhiem_ky,
             soQdPheDuyet: so_qd_phe_duyet,
             ngayQdPheDuyet: ngay_qd_phe_duyet,
+            dotGocId: dot_goc_id,
         };
         const data = await createPlanningBatch(payload);
         return res.status(201).json({
