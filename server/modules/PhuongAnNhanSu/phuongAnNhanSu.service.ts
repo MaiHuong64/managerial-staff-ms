@@ -1,15 +1,26 @@
 import pool from "../../config/db";
 import { CreatePhuongAnNhanSuDTO } from "./phuongAnNhanSu.dto";
-import { getAllPANS, getPANSById, insertPANS, insertPANSDetail, updateStatus, getNextBatchCode} from "./phuongAnNhanSu.repository";
+import { TrangThaiPANS } from "./phuongAnNhanSu.type";
+import { getAllPANS, getPAInfoById, getPANSById, insertPANS, insertPANSDetail, updateStatus, getNextBatchCode, getCandidates} from "./phuongAnNhanSu.repository";
 
 export const getAll = async () => {
     return getAllPANS();
 }
 export const getById = async (id: number) => {
-    const result = await getPANSById(id);
-    const rows = result.rows;
-    if (!rows.length) throw new Error("Không tìm thấy phương án nhân sự");
-    return rows;
+    const [paResult, chiTietResult] = await Promise.all([
+        getPAInfoById(id),
+        getPANSById(id)
+    ]);
+    if (!paResult.rows.length) throw new Error("Không tìm thấy phương án nhân sự");
+    return {
+        ...paResult.rows[0],
+        chi_tiet: chiTietResult.rows
+    };
+}
+
+export const getCandidatesList = async () => {
+    const result = await getCandidates();
+    return result.rows;
 }
 
 export const createPANS = async (payload: CreatePhuongAnNhanSuDTO) => {
@@ -25,12 +36,25 @@ export const createPANS = async (payload: CreatePhuongAnNhanSuDTO) => {
     } catch (error) {
         await client.query('ROLLBACK')
         throw error
-    } finally { 
+    } finally {
         client.release();
     }
-} 
+}
+export const submitPANS = async (id: number) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        await updateStatus(client, id, TrangThaiPANS.choPheDuyet);
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+}
 export const updateStatusPANS = async (chiTietPAId: number, trangThai: number, yKienBGH?: string) => {
-    const client = await pool.connect();    
+    const client = await pool.connect();
     try {
         await client.query('BEGIN');
         await updateStatus(client, chiTietPAId, trangThai, yKienBGH);
@@ -38,7 +62,7 @@ export const updateStatusPANS = async (chiTietPAId: number, trangThai: number, y
     } catch (error) {
         await client.query('ROLLBACK')
         throw error
-    } finally { 
+    } finally {
         client.release();
     }
-} 
+}

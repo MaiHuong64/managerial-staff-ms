@@ -1,6 +1,6 @@
 import pool from "../../config/db";
 import { AddPlanningBatchDetailDTO, CreatePlanningBatchDTO } from "./dotQuyHoach.dto";
-import { filterCandidates, getAllPlanning, getCandidatesByChucDanhId, getDetail, getPlanningById, insertPlanningBatch, insertPlanningDetail } from "./dotQuyHoach.repository";
+import { filterCandidates, getAllPlanning, getCandidatesByChucDanhId, getDetail, getPlanningById, insertPlanningBatch, insertPlanningDetail, copyChiTietFromDotGoc } from "./dotQuyHoach.repository";
 
 export const fetchAllPlanning = async () => {
     const data = await getAllPlanning();
@@ -18,11 +18,16 @@ export const createPlanningBatch = async(payload: CreatePlanningBatchDTO) => {
     try {
         await client.query("BEGIN");
         const batch = await insertPlanningBatch(client, payload);
+
+        if (payload.loaiQuyHoach === 2 && payload.dotGocId) {
+            await copyChiTietFromDotGoc(client, batch.id, payload.dotGocId);
+        }
+
         await client.query("COMMIT")
         return batch;
     } catch (error) {
         await client.query('ROLLBACK');
-        throw error;  
+        throw error;
     } finally{
         client.release();
     }

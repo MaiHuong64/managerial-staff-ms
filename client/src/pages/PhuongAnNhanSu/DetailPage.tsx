@@ -1,12 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Col, Descriptions, Row, Statistic, Table, Tag, Button, Input, Popconfirm, Spin, message, Alert } from 'antd';
+import {  Card, Col, Descriptions, Row, Statistic, Table, Tag,  Button, Input, Popconfirm, Spin, message } from 'antd';
 import {
     ArrowLeftOutlined, CheckCircleOutlined, CloseCircleOutlined,
-    FileTextOutlined, TeamOutlined, UserOutlined, HomeOutlined, SendOutlined,
+    FileTextOutlined, TeamOutlined, UserOutlined,
+    SendOutlined, PlusOutlined, FileSearchOutlined
 } from '@ant-design/icons';
 import axiosClient from '../../utils/AxiosClient';
 import { useAuth } from '../../hook/useAuth';
+import dayjs from 'dayjs';
+import { approvePhuongAn, getPhuongAnById, rejectPhuongAn } from '../../api/phuongAnNhanSu.api';
+
+const getHoSoByPhuongAn = async (paId: string | number) => {
+    try {
+        const res = await axiosClient.get(`/ho-so-bo-nhiem/phuong-an/${paId}`);
+        return res.data;
+    } catch (error) {
+        return { success: false, data: [] };
+    }
+};
+
+const createHoSo = async (payload: unknown) => {
+    return await axiosClient.post(`/ho-so-bo-nhiem`, payload);
+};
 
 // 0=Hủy, 1=Soạn thảo, 2=Chờ duyệt, 3=Đã duyệt
 const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
@@ -23,48 +39,37 @@ const LOAI_PA_COLOR: Record<string, string> = {
     'Thôi kiêm nhiệm': 'gold',
 };
 
-interface ChiTiet {
-    chi_tiet_pa_id: number;
-    chi_tiet_bn_id: number;
-    loai_phuong_an: string;
-    ghi_chu: string;
-    trang_thai: number;
-    ho_va_ten: string;
-    ma_vien_chuc: string;
-    ten_chuc_danh: string;
-    ten_don_vi: string;
-}
-
-interface PhuongAnDetail {
-    id: number;
-    ma_phuong_an: string;
-    so_to_trinh: string;
-    ngay_to_trinh: string;
-    ngay_lap: string;
-    ngay_phe_duyet: string | null;
-    trang_thai: number;
-    ghi_chu: string;
-    y_kien_bgh: string | null;
-    chi_tiet: ChiTiet[];
-}
-
-const PersonnelPlanDetailPage: React.FC = () => {
+const PersonnelPlanDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const [data, setData] = useState<PhuongAnDetail | null>(null);
+    const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [yKien, setYKien] = useState('');
     const [approving, setApproving] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
+    // State mới cho Hồ sơ
+    const [hoSoMap, setHoSoMap] = useState(new Map());
+    const [creatingHoSoId, setCreatingHoSoId] = useState<number | null>(null);
+
     const fetchData = async () => {
         try {
             setLoading(true);
-            const res = await axiosClient.get(`/personnel/${id}`);
+            const res = await getPhuongAnById(Number(id));
             setData(res.data.data);
             setYKien(res.data.data.y_kien_bgh ?? '');
+
+            // Fetch danh sách hồ sơ liên quan nếu phương án đã được phê duyệt
+            if (res.data.data.trang_thai === 3) {
+                const resHS = await getHoSoByPhuongAn(id!);
+                if (resHS.success) {
+                    const newMap = new Map();
+                    resHS.data.forEach((hs: any) => newMap.set(hs.chi_tiet_pa_id, hs));
+                    setHoSoMap(newMap);
+                }
+            }
         } catch {
             message.error('Không thể tải dữ liệu phương án');
         } finally {
@@ -77,7 +82,7 @@ const PersonnelPlanDetailPage: React.FC = () => {
     const handleSubmit = async () => {
         try {
             setSubmitting(true);
-            await axiosClient.put(`/personnel/${id}/submit`, {});
+            await axiosClient.patch(`/phuong-an-nhan-su/${id}/trinh`);
             message.success('Đã trình BGH thành công');
             fetchData();
         } catch (err: any) {
@@ -87,16 +92,50 @@ const PersonnelPlanDetailPage: React.FC = () => {
         }
     };
 
-    const handleApprove = async (trang_thai: number) => {
+    const handleApprove = async () => {
         try {
             setApproving(true);
-            await axiosClient.put(`/personnel/${id}/approve`, { trang_thai, y_kien_bgh: yKien });
-            message.success(trang_thai === 3 ? 'Đã phê duyệt phương án' : 'Đã từ chối phương án');
+            await approvePhuongAn(Number(id), yKien);
+            message.success("Đã phê duyệt phương án");
             fetchData();
         } catch (err: any) {
             message.error(err?.response?.data?.message ?? 'Lỗi khi cập nhật trạng thái');
         } finally {
             setApproving(false);
+        }
+    };
+
+    const handleReject = async () => {
+        try {
+            setApproving(true);
+            await rejectPhuongAn(Number(id), yKien);
+            message.success("Đã từ chối phương án");
+            fetchData();
+        } catch (err: any) {
+            message.error(err?.response?.data?.message ?? 'Lỗi khi cập nhật trạng thái');
+        } finally {
+            setApproving(false);
+        }
+    };
+
+    const handleCreateHoSo = async (chiTietPAId: number) => {
+        try {
+            setCreatingHoSoId(chiTietPAId);
+            const res = await createHoSo({ chiTietPAId });
+            if ((res as any).data.success) {
+                message.success('Đã tạo hồ sơ bổ nhiệm mới');
+                // Cập nhật lại Map hồ sơ
+                const resHS = await getHoSoByPhuongAn(id!);
+                if (resHS.success) {
+                    const newMap = new Map();
+                    resHS.data.forEach((hs: any) => newMap.set(hs.chi_tiet_pa_id, hs));
+                    setHoSoMap(newMap);
+                }
+            }
+        } catch (err: any) {
+            message.error(err?.response?.data?.message || 'Lỗi khi lập hồ sơ');
+        } finally {
+            setCreatingHoSoId(null);
         }
     };
 
@@ -112,54 +151,71 @@ const PersonnelPlanDetailPage: React.FC = () => {
     const trangThaiInfo = TRANG_THAI_MAP[data.trang_thai] ?? { label: '?', color: 'default' };
     const canSubmit = user?.vai_tro === 'PTCCT' && data.trang_thai === 1;
     const canApprove = user?.vai_tro === 'BGH' && data.trang_thai === 2;
-    const boNhiemCount = data.chi_tiet.filter(c => c.loai_phuong_an === 'Bổ nhiệm').length;
-    const boNhiemLaiCount = data.chi_tiet.filter(c => c.loai_phuong_an === 'Bổ nhiệm lại').length;
+    const boNhiemCount = data.chi_tiet.filter((c: any) => c.loai_phuong_an === 'Bổ nhiệm').length;
+    const boNhiemLaiCount = data.chi_tiet.filter((c: any) => c.loai_phuong_an === 'Bổ nhiệm lại').length;
 
     const cols = [
         {
-            title: 'Mã VC', dataIndex: 'ma_vien_chuc', key: 'ma_vien_chuc', width: 100,
-            render: (text: string) => <span className="font-mono text-sm">{text ?? '—'}</span>,
+            title: 'Mã VC', dataIndex: 'ma_vien_chuc', key: 'ma_vien_chuc', width: 90,
+            render: (text: string) => <span className="font-mono text-xs text-slate-500">{text ?? '—'}</span>,
         },
         {
             title: 'Họ và tên', dataIndex: 'ho_va_ten', key: 'ho_va_ten',
             render: (text: string) => (
                 <div className="flex items-center gap-2">
                     <UserOutlined className="text-blue-400" />
-                    <span className="font-semibold">{text}</span>
+                    <span className="font-semibold text-slate-800">{text}</span>
                 </div>
             ),
         },
         {
-            title: 'Chức danh bổ nhiệm', dataIndex: 'ten_chuc_danh', key: 'ten_chuc_danh',
-            render: (text: string) => <Tag color="purple">{text}</Tag>,
+            title: 'Chức danh', dataIndex: 'ten_chuc_danh', key: 'ten_chuc_danh',
+            render: (text: string) => <Tag color="purple" className="border-0 bg-purple-50 text-purple-600 font-medium">{text}</Tag>,
         },
         {
-            title: 'Đơn vị', dataIndex: 'ten_don_vi', key: 'ten_don_vi',
+            title: 'Loại PA', dataIndex: 'loai_phuong_an', key: 'loai_phuong_an', width: 130,
             render: (text: string) => (
-                <div className="flex items-center gap-1 text-gray-600">
-                    <HomeOutlined />
-                    <span>{text}</span>
-                </div>
+                <Tag color={LOAI_PA_COLOR[text] ?? 'default'} className="rounded-full px-3">{text}</Tag>
             ),
         },
         {
-            title: 'Loại phương án', dataIndex: 'loai_phuong_an', key: 'loai_phuong_an', width: 140,
-            render: (text: string) => (
-                <Tag color={LOAI_PA_COLOR[text] ?? 'default'}>{text}</Tag>
-            ),
-        },
-        {
-            title: 'Ghi chú', dataIndex: 'ghi_chu', key: 'ghi_chu',
-            render: (text: string) => <span className="text-gray-500">{text || '—'}</span>,
+            title: 'Hồ sơ BN', key: 'ho_so_bn', width: 150,
+            render: (_: unknown, record: any) => {
+                if (data.trang_thai !== 3) return <span className="text-gray-300">—</span>;
+
+                const hoSo = hoSoMap.get(record.chi_tiet_pa_id);
+                if (hoSo) {
+                    return (
+                        <Button
+                            type="link"
+                            size="small"
+                            icon={<FileSearchOutlined />}
+                            onClick={() => navigate(`/ho-so-bo-nhiem/${hoSo.id}`)}
+                        >
+                            Xem hồ sơ
+                        </Button>
+                    );
+                }
+                return (
+                    <Button
+                        type="primary"
+                        size="small"
+                        ghost
+                        icon={<PlusOutlined />}
+                        loading={creatingHoSoId === record.chi_tiet_pa_id}
+                        onClick={() => handleCreateHoSo(record.chi_tiet_pa_id)}
+                    >
+                        Lập hồ sơ
+                    </Button>
+                );
+            }
         },
     ];
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen space-y-5">
-
-            {/* Header: nút quay lại + Trình BGH */}
             <div className="flex items-center justify-between">
-                <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/personnel')}>
+                <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/phuong-an-nhan-su')}>
                     Quay lại danh sách
                 </Button>
                 {canSubmit && (
@@ -177,132 +233,86 @@ const PersonnelPlanDetailPage: React.FC = () => {
                 )}
             </div>
 
-            {/* Thống kê nhanh */}
             <Row gutter={16}>
                 <Col span={6}>
-                    <Card>
+                    <Card size="small" bordered={false} className="shadow-sm">
                         <Statistic title="Tổng nhân sự" value={data.chi_tiet.length}
                             prefix={<TeamOutlined />} valueStyle={{ color: '#1890ff' }} />
                     </Card>
                 </Col>
                 <Col span={6}>
-                    <Card>
+                    <Card size="small" bordered={false} className="shadow-sm">
                         <Statistic title="Bổ nhiệm" value={boNhiemCount}
                             valueStyle={{ color: '#1890ff' }} />
                     </Card>
                 </Col>
                 <Col span={6}>
-                    <Card>
+                    <Card size="small" bordered={false} className="shadow-sm">
                         <Statistic title="Bổ nhiệm lại" value={boNhiemLaiCount}
                             valueStyle={{ color: '#13c2c2' }} />
                     </Card>
                 </Col>
                 <Col span={6}>
-                    <Card>
+                    <Card size="small" bordered={false} className="shadow-sm">
                         <Statistic title="Trạng thái"
-                            valueRender={() => <Tag color={trangThaiInfo.color}>{trangThaiInfo.label}</Tag>} />
+                            valueRender={() => <Tag color={trangThaiInfo.color} className="font-medium px-4">{trangThaiInfo.label}</Tag>} />
                     </Card>
                 </Col>
             </Row>
 
-            {/* Thông tin chung */}
             <Card title={
                 <div className="flex items-center gap-2">
                     <FileTextOutlined className="text-blue-500" />
-                    <span className="font-semibold">Thông tin phương án</span>
+                    <span className="font-semibold">Thông tin chung phương án</span>
                 </div>
-            }>
+            } className="shadow-sm rounded-xl">
                 <Descriptions bordered column={2} size="small">
-                    <Descriptions.Item label="Mã phương án">
-                        <span className="font-mono font-bold">{data.ma_phuong_an}</span>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Trạng thái">
-                        <Tag color={trangThaiInfo.color}>{trangThaiInfo.label}</Tag>
-                    </Descriptions.Item>
+                    <Descriptions.Item label="Mã phương án"><span className="font-mono font-bold text-blue-600">{data.ma_phuong_an}</span></Descriptions.Item>
+                    <Descriptions.Item label="Trạng thái"><Tag color={trangThaiInfo.color}>{trangThaiInfo.label}</Tag></Descriptions.Item>
                     <Descriptions.Item label="Số tờ trình">{data.so_to_trinh ?? '—'}</Descriptions.Item>
-                    <Descriptions.Item label="Ngày lập tờ trình">
-                        {data.ngay_to_trinh ? new Date(data.ngay_to_trinh).toLocaleDateString('vi-VN') : '—'}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngày lập">
-                        {data.ngay_lap ? new Date(data.ngay_lap).toLocaleDateString('vi-VN') : '—'}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngày phê duyệt">
-                        {data.ngay_phe_duyet ? new Date(data.ngay_phe_duyet).toLocaleDateString('vi-VN') : '—'}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ghi chú" span={2}>
-                        {data.ghi_chu || '—'}
-                    </Descriptions.Item>
+                    <Descriptions.Item label="Ngày lập tờ trình">{data.ngay_to_trinh ? dayjs(data.ngay_to_trinh).format('DD/MM/YYYY') : '—'}</Descriptions.Item>
+                    <Descriptions.Item label="Ngày lập">{dayjs(data.ngay_lap).format('DD/MM/YYYY')}</Descriptions.Item>
+                    <Descriptions.Item label="Ngày duyệt">{data.ngay_phe_duyet ? dayjs(data.ngay_phe_duyet).format('DD/MM/YYYY') : '—'}</Descriptions.Item>
+                    <Descriptions.Item label="Ghi chú" span={2}>{data.ghi_chu || '—'}</Descriptions.Item>
                     {data.y_kien_bgh && (
-                        <Descriptions.Item label="Ý kiến BGH" span={2}>
+                        <Descriptions.Item label="Ý kiến BGH" span={2} labelStyle={{ color: '#1d4ed8', fontWeight: 'bold' }}>
                             <span className="text-blue-700 font-medium">{data.y_kien_bgh}</span>
                         </Descriptions.Item>
                     )}
                 </Descriptions>
             </Card>
 
-            {/* Alert trạng thái */}
-            {data.trang_thai === 2 && (
-                <Alert type="info" showIcon message="Phương án đang chờ BGH phê duyệt" />
-            )}
-            {data.trang_thai === 3 && (
-                <Alert type="success" showIcon message="Phương án đã được BGH phê duyệt" />
-            )}
-            {data.trang_thai === 0 && (
-                <Alert type="error" showIcon message="Phương án đã bị từ chối / hủy" />
-            )}
-
-            {/* Danh sách nhân sự */}
             <Card title={
                 <div className="flex items-center gap-2">
                     <TeamOutlined className="text-blue-500" />
-                    <span className="font-semibold">Danh sách nhân sự ({data.chi_tiet.length} người)</span>
+                    <span className="font-semibold">Chi tiết phương án nhân sự</span>
                 </div>
-            }>
+            } className="shadow-sm rounded-xl overflow-hidden">
                 <Table
                     rowKey="chi_tiet_pa_id"
                     columns={cols}
                     dataSource={data.chi_tiet}
                     pagination={false}
-                    size="small"
+                    size="middle"
                     bordered
                 />
             </Card>
 
-            {/* Phê duyệt BGH */}
             {canApprove && (
-                <Card title="Phê duyệt phương án" className="border-blue-200">
+                <Card title="Phê duyệt phương án" className="border-blue-200 shadow-md">
                     <div className="space-y-3">
-                        <div>
-                            <label className="text-sm text-gray-600 font-medium block mb-1">Ý kiến BGH</label>
-                            <Input.TextArea
-                                rows={3}
-                                placeholder="Nhập ý kiến phê duyệt hoặc lý do từ chối..."
-                                value={yKien}
-                                onChange={e => setYKien(e.target.value)}
-                            />
-                        </div>
+                        <Input.TextArea
+                            rows={3}
+                            placeholder="Nhập ý kiến phê duyệt hoặc lý do từ chối..."
+                            value={yKien}
+                            onChange={e => setYKien(e.target.value)}
+                        />
                         <div className="flex gap-2 justify-end">
-                            <Popconfirm
-                                title="Từ chối phương án?"
-                                description="Phương án sẽ bị hủy và không thể khôi phục."
-                                onConfirm={() => handleApprove(0)}
-                                okText="Xác nhận từ chối"
-                                cancelText="Hủy"
-                                okButtonProps={{ danger: true }}
-                            >
-                                <Button danger icon={<CloseCircleOutlined />} loading={approving}>
-                                    Từ chối
-                                </Button>
+                            <Popconfirm title="Xác nhận từ chối?" onConfirm={handleReject} okButtonProps={{ danger: true }}>
+                                <Button danger icon={<CloseCircleOutlined />} loading={approving}>Từ chối</Button>
                             </Popconfirm>
-                            <Popconfirm
-                                title="Phê duyệt phương án?"
-                                onConfirm={() => handleApprove(3)}
-                                okText="Xác nhận"
-                                cancelText="Hủy"
-                            >
-                                <Button type="primary" icon={<CheckCircleOutlined />} loading={approving}>
-                                    Phê duyệt
-                                </Button>
+                            <Popconfirm title="Xác nhận phê duyệt?" onConfirm={handleApprove}>
+                                <Button type="primary" icon={<CheckCircleOutlined />} loading={approving}>Phê duyệt</Button>
                             </Popconfirm>
                         </div>
                     </div>

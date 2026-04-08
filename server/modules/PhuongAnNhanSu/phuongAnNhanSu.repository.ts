@@ -60,6 +60,28 @@ export const insertPANSDetail = async (client: any, phuongAnId: number, payload:
     }
 }
 
+export const getPAInfoById = async (id: number) => {
+    return await pool.query(
+        `SELECT id, ma_phuong_an, so_to_trinh, ngay_to_trinh, ngay_lap, trang_thai, y_kien_bgh, ngay_phe_duyet, ghi_chu
+         FROM phuong_an_nhan_su WHERE id = $1`,
+        [id]
+    );
+}
+
+export const getCandidates = async () => {
+    return await pool.query(
+        `SELECT ctbn.id AS chi_tiet_bn_id, vc.ho_va_ten, cd.ten_chuc_danh, dv.ten_don_vi
+         FROM chi_tiet_bo_nhiem ctbn
+         JOIN vien_chuc vc ON vc.id = ctbn.vien_chuc_id
+         JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
+         JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
+         JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+         JOIN don_vi dv ON dv.id = vc.don_vi_id
+         WHERE ctbn.id NOT IN (SELECT chi_tiet_bn_id FROM chi_tiet_phuong_an)
+         ORDER BY vc.ho_va_ten`
+    );
+}
+
 export const updateStatus = async (client: any, chiTietPAId: number, trangThai: number, yKienBGH?: string) => {
     await client.query(
         `

@@ -1,13 +1,15 @@
 import { Router } from "express";
 import { verifyToken } from "../../middleware/auth.middleware";
-import { getAll, getById, approve, create, reject } from "./phuongAnNhanSu.controller";
+import { getAll, getById, approve, create, reject, submit, getCandidates } from "./phuongAnNhanSu.controller";
 
 const router = Router();
 
 router.use(verifyToken);
+router.get("/candidates", getCandidates);
 router.get("/", getAll);
 router.get("/:id", getById);
 router.post('/', create);
+router.patch('/:id/trinh', submit);
 router.patch('/:id/duyet', approve);
 router.patch('/:id/tu-choi', reject);
 

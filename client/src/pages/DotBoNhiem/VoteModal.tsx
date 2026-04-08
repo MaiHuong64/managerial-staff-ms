@@ -2,7 +2,7 @@ import type React from "react";
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { Modal, Form, InputNumber, Button, Card, Table, Tag, Alert, message } from "antd";
-import axiosClient from "../../utils/AxiosClient";
+import { submitVote } from "../../api/dotBoNhiem.api";
 
 interface VoteFormValues {
     so_nguoi_trieu_tap: number;
@@ -128,7 +128,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                 })),
             };
 
-            const res = await 
+            const res = await submitVote(payload);
             message.success(res.data.message ?? "Ghi nhận kết quả thành công!");
             onSuccess();
             handleCancel();
