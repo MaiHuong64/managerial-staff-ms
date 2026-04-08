@@ -1,4 +1,9 @@
-export enum TrangThaiHoSo {
-    chuaHoanThien = 0,
-    daHoanThien = 1
+export interface CreateHoSoDTO {
+    chiTietPA: number,
+    ghiChu?: string
+}
+export interface UploadFileDTO{
+    tenTaiLieu: string,
+    loaiTaiLieu: number,
+    fileDinhKem: string // path
 }

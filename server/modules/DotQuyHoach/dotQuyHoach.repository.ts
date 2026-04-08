@@ -43,11 +43,33 @@ export const getDetail = async (id: number) => {
 export const insertPlanningBatch = async (client: any, payload: CreatePlanningBatchDTO) => {
     const maDotQuyHoach = await getNextBatchCode(client);
     const result = await client.query(
-       `insert into dot_quy_hoach (ma_quy_hoach, ten_quy_hoach, loai_quy_hoach, nam_thuc_hien, nhiem_ky, so_qd_phe_duyet, ngay_qd_phe_duyet, trang_thai) 
-        values ($1, $2, $3, $4, $5, $6, $7, $8) returning * `, 
-        [maDotQuyHoach, payload.tenQuyHoach, payload.loaiQuyHoach, payload.namThucHien, payload.nhiemKy, payload.soQdPheDuyet, payload.ngayQdPheDuyet, 0]
+       `INSERT INTO dot_quy_hoach
+        (ma_quy_hoach, ten_quy_hoach, loai_quy_hoach, nam_thuc_hien, nhiem_ky,
+         so_qd_phe_duyet, ngay_qd_phe_duyet, trang_thai, dot_goc_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        [maDotQuyHoach, payload.tenQuyHoach, payload.loaiQuyHoach, payload.namThucHien,
+         payload.nhiemKy, payload.soQdPheDuyet, payload.ngayQdPheDuyet, 0, payload.dotGocId ?? null]
     )
     return result.rows[0];
+}
+
+export const copyChiTietFromDotGoc = async (client: any, dotRaSoatId: number, dotGocId: number) => {
+    await client.query(
+        `INSERT INTO chi_tiet_quy_hoach
+             (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id,
+              ngay_vao_qh, loai_nguon, buoc_hien_tai, trang_thai)
+         SELECT
+             $1,
+             vien_chuc_id, chuc_danh_id, don_vi_id,
+             ngay_vao_qh,
+             2,
+             5,
+             1
+         FROM chi_tiet_quy_hoach
+         WHERE dot_quy_hoach_id = $2 AND trang_thai = 1
+         ON CONFLICT (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id) DO NOTHING`,
+        [dotRaSoatId, dotGocId]
+    );
 }
 export const insertPlanningDetail = async (client: any, payload: AddPlanningBatchDetailDTO) => {
     for(const vc of payload.vienChucId) {

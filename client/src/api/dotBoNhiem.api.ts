@@ -12,7 +12,7 @@ export const createDotBoNhiem = (data: unknown) =>
 export const submitVote = (data: unknown) =>
     axiosClient.post("/bo-nhiem/submit", data);
 
-export const getCandidatesByChiTietDot = (chiTietDotId: number) =>
+export const getCandidatesByChiTietDot = (chiTietDotId: number) => 
     axiosClient.get(`/bo-nhiem/detail/${chiTietDotId}/candidates`);
 
 export const addCandidateToChiTietDot = (chiTietDotId: number, data: unknown) =>
@@ -20,3 +20,4 @@ export const addCandidateToChiTietDot = (chiTietDotId: number, data: unknown) =>
 
 export const startVotingProcess = (id: number) =>
     axiosClient.post(`/bo-nhiem/${id}/start-voting`);
+

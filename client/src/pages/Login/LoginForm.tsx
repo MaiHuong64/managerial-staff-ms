@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, message, Checkbox } from 'antd';
+import { Form, Input, Button, message } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import type { AuthUser, LoginType } from '../../types/auth';
 import { useAuth } from '../../hook/useAuth';
 import { login as loginApi } from '../../api/auth.api'; 
@@ -10,52 +11,62 @@ const LoginForm: React.FC = () => {
     const navigate = useNavigate();
     const [form] = Form.useForm();
     
-    const {login} = useAuth();
+    const { login } = useAuth();
   
     const onFinish = async (values: LoginType) => {
         setLoading(true);
       
-        try{
+        try {
             const response = await loginApi(values.ten_dang_nhap, values.mat_khau);
-            console.log(values.ten_dang_nhap, values.mat_khau)
-            const {token, ...userData} = response.data.data;
+            console.log(values.ten_dang_nhap, values.mat_khau);
+            const { token, ...userData } = response.data.data;
             localStorage.setItem('token', token);
         
             login(userData as AuthUser, token);
-            message.success("Login successful!");
+            message.success("Đăng nhập thành công!");
             navigate("/dashboard", { replace: true });
         }
-        catch(error: unknown){
+        catch (error: unknown) {
             console.log("Full error:", error);
-            const err = (error as { response?: { data?: { message?: string } } }).response?.data?.message ||"Đăng nhập thất bại.";
+            const err = (error as { response?: { data?: { message?: string } } }).response?.data?.message || "Đăng nhập thất bại.";
             message.error(err);
         }
-        finally{setLoading(false)}
-    }
-    return(
-        <>
-        <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
-        <Form.Item label="Tên đăng nhập" name="ten_dang_nhap" rules={[{ required: true, message: "Vui lòng nhập tên đăng nhập!" }]}>
-            <Input placeholder="Nhập tên đăng nhập" />
-        </Form.Item>
+        finally {
+            setLoading(false);
+        }
+    };
 
-        <Form.Item label="Mật khẩu" name="mat_khau" rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}>
-            <Input.Password placeholder="••••••••••" autoComplete="current-password" />
-        </Form.Item>
+    return (
+        <Form  form={form}  layout="vertical"  onFinish={onFinish}  requiredMark={false}  className="w-full">
+            <Form.Item 
+                label={<span className="text-sm font-medium text-[#0f172a]">Tên đăng nhập / Mã viên chức</span>} 
+                name="ten_dang_nhap" 
+                rules={[{ required: true, message: "Vui lòng nhập tên đăng nhập!" }]}
+            >
+                <Input 
+                    prefix={<UserOutlined className="text-[#94a3b8] mr-1" />} 
+                    placeholder="VD: 002 hoặc email" 
+                    className="hover:border-[#2563eb] focus:border-[#2563eb] text-[15px]"
+                />
+            </Form.Item>
 
-        <div className="flex justify-between items-center mb-6">
-            <Checkbox className="text-[12px] font-medium text-slate-300 hover:text-slate-700 transition-colors">
-                Ghi nhớ tôi
-            </Checkbox>
-        </div>
+            <Form.Item  label={<span className="text-sm font-medium text-[#0f172a]">
+                Mật khẩu</span>}  name="mat_khau" rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]} className="mb-8">
+                <Input.Password 
+                    prefix={<LockOutlined className="text-[#94a3b8] mr-1" />}
+                    placeholder="Nhập mật khẩu của bạn" 
+                    autoComplete="current-password" 
+                    className="hover:border-[#2563eb] focus:border-[#2563eb] text-[15px]"
+                />
+            </Form.Item>
 
-        <Form.Item className="mb-0">
-            <Button type="primary" htmlType="submit" block loading={loading}>
-                {loading ? "Đang xác thực..." : "Đăng nhập"}
-            </Button>
-        </Form.Item>
+            <Form.Item className="mb-0">
+                <Button type="primary" htmlType="submit" block loading={loading}className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-sm border-0 text-[15px] h-11">
+                    {loading ? "Đang xác thực..." : "Đăng nhập"}
+                </Button>
+            </Form.Item>
         </Form>
-        </>
-    )
+    );
 };
-export default LoginForm
+
+export default LoginForm;

@@ -14,7 +14,8 @@ export interface AddNhanSuDTO{
 }
 export interface UpdateTrangThaiPhieu {
     trangThai: number,
-    ghiChu?: string
+    ghiChu?: string,
+    dotQuyHoachId?: number   // chỉ dùng khi approve (trangThai = 1)
 }
 export interface UpdateDuDieuKienDTO {
     duDieuKien: number, 

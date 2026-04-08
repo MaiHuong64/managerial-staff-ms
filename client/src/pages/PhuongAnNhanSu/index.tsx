@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Tag, Card, Row, Col, Statistic, Modal, message } from 'antd';
 import { PlusOutlined, FileTextOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import axiosClient from '../../utils/AxiosClient';
 import SelectCandidateModal, { type PersonnelData } from './SelectedPersonnel';
 import CreatePhuongAnForm from './CreatePhuongAnForm';
 import type { PhuongAnNhanSu } from '../../types/PhuongAnNhanSu';
+import { getPhuongAnList } from '../../api/phuongAnNhanSu.api';
 
 const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
     0: { label: 'Đã hủy', color: 'error' },
@@ -27,7 +27,7 @@ const PersonnelProposalPage: React.FC = () => {
     const fetchList = async () => {
         try {
             setLoading(true);
-            const res = await axiosClient.get('/personnel');
+            const res = await getPhuongAnList();
             setListPA(res.data.data || []);
         } catch {
             message.error('Không thể tải danh sách phương án');
@@ -73,7 +73,7 @@ const PersonnelProposalPage: React.FC = () => {
         {
             title: 'Thao tác', key: 'action', width: 100,
             render: (_: unknown, record: PhuongAnNhanSu) => (
-                <Button size="small" type="link" onClick={() => navigate(`/personnel/${record.id}`)}>
+                <Button size="small" type="link" onClick={() => navigate(`/phuong-an-nhan-su/${record.id}`)}>
                     Xem chi tiết
                 </Button>
             ),

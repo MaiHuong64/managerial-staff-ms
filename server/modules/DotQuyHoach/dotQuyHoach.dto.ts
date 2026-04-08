@@ -5,7 +5,7 @@ export interface CreatePlanningBatchDTO {
     nhiemKy?: string;
     soQdPheDuyet?: string;
     ngayQdPheDuyet?: Date;
-    chucDanhList?: ChucDanhItem[];
+    dotGocId?: number;   // chỉ dùng khi loaiQuyHoach = 2
 }
 export interface ChucDanhItem {
     vienChucId: number[];

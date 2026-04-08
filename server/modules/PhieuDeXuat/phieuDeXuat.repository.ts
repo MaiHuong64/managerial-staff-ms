@@ -73,6 +73,20 @@ export const submitPhieuDeXuat = async (client: any, id: number) => {
     );
     return result.rows[0];
 }
+export const insertVaoChiTietQuyHoach = async (client: any, phieuId: number, dotQuyHoachId: number) => {
+    await client.query(
+        `INSERT INTO chi_tiet_quy_hoach
+             (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id,
+              chi_tiet_de_xuat_id, loai_nguon, buoc_hien_tai, trang_thai, ngay_vao_qh)
+        SELECT $1, ct.vien_chuc_id, p.chuc_danh_id, p.don_vi_id, ct.id, 1, 1, 1, CURRENT_DATE
+        FROM chi_tiet_phieu_de_xuat ct
+        JOIN phieu_de_xuat_nhan_su_quy_hoach p ON p.id = ct.phieu_de_xuat_id
+        WHERE ct.phieu_de_xuat_id = $2
+        ON CONFLICT (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id) DO NOTHING`,
+        [dotQuyHoachId, phieuId]
+    );
+}
+
 export const updateTrangThaiPhieu= async (client: any, trangThai: number, phieuId: number, ghiChu?: string) => {
     const result = await client.query(
         `UPDATE phieu_de_xuat_nhan_su_quy_hoach

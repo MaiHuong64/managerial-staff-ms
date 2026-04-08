@@ -13,7 +13,7 @@ const ApprovePhuongAnPage: React.FC = () => {
     const fetchList = async () => {
         try {
             setLoading(true);
-            const res = await axiosClient.get('/personnel');
+            const res = await axiosClient.get('/phuong-an-nhan-su');
             const all: PhuongAnNhanSu[] = res.data.data ?? [];
             setList(all.filter(p => p.trang_thai === 2));
         } catch {
@@ -50,7 +50,7 @@ const ApprovePhuongAnPage: React.FC = () => {
             title: 'Thao tác', key: 'action', width: 120,
             render: (_: unknown, record: PhuongAnNhanSu) => (
                 <Button size="small" type="primary"
-                    onClick={() => navigate(`/personnel/${record.id}`)}>
+                    onClick={() => navigate(`/phuong-an-nhan-su/${record.id}`)}>
                     Xem & Duyệt
                 </Button>
             ),
