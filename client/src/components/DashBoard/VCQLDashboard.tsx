@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card, Col, Row, Statistic, Table, Button, Tag, Progress } from 'antd';
 import { 
   UserOutlined, 
@@ -6,13 +7,15 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   ExclamationCircleOutlined,
-  BarChartOutlined
+  BarChartOutlined,
+  RightOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../hook/useAuth';
 
-export const VCQLDashboard = () => {
+export const VCQLDashboard: React.FC = () => {
   const { user } = useAuth();
 
+  // Dữ liệu giả lập cho danh sách viên chức đơn vị
   const mockStaffData = [
     { 
       key: '1', 
@@ -26,7 +29,7 @@ export const VCQLDashboard = () => {
       key: '2', 
       ma_vc: 'VC002', 
       ho_va_ten: 'Trần Thị B', 
-      don_vi: 'Phòng Kế hoạch',
+      don_vi: 'Phòng Tổ chức',
       chuc_danh: 'Chuyên viên',
       trang_thai: 'Đang làm việc'
     },
@@ -34,12 +37,13 @@ export const VCQLDashboard = () => {
       key: '3', 
       ma_vc: 'VC003', 
       ho_va_ten: 'Lê Văn C', 
-      don_vi: 'Phòng Tài chính',
+      don_vi: 'Phòng Tổ chức',
       chuc_danh: 'Chuyên viên tập sự',
       trang_thai: 'Tạm nghỉ'
     },
   ];
 
+  // Dữ liệu giả lập cho tiến độ quy hoạch
   const mockPlanningData = [
     { 
       key: '1', 
@@ -60,14 +64,13 @@ export const VCQLDashboard = () => {
   const staffColumns = [
     { title: 'Mã VC', dataIndex: 'ma_vc', key: 'ma_vc' },
     { title: 'Họ và tên', dataIndex: 'ho_va_ten', key: 'ho_va_ten' },
-    { title: 'Đơn vị', dataIndex: 'don_vi', key: 'don_vi' },
     { title: 'Chức danh', dataIndex: 'chuc_danh', key: 'chuc_danh' },
     { 
       title: 'Trạng thái', 
       dataIndex: 'trang_thai', 
       key: 'trang_thai',
       render: (status: string) => (
-        <Tag color={status === 'Đang làm việc' ? 'green' : 'orange'}>
+        <Tag color={status === 'Đang làm việc' ? 'green' : 'orange'} className="rounded-full px-3">
           {status}
         </Tag>
       )
@@ -76,16 +79,18 @@ export const VCQLDashboard = () => {
 
   const planningColumns = [
     { title: 'Tên đợt QH', dataIndex: 'ten_dot_qh', key: 'ten_dot_qh' },
-    { title: 'Số lượng', dataIndex: 'so_luong', key: 'so_luong' },
-    { title: 'Đã phân bổ', dataIndex: 'da_phan_bo', key: 'da_phan_bo' },
     { 
       title: 'Tiến độ', 
       key: 'tien_do',
-      render: (record: any) => (
-        <Progress 
-          percent={Math.round((record.da_phan_bo / record.so_luong) * 100)} 
-          size="small"
-        />
+      render: (_: unknown, record: { da_phan_bo: number; so_luong: number; trang_thai: string }) => (
+        <div className="flex flex-col">
+          <span className="text-xs text-slate-500 mb-1">{record.da_phan_bo}/{record.so_luong} chỉ tiêu</span>
+          <Progress 
+            percent={Math.round((record.da_phan_bo / record.so_luong) * 100)} 
+            size="small"
+            status={record.trang_thai === 'Hoàn thành' ? 'success' : 'active'}
+          />
+        </div>
       )
     },
     { 
@@ -102,61 +107,67 @@ export const VCQLDashboard = () => {
 
   return (
     <div className="p-6 space-y-6 bg-[#F8FAFC] min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Dashboard Viên Chức Quản Lý</h1>
-        <div className="text-sm text-slate-600">
-          Chào mừng, <span className="font-semibold">{user?.ho_va_ten}</span>
+      {/* Header & Greeting */}
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 m-0">Dashboard Viên Chức Quản Lý</h1>
+          <p className="text-slate-500 mt-1">Hệ thống quản lý nhân sự và quy hoạch đơn vị</p>
+        </div>
+        <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-100">
+          <span className="text-slate-600">Chào mừng, </span>
+          <span className="font-bold text-blue-600">{user?.ho_va_ten || 'Trưởng đơn vị'}</span>
         </div>
       </div>
       
-      {/* Thống kê tổng quan */}
-      <Row gutter={16}>
-        <Col span={6}>
-          <Card className="shadow-sm rounded-xl border-none">
+      {/* Hàng 2: Thống kê tổng quan */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="shadow-sm rounded-xl border-none hover:shadow-md transition-shadow">
             <Statistic 
-              title="Tổng viên chức" 
+              title={<span className="text-slate-500 font-medium">Tổng viên chức đơn vị</span>}
               value={45} 
-              prefix={<UserOutlined className="text-blue-500" />}
+              prefix={<UserOutlined className="p-2 bg-blue-50 text-blue-500 rounded-lg mr-2" />}
             />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card className="shadow-sm rounded-xl border-none">
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="shadow-sm rounded-xl border-none hover:shadow-md transition-shadow">
             <Statistic 
-              title="Đang làm việc" 
+              title={<span className="text-slate-500 font-medium">Đang làm việc</span>}
               value={42} 
-              prefix={<CheckCircleOutlined className="text-green-500" />}
+              prefix={<CheckCircleOutlined className="p-2 bg-green-50 text-green-500 rounded-lg mr-2" />}
             />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card className="shadow-sm rounded-xl border-none">
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="shadow-sm rounded-xl border-none hover:shadow-md transition-shadow">
             <Statistic 
-              title="Tạm nghỉ" 
+              title={<span className="text-slate-500 font-medium">Tạm nghỉ / Vắng mặt</span>}
               value={3} 
-              prefix={<ClockCircleOutlined className="text-orange-500" />}
+              prefix={<ClockCircleOutlined className="p-2 bg-amber-50 text-amber-500 rounded-lg mr-2" />}
             />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card className="shadow-sm rounded-xl border-none">
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="shadow-sm rounded-xl border-none hover:shadow-md transition-shadow">
             <Statistic 
-              title="Cần xem xét" 
+              title={<span className="text-slate-500 font-medium">Hồ sơ cần xem xét</span>}
               value={5} 
-              prefix={<ExclamationCircleOutlined className="text-red-500" />}
+              prefix={<ExclamationCircleOutlined className="p-2 bg-red-50 text-red-500 rounded-lg mr-2" />}
+              valueStyle={{ color: '#dc2626' }}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Bảng quản lý */}
-      <Row gutter={16}>
-        <Col span={12}>
+      {/* Hàng 3: Bảng quản lý chi tiết */}
+      <Row gutter={[16, 16]}>
+        <Col lg={12} span={24}>
           <Card 
-            title="Danh sách viên chức" 
-            className="shadow-sm rounded-xl border-none"
+            title={<span className="flex items-center gap-2"><TeamOutlined /> Danh sách viên chức</span>}
+            className="shadow-sm rounded-xl border-none h-full"
             extra={
-              <Button type="primary" size="small">
+              <Button type="link" size="small" icon={<RightOutlined />}>
                 Xem tất cả
               </Button>
             }
@@ -164,15 +175,16 @@ export const VCQLDashboard = () => {
             <Table
               dataSource={mockStaffData}
               columns={staffColumns}
-              pagination={{ pageSize: 5 }}
-              size="small"
+              pagination={false}
+              size="middle"
+              className="mt-2"
             />
           </Card>
         </Col>
-        <Col span={12}>
+        <Col lg={12} span={24}>
           <Card 
-            title="Quy hoạch đang thực hiện" 
-            className="shadow-sm rounded-xl border-none"
+            title={<span className="flex items-center gap-2"><BarChartOutlined /> Quy hoạch đang thực hiện</span>}
+            className="shadow-sm rounded-xl border-none h-full"
             extra={
               <Button type="primary" size="small">
                 Quản lý
@@ -183,33 +195,41 @@ export const VCQLDashboard = () => {
               dataSource={mockPlanningData}
               columns={planningColumns}
               pagination={false}
-              size="small"
+              size="middle"
+              className="mt-2"
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Hành động nhanh */}
-      <Card title="Hành động quản lý" className="shadow-sm rounded-xl border-none">
-        <Row gutter={16}>
-          <Col span={6}>
-            <Button type="primary" size="large" block className="h-12">
-              <TeamOutlined /> Quản lý viên chức
+      {/* Hàng 4: Hành động nhanh */}
+      <Card 
+        title={<span className="text-slate-700 font-bold">Hành động quản lý nhanh</span>} 
+        className="shadow-sm rounded-xl border-none"
+      >
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} lg={6}>
+            <Button type="primary" size="large" block className="h-14 rounded-lg flex items-center justify-center gap-2 shadow-blue-100 shadow-lg">
+              <TeamOutlined className="text-lg" /> 
+              <span className="font-semibold">Quản lý viên chức</span>
             </Button>
           </Col>
-          <Col span={6}>
-            <Button type="default" size="large" block className="h-12">
-              <FileTextOutlined /> Quản lý quy hoạch
+          <Col xs={24} sm={12} lg={6}>
+            <Button size="large" block className="h-14 rounded-lg flex items-center justify-center gap-2 hover:border-blue-400">
+              <FileTextOutlined className="text-lg text-blue-500" /> 
+              <span className="text-slate-700">Quản lý quy hoạch</span>
             </Button>
           </Col>
-          <Col span={6}>
-            <Button type="default" size="large" block className="h-12">
-              <BarChartOutlined /> Báo cáo thống kê
+          <Col xs={24} sm={12} lg={6}>
+            <Button size="large" block className="h-14 rounded-lg flex items-center justify-center gap-2 hover:border-blue-400">
+              <BarChartOutlined className="text-lg text-indigo-500" /> 
+              <span className="text-slate-700">Báo cáo thống kê</span>
             </Button>
           </Col>
-          <Col span={6}>
-            <Button type="default" size="large" block className="h-12">
-              <CheckCircleOutlined /> Phê duyệt hồ sơ
+          <Col xs={24} sm={12} lg={6}>
+            <Button size="large" block className="h-14 rounded-lg flex items-center justify-center gap-2 hover:border-blue-400">
+              <CheckCircleOutlined className="text-lg text-green-500" /> 
+              <span className="text-slate-700">Phê duyệt hồ sơ</span>
             </Button>
           </Col>
         </Row>

@@ -1,6 +1,6 @@
 import pool from "../../config/db";
 import { CreatePhieuDeXuatDTO, UpdateTrangThaiPhieu } from "./phieuDeXuat.dto";
-import { getAllPhieuDeXuat, getCode, getPhieuDeXuatById, insertChiTietPhieu, insertPhieuDeXuat, submitPhieuDeXuat, updateTrangThaiPhieu } from "./phieuDeXuat.repository";
+import { getAllPhieuDeXuat, getCode, getPhieuDeXuatById, insertChiTietPhieu, insertPhieuDeXuat, submitPhieuDeXuat, updateTrangThaiPhieu, insertVaoChiTietQuyHoach } from "./phieuDeXuat.repository";
 
 export const createPhieuDeXuat = async (payload: CreatePhieuDeXuatDTO, user: any) => {
     const client = await pool.connect();
@@ -61,9 +61,14 @@ export const approvePDX = async (id: number, user: any, payload: UpdateTrangThai
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        if(user.vai_tro !== 'PTCCT')
+        if (user.vai_tro !== 'PTCCT')
             throw new Error("Không có quyền duyệt phiếu");
+        if (!payload.dotQuyHoachId)
+            throw new Error("Vui lòng chọn đợt quy hoạch");
+
         const result = await updateTrangThaiPhieu(client, payload.trangThai, id, payload.ghiChu);
+        await insertVaoChiTietQuyHoach(client, id, payload.dotQuyHoachId);
+
         await client.query('COMMIT');
         return result;
     } catch (error) {

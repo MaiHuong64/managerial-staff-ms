@@ -1,9 +1,9 @@
 import { Button, Card, DatePicker, Form, Input, Select, Table, Tag, message } from "antd";
 import { useState } from "react";
 import dayjs from 'dayjs';
-import axiosClient from "../../utils/AxiosClient";
 import { FileTextOutlined, UserOutlined } from "@ant-design/icons";
 import type { PersonnelData } from "./SelectedPersonnel";
+import { createPhuongAn } from "../../api/phuongAnNhanSu.api";
 
 const LOAI_PHUONG_AN = [
     { value: 'Bổ nhiệm', label: 'Bổ nhiệm' },
@@ -40,17 +40,17 @@ export const CreatePhuongAnForm: React.FC<CreatePhuongAnFormProps> = ({ selected
         setLoading(true);
         try {
             const payload = {
-                so_to_trinh: values.so_to_trinh,
-                ngay_to_trinh: values.ngay_to_trinh ? dayjs(values.ngay_to_trinh).format('YYYY-MM-DD') : null,
-                ngay_lap: dayjs().format('YYYY-MM-DD'),
-                ghi_chu: values.ghi_chu,
-                chi_tiet: chiTiet.map(item => ({
-                    chi_tiet_bn_id: item.chi_tiet_bn_id,
-                    loai_phuong_an: item.loai_phuong_an,
-                    ghi_chu: item.ghi_chu || null,
+                soToTrinh: values.so_to_trinh,
+                ngayTrinh: values.ngay_to_trinh ? dayjs(values.ngay_to_trinh).format('YYYY-MM-DD') : null,
+                ngayLap: dayjs().format('YYYY-MM-DD'),
+                ghiChu: values.ghi_chu,
+                chiTiet: chiTiet.map(item => ({
+                    chiTietBnId: item.chi_tiet_bn_id,
+                    loaiPhuongAn: item.loai_phuong_an,
+                    ghiChu: item.ghi_chu || null,
                 })),
             };
-            const res = await axiosClient.post('/personnel', payload);
+            const res = await createPhuongAn(payload);
             if (res.data.success) {
                 message.success('Tạo phương án thành công!');
                 form.resetFields();

@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import Search from "antd/es/transfer/search";
 import { PlusOutlined } from "@ant-design/icons";
 import { CreatePhieuChuTruongModal } from "./CreatePhieuChuTruongModal";
+import { getPhieuChuTruongList } from "../../api/phieuChuTruong.api";
 
 export const PhieuChuTruongPage: React.FC = () => {
     const { user } = useAuth();
@@ -18,7 +19,7 @@ export const PhieuChuTruongPage: React.FC = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const response = await axiosClient.get('/pct');
+            const response = await getPhieuChuTruongList();
             setPhieuChuTruong(response.data.data);
         } catch {
             message.error("Không thể tải dữ liệu phiếu chủ trương");
@@ -92,9 +93,9 @@ export const PhieuChuTruongPage: React.FC = () => {
             <div className="mb-6 flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold m-0">Quản lý Đề xuất Bổ nhiệm</h1>
-                    <p className="text-gray-500 mt-1">
-                        Đơn vị: <span className="font-semibold text-gray-700">{user?.vai_tro || "Đang tải..."}</span>
-                    </p>
+                    {/* <p className="text-gray-500 mt-1">
+                        Đơn vị: <span className="font-semibold text-gray-700">{ || "Đang tải..."}</span>
+                    </p> */}
                 </div>
             </div>
 
