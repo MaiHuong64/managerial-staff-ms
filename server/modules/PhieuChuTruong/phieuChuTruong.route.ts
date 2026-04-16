@@ -4,7 +4,7 @@ import { getAll, getById, approve, create, reject } from "./phieuChuTruong.contr
 
 const router = Router();
 
-router.use(verifyToken);
+// router.use(verifyToken);
 
 router.get("/", getAll);
 router.get("/:id", getById);

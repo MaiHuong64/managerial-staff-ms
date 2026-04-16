@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { getDotBoNhiemList } from "../../api/dotBoNhiem.api";
-import type { DotBoNhiem } from "../../types/BoNhiem";
+import type { DanhSachDotBoNhiem } from "../../types/BoNhiem";
 import { AppointmentStatus } from "./AppointmentStatus";
 import { AppointmentToolBar } from "./AppointmentToolBar";
 import AppointmentTable from "./AppointmentTable";
@@ -11,7 +11,7 @@ import CreateBatchModal from "./modals";
 import { PageHeader } from "../../components/common/PageHeader";
 
 export const AppointmentPage: React.FC = () => {
-    const [data, setData] = useState<DotBoNhiem[]>([]);
+    const [data, setData] = useState<DanhSachDotBoNhiem[]>([]);
     const [loading, setLoading] = useState(true);
     const [createModalVisible, setCreateModalVisible] = useState(false);
     const [searchText, setSearchText] = useState("");
@@ -19,9 +19,9 @@ export const AppointmentPage: React.FC = () => {
 
     const statistics = useMemo(() => {
         const total = data.length;
-        const completed = data.filter(d => d.buoc_hien_tai === 6).length;
-        const inProgress = data.filter(d => d.buoc_hien_tai !== null && d.buoc_hien_tai >= 2 && d.buoc_hien_tai <= 5).length;
-        const notStarted = data.filter(d => d.buoc_hien_tai === null).length;
+        const completed = data.filter(d => d.buocHienTai === 6).length;
+        const inProgress = data.filter(d => d.buocHienTai !== null && d.buocHienTai >= 2 && d.buocHienTai <= 5).length;
+        const notStarted = data.filter(d => d.buocHienTai === null).length;
         return { total, completed, inProgress, notStarted };
     }, [data]);
 
@@ -39,13 +39,22 @@ export const AppointmentPage: React.FC = () => {
 
     useEffect(() => { fetchData(); }, []);
 
-    const filteredData = useMemo(() => data.filter(item => {
-        const matchesSearch =
-            item.ma_dot_bo_nhiem.toLowerCase().includes(searchText.toLowerCase()) ||
-            item.ten_dot_bo_nhiem.toLowerCase().includes(searchText.toLowerCase());
-        const matchesFilter = filterStatus === null || item.buoc_hien_tai === filterStatus;
-        return matchesSearch && matchesFilter;
-    }), [data, searchText, filterStatus]);
+    const filteredData = useMemo(() => {
+        const keyword = searchText.toLowerCase();
+
+        return data.filter(item => {
+            const ma = item.maDotBoNhiem?.toLowerCase() || "";
+            const ten = item.tenDotBoNhiem?.toLowerCase() || "";
+
+            const matchesSearch =
+                ma.includes(keyword) || ten.includes(keyword);
+
+            const matchesFilter =
+                filterStatus === null || item.buocHienTai === filterStatus;
+
+            return matchesSearch && matchesFilter;
+        });
+    }, [data, searchText, filterStatus]);
 
     return (
         <div className="p-6 min-h-screen bg-slate-50">

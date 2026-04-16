@@ -20,27 +20,24 @@
             const user = await AuthRepository.findByUsername(username);
             if (!user) throw new Error("Invalid credentials");
 
-            const validPass = await bcrypt.compare(password, user.mat_khau);
+            const validPass = await bcrypt.compare(password, user.matKhau);
             if (!validPass) throw new Error("Invalid credentials");
 
+            const userPayload = {
+                id: user.id,
+                tenDangNhap: user.tenDangNhap,
+                vaiTro: user.vaiTro,
+                donViId: user.donViId,
+                hoVaTen: user.hoVaTen
+            };
             const token = jwt.sign(
-                {
-                    id: user.id,
-                    ten_dang_nhap: user.ten_dang_nhap,
-                    vai_tro: user.vai_tro,
-                    don_vi_id: user.don_vi_id,
-                    ho_va_ten: user.ho_va_ten
-                },
+                userPayload,
                 process.env.JWT_SECRET as string,
                 { expiresIn: "1h" }
             );
 
             return {
-                id: user.id,
-                ten_dang_nhap: user.ten_dang_nhap,
-                vai_tro: user.vai_tro,
-                don_vi_id: user.don_vi_id,
-                ho_va_ten: user.ho_va_ten,  
+                ...userPayload,  
                 token
             };
         }

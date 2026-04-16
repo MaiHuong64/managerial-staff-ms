@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 const secretKey = process.env.JWT_SECRET;
 
 export interface AuthRequest extends Request {
-    user?:{id: number, ten_dang_nhap: string, vai_tro: string, don_vi_id: number, ho_va_ten: string}
+    user?:{id: number, tenDangNhap: string, vaiTro: string, donViId: number, hoVaTen: string}
 }
 
 export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {

@@ -12,7 +12,7 @@ export const SideBar = () => {
     const filteredItems = NAV_ITEMS.filter(item => {
         if (!item.roles) return true;
         if (!user) return false;
-        return item.roles.includes(user.vai_tro);
+        return item.roles.includes(user.vaiTro);
     });
 
     const isActive = (path: string) =>
