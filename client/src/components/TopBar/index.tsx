@@ -20,8 +20,8 @@ export const TopBar = () => {
             key: "info",
             label: (
                 <div className="px-1 py-1">
-                    <div className="font-semibold text-gray-800">{user?.ho_va_ten ?? "—"}</div>
-                    <div className="text-xs text-gray-400">{user ? ROLE_LABEL[user.vai_tro] : ""}</div>
+                    <div className="font-semibold text-gray-800">{user?.hoVaTen ?? "—"}</div>
+                    <div className="text-xs text-gray-400">{user ? ROLE_LABEL[user.vaiTro] : ""}</div>
                 </div>
             ),
             disabled: true,
@@ -60,14 +60,14 @@ export const TopBar = () => {
                         className="bg-indigo-600 text-white font-bold"
                         size={34}
                     >
-                        {user ? ROLE_AVATAR[user.vai_tro] : "?"}
+                        {user ? ROLE_AVATAR[user.vaiTro] : "?"}
                     </Avatar>
                     <div className="hidden sm:flex flex-col leading-tight">
                         <span className="text-xs font-semibold text-gray-700 group-hover:text-indigo-600 transition-colors">
-                            {user?.ho_va_ten ?? "—"}
+                            {user?.hoVaTen ?? "—"}
                         </span>
                         <span className="text-[10px] text-gray-400">
-                            {user ? ROLE_LABEL[user.vai_tro] : ""}
+                            {user ? ROLE_LABEL[user.vaiTro] : ""}
                         </span>
                     </div>
                 </div>

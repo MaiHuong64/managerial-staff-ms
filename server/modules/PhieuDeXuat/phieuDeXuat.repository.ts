@@ -1,5 +1,6 @@
 import pool from "../../config/db";
-import { AddNhanSuDTO, CreatePhieuDeXuatDTO, UpdateDuDieuKienDTO } from "./phieuDeXuat.dto";
+import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
+import { AddNhanSuDTO, ChiTietPhieuDeXuatNhanSu, CreatePhieuDeXuatDTO, DanhSachPhieuDeXuatNhanSu, PhieuDeXuatNhanSu, UpdateDuDieuKienDTO } from "./phieuDeXuat.dto";
 
 export const getCode = async (client: any) => {
     const result = await client.query(
@@ -9,7 +10,7 @@ export const getCode = async (client: any) => {
     return result.rows[0].ma_phieu_de_xuat;
 };
 
-export const getAllPhieuDeXuat = async () => {
+export const getAllPhieuDeXuat = async (): Promise<DanhSachPhieuDeXuatNhanSu[]> => {
     const result = await pool.query(
         `SELECT p.*, dv.ten_don_vi, cd.ten_chuc_danh, COUNT(ct.id) as so_nguoi_de_xuat
         FROM phieu_de_xuat_nhan_su_quy_hoach p
@@ -19,9 +20,9 @@ export const getAllPhieuDeXuat = async () => {
         GROUP BY p.id, dv.ten_don_vi, cd.ten_chuc_danh
         ORDER BY p.ngay_lap DESC`
     );
-    return result.rows;
+    return mapArrayToCamel<DanhSachPhieuDeXuatNhanSu>(result.rows);
 }
-export const getPhieuDeXuatById = async (id: number) => {
+export const getPhieuDeXuatById = async (id: number): Promise<ChiTietPhieuDeXuatNhanSu[]> => {
     const result = await pool.query(
         `SELECT 
             p.*,
@@ -38,20 +39,20 @@ export const getPhieuDeXuatById = async (id: number) => {
         WHERE p.id = $1
         `, [id]
     )
-    return result.rows;
+    return mapArrayToCamel(result.rows);
 }
 
-export const insertPhieuDeXuat = async (client: any, payload: CreatePhieuDeXuatDTO , user: any, maPhieu: string) => {
-    const { ho_va_ten, don_vi_id } = user;
+export const insertPhieuDeXuat = async (client: any, payload: CreatePhieuDeXuatDTO , user: any, maPhieu: string): Promise<PhieuDeXuatNhanSu> => {
+    const { hoVaTen, donViId } = user;
     const result = await client.query (
         `
         INSERT INTO phieu_de_xuat_nhan_su_quy_hoach
         (ma_phieu_de_xuat, tieu_de, noi_dung, so_luong_de_xuat,
         chuc_danh_id, don_vi_id, nguoi_lap, ngay_lap, trang_thai) VALUES
         ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
-        `,[maPhieu, payload.tieuDe, payload.noiDung, payload.soLuongDeXuat, payload.chucDanhId, don_vi_id, ho_va_ten, payload.ngayLap ?? new Date(), -1]
+        `,[maPhieu, payload.tieuDe, payload.noiDung, payload.soLuongDeXuat, payload.chucDanhId, donViId, hoVaTen, payload.ngayLap ?? new Date(), -1]
     )
-    return result.rows[0];
+    return mapToCamel<PhieuDeXuatNhanSu>(result.rows[0]);
 };
 export const insertChiTietPhieu = async (client: any, phieuDeXuatId: number, payload: AddNhanSuDTO) => {
     const result = await client.query(
@@ -59,7 +60,7 @@ export const insertChiTietPhieu = async (client: any, phieuDeXuatId: number, pay
         INSERT INTO chi_tiet_phieu_de_xuat (phieu_de_xuat_id, vien_chuc_id, ghi_chu, du_dieu_kien) VALUES
         ($1, $2, $3, $4)`, [phieuDeXuatId, payload.vienChucId, payload.ghiChu, 0]
     )
-    return result.rows[0];
+    return mapToCamel(result.rows[0]);
 }
 
 
@@ -71,7 +72,7 @@ export const submitPhieuDeXuat = async (client: any, id: number) => {
          RETURNING *`,
         [id]
     );
-    return result.rows[0];
+    return mapToCamel(result.rows[0]);
 }
 export const insertVaoChiTietQuyHoach = async (client: any, phieuId: number, dotQuyHoachId: number) => {
     await client.query(
@@ -94,7 +95,7 @@ export const updateTrangThaiPhieu= async (client: any, trangThai: number, phieuI
         WHERE id = $3 RETURNING *
         `,[trangThai, ghiChu, phieuId]
     )
-    return result.rows[0];
+    return mapToCamel(result.rows[0]);
 }
 
 export const updateDuDieuKien = async (client: any, chiTietPhieuId: number, payload: UpdateDuDieuKienDTO) => {
@@ -106,5 +107,5 @@ export const updateDuDieuKien = async (client: any, chiTietPhieuId: number, payl
         WHERE id = $3
         RETURNING *`,[payload.duDieuKien, payload.lyDo, chiTietPhieuId]
     )
-    return result.rows[0];
+    return mapToCamel(result.rows[0]);
 }

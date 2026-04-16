@@ -53,7 +53,7 @@ const ProfilePage: React.FC = () => {
                     {/* Avatar */}
                     <div className="relative shrink-0">
                         <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border-2 border-white shadow-sm font-bold text-3xl">
-                            {profile?.ho_va_ten?.charAt(0)}
+                            {profile?.hoVaTen?.charAt(0)}
                         </div>
                         <div className="absolute -bottom-1 -right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-white shadow-sm" title="Active"></div>
                     </div>
@@ -65,25 +65,25 @@ const ProfilePage: React.FC = () => {
                         </div>
                         <div className="flex flex-wrap justify-center md:justify-start gap-y-2 gap-x-5 text-sm">
                             <span className="text-indigo-600 font-bold flex items-center gap-2">
-                                <UserOutlined /> {profile.ten_chuc_danh || 'Chuyên viên'}
+                                <UserOutlined /> {profile.tenChucDanh || 'Chuyên viên'}
                             </span>
                             <span className="text-gray-300 hidden md:inline">/</span>
                             <span className="text-gray-500 font-medium flex items-center gap-2">
-                                <BankOutlined className="text-gray-400" /> {profile.ten_don_vi}
+                                <BankOutlined className="text-gray-400" /> {profile.tenDonVi}
                             </span>
                         </div>
                     </div>
 
                     {/* Info */}
-                    {profile.ten_chuc_danh && (
+                    {profile.tenChucDanh && (
                         <div className="bg-slate-50 p-5 rounded-2xl border border-gray-100 text-center md:text-right min-w-55">
                             <p className="text-[10px] text-gray-400 font-bold uppercase mb-2 tracking-widest">Nhiệm kỳ hiện tại</p>
                             <p className="text-sm font-bold text-gray-700">
-                                {format(profile.ngay_bat_dau)} <span className="text-gray-300 mx-1">→</span> {profile.ngay_ket_thuc ? format(profile.ngay_ket_thuc) : 'Nay'}
+                                {format(profile.ngayBatDau)} <span className="text-gray-300 mx-1">→</span> {profile.ngayKetThuc ? format(profile.ngayKetThuc) : 'Nay'}
                             </p>
-                            {profile.so_quyet_dinh && (
+                            {profile.soQuyetDinh && (
                                 <p className="text-[11px] text-indigo-500 mt-2 font-bold px-2 py-1 bg-white rounded-lg border border-indigo-50 inline-block">
-                                    QĐ: {profile.so_quyet_dinh}
+                                    QĐ: {profile.soQuyetDinh}
                                 </p>
                             )}
                         </div>
