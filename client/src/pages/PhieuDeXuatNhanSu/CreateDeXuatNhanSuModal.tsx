@@ -52,10 +52,10 @@ export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, 
             onSuccess();
         } catch (error: any) {
             message.error(error?.response?.data?.message || "Lỗi khi tạo phiếu đề xuất!");
-        } finally {
+        } finally { 
             setLoading(false);
         }
-    };
+    }; 
 
     const columns = [
         { title: "Họ và tên", dataIndex: "ho_va_ten" },
