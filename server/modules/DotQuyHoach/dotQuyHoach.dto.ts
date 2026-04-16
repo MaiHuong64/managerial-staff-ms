@@ -18,3 +18,9 @@ export interface AddPlanningBatchDetailDTO {
     donViId: number;
     ngayVaoQh?: Date;
 }
+
+export interface PlanningBatch {
+    id: number;
+    maQuyHoach: string;
+    tenQuyHoach: string;
+}

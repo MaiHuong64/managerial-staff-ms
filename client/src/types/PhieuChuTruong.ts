@@ -5,15 +5,15 @@ export interface PhieuChuTruong {
     tieu_de: string;
     ly_do_de_xuat: string;
     so_luong_de_xuat: number;
-    nguon_nhan_su: number; // 1: Tại chỗ, 2: Nơi khác, 3: Cả hai
+    nguon_nhan_su: number; // 1: Tại chỗ, 2: Nơi khác
     ngay_lap: string; 
     ngay_phe_duyet?: string | null; // Có thể null nếu chưa duyệt
-    trang_thai: number; // 0: Chờ duyệt, 1: Đã duyệt, 2: Bị trả về
+    trang_thai: number; // 1: Chờ duyệt, 2 đã duyệt, 0: Từ chối
     dot_quy_hoach_id?: number | null;
     don_vi_id: number;
     chuc_danh_id: number;
     nguoi_lap: string;
-
+    ly_do_tu_choi: string;
     ten_don_vi: string;
     ten_chuc_danh: string;
 }

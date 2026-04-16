@@ -162,7 +162,7 @@ export const PTCCTDashboard: React.FC = () => {
         </div>
         <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-100">
           <span className="text-slate-600">Chào mừng, </span>
-          <span className="font-bold text-blue-600">{user?.ho_va_ten || 'P.TC-CT'}</span>
+          <span className="font-bold text-blue-600">{user?.hoVaTen || 'P.TC-CT'}</span>
         </div>
       </div>
 

@@ -17,14 +17,14 @@ export const createPlanningBatch = async(payload: CreatePlanningBatchDTO) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        const batch = await insertPlanningBatch(client, payload);
+        const dotQuyHoach = await insertPlanningBatch(client, payload);
 
         if (payload.loaiQuyHoach === 2 && payload.dotGocId) {
-            await copyChiTietFromDotGoc(client, batch.id, payload.dotGocId);
+            await copyChiTietFromDotGoc(client, dotQuyHoach.id, payload.dotGocId);
         }
 
         await client.query("COMMIT")
-        return batch;
+        return dotQuyHoach;
     } catch (error) {
         await client.query('ROLLBACK');
         throw error;

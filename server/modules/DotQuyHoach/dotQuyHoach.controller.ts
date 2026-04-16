@@ -1,20 +1,13 @@
 import {Request, Response } from "express";
 import { addPlanningCandidates, createPlanningBatch, fetchAllPlanning, findPlanningBatchById, fetchCandidatesForChucDanh, filterPlanningCandidates } from "./dotQuyHoach.service";
 import { AddPlanningBatchDetailDTO } from "./dotQuyHoach.dto";
+import { submitVoteResult } from "./dotQuyHoach.validate.service";
 
 export const create = async (req: Request, res: Response) => {
     try {
-        const { ten_quy_hoach, loai_quy_hoach, nam_thuc_hien, nhiem_ky,
-                so_qd_phe_duyet, ngay_qd_phe_duyet, dot_goc_id } = req.body;
-        const payload = {
-            tenQuyHoach: ten_quy_hoach,
-            loaiQuyHoach: loai_quy_hoach,
-            namThucHien: nam_thuc_hien,
-            nhiemKy: nhiem_ky,
-            soQdPheDuyet: so_qd_phe_duyet,
-            ngayQdPheDuyet: ngay_qd_phe_duyet,
-            dotGocId: dot_goc_id,
-        };
+        const { tenQuyHoach, loaiQuyHoach, namThucHien, nhiemKy,
+                soQdPheDuyet, ngayQdPheDuyet, dotGocId } = req.body;
+        const payload = { tenQuyHoach, loaiQuyHoach, namThucHien, nhiemKy, soQdPheDuyet, ngayQdPheDuyet, dotGocId, };
         const data = await createPlanningBatch(payload);
         return res.status(201).json({
             success: true,
@@ -81,13 +74,22 @@ export const getCandidatesHandler  = async (req: Request, res: Response) => {
 }
 export const filterCandidatesHandler = async (req: Request, res: Response) => {
     try {        
-        const donViId = Number(req.query.don_vi_id);
-        const trinhDoChuyenMon = String(req.query.trinh_do_chuyen_mon);
-        const dotQuyHoachId = Number(req.query.dot_quy_hoach_id);
+        const donViId = Number(req.query.donViId);
+        const trinhDoChuyenMon = String(req.query.trinhDoChuyenMon);
+        const dotQuyHoachId = Number(req.query.dotQuyHoachId);
         const data = await filterPlanningCandidates(donViId, trinhDoChuyenMon, dotQuyHoachId);
         return res.status(200).json({success: true, data});
     } catch (error) {
         console.error("ERROR:", error);
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+}
+
+export const submitVoteQuyHoach = async (req: Request, res: Response) => {
+    try {
+        await submitVoteResult(req.body)
+         return res.status(200).json({ success: true, message: "Ghi nhận kết quả thành công!" });
+    } catch (error: any) {
+        return res.status(400).json({ success: false, message: error.message });
     }
 }

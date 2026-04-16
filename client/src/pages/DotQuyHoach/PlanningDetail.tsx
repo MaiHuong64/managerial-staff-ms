@@ -1,46 +1,36 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Table, Tag, Spin } from "antd";
+import { Button, Table, Tag, Spin, Steps } from "antd";
 import type { ChiTietQuyHoach } from "../../types/ChiTietQuyHoach";
 import type { ColumnsType } from "antd/es/table";
 import {
-    ArrowLeftOutlined, PlusOutlined, TeamOutlined,
+    ArrowLeftOutlined, TeamOutlined,
     CheckCircleOutlined, UserOutlined, HomeOutlined,
+    FormOutlined,
 } from "@ant-design/icons";
-import { AddStaffsModal } from "./AddStaffsModal";
+import VoteQuyHoachModal from "./VoteQuyHoachModal";
 import { getDotQuyHoachDetailById } from "../../api/dotQuyHoach.api";
 import { StatCard } from "../../components/common/StatCard";
 
 const formatDate = (date: string) =>
     date ? new Date(date).toLocaleDateString("vi-VN") : "—";
 
-const InfoField = ({ label, value }: { label: string; value: React.ReactNode }) => (
-    <div>
-        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">{label}</div>
-        <div className="text-sm font-medium text-slate-800">{value ?? <span className="text-slate-300">—</span>}</div>
-    </div>
-);
-
 export const PlanningDetailPage: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [staffList, setStaffList] = useState<ChiTietQuyHoach[]>([]);
-    const [planning, setPlanning] = useState<ChiTietQuyHoach | null>(null);
+    const [planning, setPlanning] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
-    const [addModalOpen, setAddModalOpen] = useState(false);
+    const [voteModalOpen, setVoteModalOpen] = useState(false);
 
     const fetchData = async () => {
         setLoading(true);
         try {
             const result = await getDotQuyHoachDetailById(Number(id));
-            console.log(result.data);
             const { planning, staff } = result.data.data;
             setPlanning(planning);
             setStaffList(staff);
-            console.log("full result.data:", result.data);
-              console.log("planning:", result.data.planning);
-        console.log("staff:", result.data.staff);
         } catch (err) {
             console.error(err);
         } finally {
@@ -49,6 +39,15 @@ export const PlanningDetailPage: React.FC = () => {
     };
 
     useEffect(() => { fetchData(); }, [id]);
+
+    // Tính currentStep của đợt quy hoạch: Bước nhỏ nhất của các ứng viên chưa hoàn thành/loại
+    const currentStep = useMemo(() => {
+        const activeCandidates = staffList.filter(s => s.buoc_hien_tai >= 2 && s.buoc_hien_tai <= 5);
+        if (activeCandidates.length === 0) return null;
+        return Math.min(...activeCandidates.map(s => s.buoc_hien_tai));
+    }, [staffList]);
+
+    const canVote = currentStep !== null && [2, 3, 4, 5].includes(currentStep);
 
     const stats = useMemo(() => ({
         total: staffList.length,
@@ -67,6 +66,7 @@ export const PlanningDetailPage: React.FC = () => {
                     </div>
                     <div>
                         <div className="font-semibold text-slate-800 text-sm">{r.ho_va_ten}</div>
+                        <div className="text-[10px] text-slate-400">{r.ma_vien_chuc}</div>
                     </div>
                 </div>
             ),
@@ -82,52 +82,46 @@ export const PlanningDetailPage: React.FC = () => {
             ),
         },
         {
+            title: "Tiến trình",
+            dataIndex: "buoc_hien_tai",
+            width: 180,
+            render: (step: number) => {
+                const config: Record<number, { color: string; label: string; icon?: React.ReactNode }> = {
+                    2: { color: 'blue', label: 'HN lãnh đạo 1' },
+                    3: { color: 'purple', label: 'HN CB chủ chốt' },
+                    4: { color: 'orange', label: 'HN mở rộng' },
+                    5: { color: 'gold', label: 'HN lãnh đạo 2' },
+                    6: { color: 'green', label: 'Hoàn thành', icon: <CheckCircleOutlined /> },
+                    0: { color: 'red', label: 'Không đạt' },
+                };
+                const item = config[step] || { color: 'default', label: 'N/A' };
+                return <Tag color={item.color} icon={item.icon} className="rounded-full px-3 border-0">{item.label}</Tag>;
+            }
+        },
+        {
             title: "Ngày vào QH",
             dataIndex: "ngay_vao_qh",
-            width: 130,
-            align: "center",
-            render: (val: string) => (
-                <span className="text-sm text-slate-600">{val ? formatDate(val) : "—"}</span>
-            ),
-        },
-        {
-            title: "Ngày ra khỏi QH",
-            dataIndex: "ngay_ra_khoi_qh",
-            width: 150,
-            align: "center",
-            render: (val: string) => (
-                <span className="text-sm text-slate-400">{val ? formatDate(val) : "—"}</span>
-            ),
-        },
-        {
-            title: "Lý do ra",
-            dataIndex: "ly_do_ra_khoi_quy_hoach",
-            render: (val: string) => val
-                ? <span className="text-sm text-slate-600">{val}</span>
-                : <span className="text-slate-300 text-xs italic">—</span>,
+            width: 120,
+            render: (val: string) => <span className="text-xs text-slate-500">{val ? formatDate(val) : "—"}</span>,
         },
         {
             title: "Trạng thái",
             key: "trang_thai",
-            width: 140,
+            width: 120,
             render: (_, r) => r.trang_thai === 1
-                ? <Tag color="green"  className="rounded-full px-3 text-xs border-0">Đang quy hoạch</Tag>
-                : <Tag color="default" className="rounded-full px-3 text-xs border-0">Đã ra khỏi QH</Tag>,
+                ? <Tag color="success" bordered={false}>Đang QH</Tag>
+                : <Tag color="default" bordered={false}>Đã ra khỏi QH</Tag>,
         },
     ];
 
     if (loading) return (
         <div className="flex justify-center items-center min-h-screen bg-slate-50">
-            <Spin size="large" />
+            <Spin size="large" tip="Đang tải dữ liệu quy hoạch..." />
         </div>
-    );
-    if (!planning) return (
-        <div className="flex justify-center items-center min-h-screen text-red-500">Không tìm thấy dữ liệu</div>
     );
 
     return (
-        <div className="min-h-screen bg-slate-50">
-
+        <div className="min-h-screen bg-[#f8fafc]">
             {/* ── Sticky header ─────────────────────────── */}
             <div className="bg-white border-b border-slate-100 px-6 py-4 sticky top-14 z-30 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
@@ -136,92 +130,98 @@ export const PlanningDetailPage: React.FC = () => {
                             type="text"
                             icon={<ArrowLeftOutlined />}
                             onClick={() => navigate("/dot-quy-hoach")}
-                            className="text-slate-500 hover:text-indigo-600 shrink-0"
+                            className="text-slate-500 hover:text-blue-600 shrink-0"
                         />
                         <div className="min-w-0">
                             <h1 className="text-lg font-bold text-slate-800 truncate m-0 leading-tight">
-                                {planning.ten_quy_hoach || "Chi tiết quy hoạch"}
+                                {planning?.ten_quy_hoach}
                             </h1>
-                            <div className="flex items-center gap-2 mt-0.5">
-                                <Tag
-                                    color={planning.loai_quy_hoach === 1 ? "purple" : "cyan"}
-                                    className="rounded-full px-2.5 text-xs border-0 m-0"
-                                >
-                                    {planning.loai_quy_hoach === 1 ? "Đầu nhiệm kỳ" : "Rà soát hằng năm"}
-                                </Tag>
-                                <Tag
-                                    color={planning.trang_thai === 1 ? "green" : "orange"}
-                                    className="rounded-full px-2.5 text-xs border-0 m-0"
-                                >
-                                    {planning.trang_thai === 1 ? "Hoàn thành" : "Đang xử lý"}
-                                </Tag>
+                            <div className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-medium">
+                                Quy hoạch {planning?.loai_quy_hoach === 1 ? "Đầu nhiệm kỳ" : "Rà soát hàng năm"} · Năm {planning?.nam_thuc_hien}
                             </div>
                         </div>
                     </div>
 
-                    <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={() => setAddModalOpen(true)}
-                    >
-                        Thêm nguồn nhân sự
-                    </Button>
+                    <div className="flex gap-2">
+                        {canVote && (
+                            <Button
+                                type="primary"
+                                icon={<FormOutlined />}
+                                onClick={() => setVoteModalOpen(true)}
+                                className="bg-blue-600 shadow-blue-100"
+                            >
+                                Ghi nhận kết quả HN
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            <div className="p-6 space-y-5">
+            <div className="p-6 space-y-6">
+                {/* ── Progress Steps ──────────────────────────── */}
+                {currentStep !== null && (
+                    <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6 flex justify-between">
+                            <span>Tiến độ thực hiện hội nghị</span>
+                            <span>Bước hiện tại: {currentStep}/5</span>
+                        </div>
+                        <Steps
+                            size="small"
+                            current={currentStep ? currentStep - 2 : 4}
+                            items={[
+                                { title: 'HN Lãnh đạo 1', description: 'Thảo luận' },
+                                { title: 'HN CB Chủ chốt', description: 'Lấy phiếu' },
+                                { title: 'HN Lãnh đạo MR', description: 'Biểu quyết' },
+                                { title: 'HN Lãnh đạo 2', description: 'Chốt danh sách' },
+                            ]}
+                        />
+                    </div>
+                )}
 
                 {/* ── Stat cards ──────────────────────────── */}
-                <div className="grid grid-cols-3 gap-4">
-                    <StatCard title="Tổng viên chức" value={stats.total}  icon={<TeamOutlined />}         color="indigo"  />
-                    <StatCard title="Đang quy hoạch"  value={stats.active} icon={<CheckCircleOutlined />}  color="emerald" />
-                    <StatCard title="Đã ra khỏi QH"   value={stats.exited} icon={<UserOutlined />}         color="amber"   />
-                </div>
-
-                {/* ── Info card ────────────────────────────── */}
-                <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">
-                        Thông tin đợt quy hoạch
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-                        <InfoField label="Loại quy hoạch"
-                            value={planning.loai_quy_hoach === 1 ? "Đầu nhiệm kỳ" : "Rà soát hằng năm"} />
-                        <InfoField label="Năm thực hiện"
-                            value={planning.nam_thuc_hien} />
-                        <InfoField label="Số quyết định"
-                            value={planning.so_qd_phe_duyet
-                                ? <span className="text-indigo-600">{planning.so_qd_phe_duyet}</span>
-                                : <span className="text-slate-300 italic text-xs">Chưa có</span>
-                            } />
-                        <InfoField label="Ngày quyết định"
-                            value={formatDate(planning.ngay_qd_phe_duyet)} />
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <StatCard title="Tổng ứng viên" value={stats.total} icon={<TeamOutlined />} color="indigo" />
+                    <StatCard title="Đang trong quy trình" value={stats.active} icon={<CheckCircleOutlined />} color="emerald" />
+                    <StatCard title="Không đạt / Đã ra" value={stats.exited} icon={<UserOutlined />} color="amber" />
                 </div>
 
                 {/* ── Staff table ──────────────────────────── */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100">
-                    <div className="px-5 py-4 border-b border-slate-100">
-                        <div className="font-semibold text-slate-800">Danh sách viên chức trong quy hoạch</div>
-                        <div className="text-xs text-slate-400 mt-0.5">{stats.total} viên chức · {stats.active} đang quy hoạch</div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
+                        <div>
+                            <div className="font-bold text-slate-800">Danh sách nhân sự quy hoạch</div>
+                            <div className="text-xs text-slate-400 mt-0.5">Dữ liệu được cập nhật theo kết quả bỏ phiếu gần nhất</div>
+                        </div>
                     </div>
                     <Table
                         dataSource={staffList}
                         columns={columns}
-                        rowKey="id"
+                        rowKey="chi_tiet_id"
                         pagination={{
-                            pageSize: 15,
+                            pageSize: 10,
                             showTotal: (total, range) => `${range[0]}–${range[1]} / ${total} viên chức`,
                         }}
                     />
                 </div>
             </div>
 
-            <AddStaffsModal
-                open={addModalOpen}
-                onClose={() => setAddModalOpen(false)}
-                onSuccess={() => { setAddModalOpen(false); fetchData(); }}
-                dotQuyHoachId={Number(id)}
-            />
+            {voteModalOpen && currentStep !== null && (
+                <VoteQuyHoachModal
+                    visible={voteModalOpen}
+                    onCancel={() => setVoteModalOpen(false)}
+                    onSuccess={() => { setVoteModalOpen(false); fetchData(); }}
+                    dotQuyHoachId={Number(id)}
+                    candidates={staffList.map(s => ({
+                        chi_tiet_qh_id: s.chi_tiet_id,
+                        ma_vien_chuc: s.ma_vien_chuc,
+                        ho_va_ten: s.ho_va_ten,
+                        ten_chuc_danh: s.ten_chuc_danh,
+                        ten_don_vi: s.ten_don_vi,
+                        buoc_hien_tai: s.buoc_hien_tai
+                    }))}
+                    currentStep={currentStep}
+                />
+            )}
         </div>
     );
 };

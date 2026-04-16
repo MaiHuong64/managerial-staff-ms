@@ -92,8 +92,12 @@ export const AddStaffsModal: React.FC<AddStaffsModalProps> = ({
 
         setSubmitting(true);
         try {
-            await Promise.all(
-                selectedRowKeys.map(vcId => addCandidates(dotQuyHoachId, { vien_chuc_id: vcId, chuc_danh_id: chucDanhId, don_vi_id: form.getFieldValue("don_vi_id") }))
+            await addCandidates(dotQuyHoachId,
+                selectedRowKeys.map(vcId => ({
+                    vienChucId: [vcId],
+                    chucDanhId: chucDanhId,
+                    donViId: form.getFieldValue("don_vi_id"),
+                }))
             );
             message.success(`Đã thêm ${selectedRowKeys.length} viên chức vào quy hoạch`);
             onSuccess();

@@ -86,7 +86,7 @@ export const remove = async (req: AuthRequest, res: Response) => {
 
 export const getByDonVi = async (req: AuthRequest, res: Response) => {
     try {
-        const donviId = req.user!.don_vi_id;
+        const donviId = req.user!.donViId;
         const data = await getStaffbyDepartment(donviId);
         return res.status(200).json({success: true, data})
     } catch (error) {

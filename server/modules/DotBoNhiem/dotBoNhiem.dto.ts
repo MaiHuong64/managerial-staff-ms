@@ -1,17 +1,16 @@
 import { BuocHoiNghi } from "./dotBoNhiem.type";
 
-export interface AppointmentBatch {
-    id: number;
-    maDotBoNhiem?: string, 
+export interface CreateAppointmentBatchDTO {
     tenDotBoNhiem: string;
-    ngayBatDau: Date;
-    ngayKetThuc: Date;
-    ngayPheDuyet: Date;
+    ngayBatDau?: Date;
+    ngayKetThuc?: Date;
+    ngayPheDuyet?: Date;
     soQuyetDinh?: string;
-    nguoiLap?: string
+    nguoiLap?: string;
+    phieuChuTruong: number[];
 }
+
 export interface UpdateAppointmentBatchDTO {
-    maDotBoNhiem: any;
     tenDotBoNhiem?: string;
     ngayBatDau?: Date;
     ngayKetThuc?: Date;
@@ -19,23 +18,7 @@ export interface UpdateAppointmentBatchDTO {
     soQuyetDinh?: string;
     nguoiLap?: string;
 }
-export interface CreateAppointmentBatchDTO {
-    maDotBoNhiem?: string;
-    tenDotBoNhiem: string;
-    ngayBatDau?: Date;
-    ngayKetThuc?: Date;
-    soQuyetDinh?: string;
-    nguoiLap?: string;
-    phieuChuTruongList: InputPCTDTO[];
-}
-export interface InputPCTDTO{
-    phieuChuTruongId: number;
-    vienChucId: number[];
-}
-export interface InsertCandidateDTO {
-    chiTietDotBoNhiemId: number;
-    vienChucId: number[];
-}
+
 export interface PhieuBau {
     chiTietBnId: number;
     soPhieuDongY: number;
@@ -51,4 +34,20 @@ export interface KetQuaHoiNghi {
     soPhieuThuVe: number;
     soPhieuHopLe: number;
     ketQuaUngVien: PhieuBau[];
+}
+
+export interface AppointmentBatch {
+    id: number;
+    maDotBoNhiem: string;
+    tenDotBoNhiem: string;
+}
+export interface AppointmentDetail {
+    id: number;
+    dotBoNhiemId: number;
+    phieuChuTruongId: number;
+}
+
+export interface UngVienQuyHoach {
+    id: number;
+    vienChucId: number;
 }

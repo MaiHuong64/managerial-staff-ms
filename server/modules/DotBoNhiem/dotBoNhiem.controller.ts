@@ -2,11 +2,10 @@ import { Request, Response } from "express";
 import { fetchAllAppointmentBatch,  findAppointmentBatchById, createAppointmentBatch} from "./dotBoNhiem.service";
 import { submitVoteResult } from "./dotBoNhiem.validate.service";
 
-
 export const getAll = async (req: Request, res: Response) => {
     try {
         const data = await fetchAllAppointmentBatch ();
-        return res.status(200).json({ success: true, data });
+        return res.status(200).json({ success: true, data});
     } catch (error) {
         return res.status(500).json({success: false, message:"Lỗi máy chủ"});
     }
@@ -15,32 +14,19 @@ export const getById = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
         const data = await findAppointmentBatchById(id);
-        return res.status(200).json({ success: true, data });
+        return res.status(200).json({ success: true, data});
     } catch (error: any) {
         return res.status(404).json({ success: false, message: error.message });
     }
 }
 export const create = async (req: Request, res: Response) => {
     try {
-        const {
-            ten_dot_bo_nhiem, ngay_bat_dau, ngay_ket_thuc,
-            so_quyet_dinh, nguoi_lap, chuc_danh_list,
-        } = req.body;
-
-        const phieuChuTruongList = (chuc_danh_list ?? []).map((cd: any) => ({
-            phieuChuTruongId: cd.pct_id,
-            vienChucId: (cd.ung_vien ?? []).map((u: any) => u.vien_chuc_id),
-        }));
-
-        const data = await createAppointmentBatch({
-            tenDotBoNhiem:    ten_dot_bo_nhiem,
-            ngayBatDau:       ngay_bat_dau,
-            ngayKetThuc:      ngay_ket_thuc,
-            soQuyetDinh:      so_quyet_dinh,
-            nguoiLap:         nguoi_lap,
-            phieuChuTruongList,
-        });
-        return res.status(201).json({ success: true, message: "Tạo thành công!", data });
+       const { tenDotBoNhiem, ngayBatDau, ngayKetThuc, ngayPheDuyet, 
+                soQuyetDinh, nguoiLap, phieuChuTruong } = req.body;
+        
+        const payload = {tenDotBoNhiem, ngayBatDau, ngayKetThuc, ngayPheDuyet, soQuyetDinh, nguoiLap, phieuChuTruong}
+        const data = await createAppointmentBatch(payload);
+        return res.status(201).json({ success: true, message: "Tạo thành công!", data});
     } catch (error: any) {
         if (error.code === '23505')
             return res.status(400).json({ success: false, message: "Mã đã tồn tại!" });
@@ -50,7 +36,7 @@ export const create = async (req: Request, res: Response) => {
     }
 };
 
-export const submitVote = async (req: Request, res: Response) => {
+export const submitVoteBoNhiem = async (req: Request, res: Response) => {
     try {
         await submitVoteResult(req.body);
         return res.status(200).json({ success: true, message: "Ghi nhận kết quả thành công!" });
@@ -67,12 +53,11 @@ export const getCandidates = async (req: Request, res: Response) => {
     return res.status(501).json({ success: false, message: "Chưa implement" });
 }
 
-// POST /bo-nhiem/detail/:chiTietDotId/candidates
 // Thêm 1 ứng viên thủ công vào chi_tiet_dot_bo_nhiem
 // body: { vien_chuc_id, ly_do_vao, chi_tiet_qh_id }
 export const addCandidate = async (req: Request, res: Response) => {
     const chiTietDotId = Number(req.params.chiTietDotId);
-    const { vien_chuc_id, ly_do_vao, chi_tiet_qh_id } = req.body;
+    const { vienChucId, lyDoVao, chiTietQhId } = req.body;
     // TODO: implement addCandidateToChiTietDot(chiTietDotId, { vien_chuc_id, ly_do_vao, chi_tiet_qh_id })
     return res.status(501).json({ success: false, message: "Chưa implement" });
 }
