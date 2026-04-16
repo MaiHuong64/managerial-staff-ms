@@ -15,5 +15,5 @@ export const addCandidates = (id: number, data: unknown) =>
 export const getPlanningCandidates = (chucDanhId: number) =>
     axiosClient.get(`/quy-hoach/candidates/${chucDanhId}`);
 
-export const filterPlanningCandidates = (donViId: number, trinhDoChuyenMon: string, dotQuyHoachId: number) =>
-    axiosClient.get("/quy-hoach/filter", { params: { don_vi_id: donViId, trinh_do_chuyen_mon: trinhDoChuyenMon, dot_quy_hoach_id: dotQuyHoachId } });
+export const submitVoteQuyHoach = (data: unknown) => 
+    axiosClient.post("/quy-hoach/submit", data);

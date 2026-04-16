@@ -3,12 +3,12 @@ import type React from "react";
 type ColorKey = "indigo" | "amber" | "sky" | "emerald" | "red";
 
 const COLORS: Record<ColorKey, { bg: string; icon: string; value: string; activeBorder: string }> = {
-    indigo:  { bg: "bg-indigo-50",  icon: "text-indigo-600",  value: "text-indigo-700",  activeBorder: "border-indigo-300"  },
-    amber:   { bg: "bg-amber-50",   icon: "text-amber-600",   value: "text-amber-700",   activeBorder: "border-amber-300"   },
-    sky:     { bg: "bg-sky-50",     icon: "text-sky-600",     value: "text-sky-700",     activeBorder: "border-sky-300"     },
+    indigo: { bg: "bg-indigo-50", icon: "text-indigo-600", value: "text-indigo-700", activeBorder: "border-indigo-300" },
+    amber: { bg: "bg-amber-50", icon: "text-amber-600", value: "text-amber-700", activeBorder: "border-amber-300" },
+    sky: { bg: "bg-sky-50", icon: "text-sky-600", value: "text-sky-700", activeBorder: "border-sky-300" },
     emerald: { bg: "bg-emerald-50", icon: "text-emerald-600", value: "text-emerald-700", activeBorder: "border-emerald-300" },
-    red:     { bg: "bg-red-50",     icon: "text-red-600",     value: "text-red-700",     activeBorder: "border-red-300"     },
-};
+    red: { bg: "bg-red-50", icon: "text-red-600", value: "text-red-700", activeBorder: "border-red-300" },
+}; 
 
 interface StatCardProps {
     title: string;

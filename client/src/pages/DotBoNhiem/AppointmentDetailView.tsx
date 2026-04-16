@@ -1,16 +1,15 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Steps, Table, Tag, Button, Select, Empty, Spin, Badge } from "antd";
+import { Steps, Table, Tag, Button, Empty, Spin, Badge } from "antd";
 import {
     FormOutlined, PlayCircleOutlined, UserOutlined, HomeOutlined,
-    ArrowLeftOutlined, PlusOutlined, TeamOutlined, CheckCircleOutlined,
+    ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined,
     CloseCircleOutlined, StopOutlined,
 } from "@ant-design/icons";
 import VoteModal from "./VoteModal";
 import type { ChucDanh, DotBoNhiem, UngVien } from "../../types/ChiTietBoNhiem";
-import { getVienChucList } from "../../api/vienChuc.api";
-import { getDotBoNhiemById, getCandidatesByChiTietDot, addCandidateToChiTietDot, startVotingProcess } from "../../api/dotBoNhiem.api";
+import { getDotBoNhiemById, getCandidatesByChiTietDot, startVotingProcess } from "../../api/dotBoNhiem.api";
 
 const STATE_MAP: Record<number, { label: string; color: string; badgeStatus: "default" | "warning" | "processing" | "success" | "error" }> = {
     0: { label: "Đã dừng", color: "error", badgeStatus: "error" },
@@ -25,18 +24,18 @@ const STATE_MAP: Record<number, { label: string; color: string; badgeStatus: "de
 const STEP_INDEX: Record<number, number> = { 2: 0, 3: 1, 4: 2, 5: 3, 6: 4 };
 
 const STEP_ITEMS = [
-    { title: "Vòng 1",   description: "Hội nghị tập thể lãnh đạo" },
-    { title: "Vòng 2",   description: "Hội nghị tập thể lãnh đạo" },
-    { title: "Bước 3",   description: "Hội nghị cán bộ chủ chốt"  },
+    { title: "Vòng 1", description: "Hội nghị tập thể lãnh đạo" },
+    { title: "Vòng 2", description: "Hội nghị tập thể lãnh đạo" },
+    { title: "Bước 3", description: "Hội nghị cán bộ chủ chốt"  },
     { title: "Vòng cuối",description: "Hội nghị tập thể lãnh đạo" },
     { title: "Hoàn thành",description: "Quy trình bổ nhiệm hoàn tất" },
 ];
 
 const CANDIDATE_STATUS: Record<number, { label: string; color: string; bg: string; text: string }> = {
-    0: { label: "Đã loại",   color: "default",    bg: "bg-slate-100",   text: "text-slate-500"   },
-    1: { label: "Hợp lệ",    color: "success",    bg: "bg-emerald-50",  text: "text-emerald-700" },
-    2: { label: "Không đạt", color: "error",      bg: "bg-red-50",      text: "text-red-700"     },
-    3: { label: "Đạt",       color: "processing", bg: "bg-indigo-50",   text: "text-indigo-700"  },
+    0: { label: "Đã loại", color: "default", bg: "bg-slate-100", text: "text-slate-500"   },
+    1: { label: "Hợp lệ", color: "success", bg: "bg-emerald-50", text: "text-emerald-700" },
+    2: { label: "Không đạt", color: "error", bg: "bg-red-50", text: "text-red-700"     },
+    3: { label: "Đạt", color: "processing", bg: "bg-indigo-50", text: "text-indigo-700"  },
 };
 
 const InfoField = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -56,16 +55,6 @@ export const AppointmentDetailView: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [loadingCandidates, setLoadingCandidates] = useState(false);
     const [voteModalVisible, setVoteModalVisible] = useState(false);
-    const [allStaff, setAllStaff] = useState<{ id: number; ho_va_ten: string; ma_vien_chuc: string | null }[]>([]);
-    const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
-    const [addingCandidate, setAddingCandidate] = useState(false);
-
-    const fetchAllStaff = async () => {
-        try {
-            const res = await getVienChucList();
-            setAllStaff(res.data?.data ?? res.data ?? []);
-        } catch { /* silently fail */ }
-    };
 
     const fetchDetail = async (keepSelectedId?: number) => {
         try {
@@ -73,16 +62,12 @@ export const AppointmentDetailView: React.FC = () => {
             const result = await getDotBoNhiemById(Number(id));
             const batch: DotBoNhiem = result.data.data;
             setBatchInfo(batch);
-            if (batch.chuc_danh_list?.length > 0) {
-                const target = keepSelectedId
-                    ? batch.chuc_danh_list.find(cd => cd.chi_tiet_dot_id === keepSelectedId)
-                    : null;
-                const selected = target ?? batch.chuc_danh_list[0];
+            if (batch.chucDanhList?.length > 0) {
+                const target = keepSelectedId ? batch.chucDanhList.find(cd => cd.chiTietDotId === keepSelectedId): null;
+                const selected = target ?? batch.chucDanhList[0];
                 setSelectedChucDanh(selected);
-                fetchCandidates(selected.chi_tiet_dot_id);
+                fetchCandidates(selected.chiTietDotId);
             }
-        } catch {
-            // message handled by parent
         } finally {
             setLoading(false);
         }
@@ -93,24 +78,8 @@ export const AppointmentDetailView: React.FC = () => {
             setLoadingCandidates(true);
             const result = await getCandidatesByChiTietDot(chiTietDotId);
             setCandidates(result.data.data);
-        } catch { /* ignore */ }
+        }
         finally { setLoadingCandidates(false); }
-    };
-
-    const handleAddCandidate = async () => {
-        if (!selectedStaffId || !selectedChucDanh) return;
-        try {
-            setAddingCandidate(true);
-            await addCandidateToChiTietDot(selectedChucDanh.chi_tiet_dot_id, {
-                vien_chuc_id: selectedStaffId,
-                ly_do_vao: "Nguồn bên ngoài",
-                chi_tiet_qh_id: null,
-            });
-            setSelectedStaffId(null);
-            fetchCandidates(selectedChucDanh.chi_tiet_dot_id);
-            fetchDetail(selectedChucDanh.chi_tiet_dot_id);
-        } catch { /* ignore */ }
-        finally { setAddingCandidate(false); }
     };
 
     const handleStartVoting = async () => {
@@ -119,7 +88,7 @@ export const AppointmentDetailView: React.FC = () => {
     };
 
     useEffect(() => {
-        if (id) { fetchDetail(); fetchAllStaff(); }
+        if (id) fetchDetail();
     }, [id]);
 
     if (loading) return (
@@ -131,18 +100,19 @@ export const AppointmentDetailView: React.FC = () => {
         <div className="flex justify-center items-center min-h-screen text-red-500">Không tìm thấy dữ liệu</div>
     );
 
-    const stateInfo = STATE_MAP[batchInfo.trang_thai];
-    const stepIndex = STEP_INDEX[selectedChucDanh?.buoc_hien_tai ?? 2] ?? 0;
-    const canStartVoting = batchInfo.trang_thai === 1;
-    const canVote = [2, 3, 4, 5].includes(batchInfo.trang_thai)
+    const stateInfo = STATE_MAP[batchInfo.trangThai];
+    const stepIndex = STEP_INDEX[selectedChucDanh?.buocHienTai ?? 2] ?? 0;
+    const canStartVoting = batchInfo.trangThai === 1;
+    const canVote = [2, 3, 4, 5].includes(batchInfo.trangThai)
         && selectedChucDanh !== null
-        && [2, 3, 4, 5].includes(selectedChucDanh.buoc_hien_tai);
+        && [2, 3, 4, 5].includes(selectedChucDanh.buocHienTai);
 
-    const totalAllChucDanh = batchInfo.chuc_danh_list.reduce((sum, cd) => sum + Number(cd.so_ung_vien), 0);
-    const validCandidates = candidates.filter(c => c.trang_thai === 1);
-    const passedCandidates = candidates.filter(c => c.trang_thai === 3);
-    const failedCandidates = candidates.filter(c => c.trang_thai === 2);
-    const removedCandidates = candidates.filter(c => c.trang_thai === 0);
+    const totalAllChucDanh = (batchInfo.chucDanhList ?? [])
+    .reduce((sum, cd) => sum + Number(cd.soUngVien), 0);
+    const validCandidates = candidates.filter(c => c.trangThai === 1);
+    const passedCandidates = candidates.filter(c => c.trangThai === 3);
+    const failedCandidates = candidates.filter(c => c.trangThai === 2);
+    const removedCandidates = candidates.filter(c => c.trangThai === 0);
 
     const candidateColumns = [
         {
@@ -154,8 +124,8 @@ export const AppointmentDetailView: React.FC = () => {
                         <UserOutlined className="text-indigo-600 text-xs" />
                     </div>
                     <div>
-                        <div className="font-semibold text-slate-800 text-sm">{r.ho_va_ten}</div>
-                        <div className="text-xs text-slate-400">{r.ma_vien_chuc}</div>
+                        <div className="font-semibold text-slate-800 text-sm">{r.hoVaTen}</div>
+                        <div className="text-xs text-slate-400">{r.maVienChuc}</div>
                     </div>
                 </div>
             ),
@@ -173,8 +143,8 @@ export const AppointmentDetailView: React.FC = () => {
         },
         {
             title: "Nguồn",
-            dataIndex: "nguon_vien_chuc",
-            key: "nguon_vien_chuc",
+            dataIndex: "ly_do_vao",
+            key: "ly_do_vao",
             width: 130,
             render: (text: string) => (
                 <Tag color="geekblue" className="rounded-full px-3 text-xs border-0">{text}</Tag>
@@ -221,10 +191,10 @@ export const AppointmentDetailView: React.FC = () => {
                         />
                         <div className="min-w-0">
                             <h1 className="text-lg font-bold text-slate-800 truncate m-0 leading-tight">
-                                {batchInfo.ten_dot_bo_nhiem}
+                                {batchInfo.tenDotBoNhiem}
                             </h1>
                             <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs text-slate-400">{batchInfo.ma_dot_bo_nhiem}</span>
+                                <span className="text-xs text-slate-400">{batchInfo.maDotBoNhiem}</span>
                                 <Badge status={stateInfo?.badgeStatus} text={
                                     <span className="text-xs text-slate-600">{stateInfo?.label}</span>
                                 } />
@@ -233,30 +203,6 @@ export const AppointmentDetailView: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                        {canStartVoting && selectedChucDanh && (
-                            <>
-                                <Select
-                                    showSearch allowClear
-                                    placeholder="Thêm ứng viên..."
-                                    style={{ width: 220 }}
-                                    value={selectedStaffId}
-                                    onChange={setSelectedStaffId}
-                                    optionFilterProp="label"
-                                    size="middle"
-                                    options={allStaff
-                                        .filter(s => !candidates.some(c => c.vien_chuc_id === s.id))
-                                        .map(s => ({ value: s.id, label: `${s.ma_vien_chuc ?? "—"} · ${s.ho_va_ten}` }))}
-                                />
-                                <Button
-                                    icon={<PlusOutlined />}
-                                    loading={addingCandidate}
-                                    disabled={!selectedStaffId}
-                                    onClick={handleAddCandidate}
-                                >
-                                    Thêm
-                                </Button>
-                            </>
-                        )}
                         {canStartVoting && (
                             <Button
                                 type="primary"
@@ -289,7 +235,7 @@ export const AppointmentDetailView: React.FC = () => {
                     </div>
                     <Steps
                         current={stepIndex}
-                        status={batchInfo.trang_thai === 6 ? "finish" : batchInfo.trang_thai === 0 ? "error" : "process"}
+                        status={batchInfo.trangThai === 6 ? "finish" : batchInfo.trangThai === 0 ? "error" : "process"}
                         items={STEP_ITEMS}
                         size="small"
                     />
@@ -303,13 +249,13 @@ export const AppointmentDetailView: React.FC = () => {
                         <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                             Thông tin đợt
                         </div>
-                        <InfoField label="Mã đợt"    value={batchInfo.ma_dot_bo_nhiem} />
-                        <InfoField label="Tên đợt"   value={batchInfo.ten_dot_bo_nhiem} />
-                        <InfoField label="Ngày bắt đầu" value={batchInfo.ngay_bat_dau ? new Date(batchInfo.ngay_bat_dau).toLocaleDateString("vi-VN") : null} />
-                        <InfoField label="Ngày kết thúc" value={batchInfo.ngay_ket_thuc ? new Date(batchInfo.ngay_ket_thuc).toLocaleDateString("vi-VN") : null} />
+                        <InfoField label="Mã đợt"    value={batchInfo.maDotBoNhiem} />
+                        <InfoField label="Tên đợt"   value={batchInfo.tenDotBoNhiem} />
+                        <InfoField label="Ngày bắt đầu" value={batchInfo.ngayBatDau ? new Date(batchInfo.ngayBatDau).toLocaleDateString("vi-VN") : null} />
+                        <InfoField label="Ngày kết thúc" value={batchInfo.ngayKetThuc ? new Date(batchInfo.ngayKetThuc).toLocaleDateString("vi-VN") : null} />
                         <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-3">
                             <div className="text-center p-3 bg-indigo-50 rounded-lg">
-                                <div className="text-xl font-bold text-indigo-600">{batchInfo.chuc_danh_list.length}</div>
+                                {/* <div className="text-xl font-bold text-indigo-600">{batchInfo.chucDanhList.length}</div> */}
                                 <div className="text-xs text-slate-500 mt-0.5">Chức danh</div>
                             </div>
                             <div className="text-center p-3 bg-sky-50 rounded-lg">
@@ -324,20 +270,20 @@ export const AppointmentDetailView: React.FC = () => {
                         <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">
                             Chức danh trong đợt — chọn để xem ứng viên
                         </div>
-                        {batchInfo.chuc_danh_list.length === 0 ? (
+                        {batchInfo.chucDanhList.length === 0 ? (
                             <Empty description="Chưa có chức danh nào" className="py-8" />
                         ) : (
                             <div className="grid grid-cols-2 gap-3">
-                                {batchInfo.chuc_danh_list.map(cd => {
-                                    const isSelected = selectedChucDanh?.chi_tiet_dot_id === cd.chi_tiet_dot_id;
-                                    const stepDot = cd.buoc_hien_tai === 6 ? "bg-emerald-400"
-                                        : cd.buoc_hien_tai === 0 ? "bg-red-400"
-                                        : cd.buoc_hien_tai != null ? "bg-indigo-400 animate-pulse"
-                                        : "bg-slate-300";
+                                {batchInfo.chucDanhList.map(cd => {
+                                    const isSelected = selectedChucDanh?.chiTietDotId === cd.chiTietDotId;
+                                    const stepDot = cd.buocHienTai === 6 ? "bg-emerald-400"
+                                        : cd.buocHienTai === 0 ? "bg-red-400"
+                                        : cd.buocHienTai != null ? "bg-indigo-400 animate-pulse"
+                                        : "bg-slate-buocHienTai";
                                     return (
                                         <div
-                                            key={cd.chi_tiet_dot_id}
-                                            onClick={() => { setSelectedChucDanh(cd); fetchCandidates(cd.chi_tiet_dot_id); }}
+                                            key={cd.chiTietDotId}
+                                            onClick={() => { setSelectedChucDanh(cd); fetchCandidates(cd.chiTietDotId); }}
                                             className={`
                                                 p-4 rounded-xl border-2 cursor-pointer transition-all
                                                 ${isSelected
@@ -347,19 +293,19 @@ export const AppointmentDetailView: React.FC = () => {
                                             `}
                                         >
                                             <div className="flex items-start justify-between gap-2 mb-2">
-                                                <div className="font-semibold text-slate-800 text-sm leading-tight">{cd.ten_chuc_danh}</div>
+                                                <div className="font-semibold text-slate-800 text-sm leading-tight">{cd.tenChucDanh}</div>
                                                 <div className={`w-2 h-2 rounded-full mt-1 shrink-0 ${stepDot}`} />
                                             </div>
                                             <div className="flex items-center gap-1 text-xs text-slate-400 mb-3">
                                                 <HomeOutlined className="text-[10px]" />
-                                                <span className="truncate">{cd.ten_don_vi}</span>
+                                                <span className="truncate">{cd.tenDonVi}</span>
                                             </div>
                                             <div className="flex gap-1.5 flex-wrap">
                                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 text-xs font-medium">
-                                                    <TeamOutlined className="text-[10px]" />{cd.so_ung_vien}
+                                                    <TeamOutlined className="text-[10px]" />{cd.soUngVien}
                                                 </span>
                                                 <span className="inline-flex px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium">
-                                                    Đề xuất {cd.so_luong_de_xuat}
+                                                    Đề xuất {cd.soLuongDeXuat}
                                                 </span>
                                             </div>
                                         </div>
@@ -377,9 +323,9 @@ export const AppointmentDetailView: React.FC = () => {
                         {selectedChucDanh ? (
                             <div>
                                 <div className="font-semibold text-slate-800">
-                                    Ứng viên — <span className="text-indigo-600">{selectedChucDanh.ten_chuc_danh}</span>
+                                    Ứng viên — <span className="text-indigo-600">{selectedChucDanh.tenChucDanh}</span>
                                 </div>
-                                <div className="text-xs text-slate-400 mt-0.5">{selectedChucDanh.ten_don_vi}</div>
+                                <div className="text-xs text-slate-400 mt-0.5">{selectedChucDanh.tenDonVi}</div>
                             </div>
                         ) : (
                             <div className="text-slate-400 text-sm">Chọn chức danh ở trên để xem ứng viên</div>
@@ -415,7 +361,7 @@ export const AppointmentDetailView: React.FC = () => {
                             columns={candidateColumns}
                             dataSource={candidates}
                             loading={loadingCandidates}
-                            rowClassName={r => r.trang_thai === 0 ? "opacity-40" : ""}
+                            rowClassName={r => r.trangThai === 0 ? "opacity-40" : ""}
                             pagination={{
                                 pageSize: 10,
                                 showTotal: (total, range) => `${range[0]}–${range[1]} / ${total} ứng viên`,
@@ -429,10 +375,10 @@ export const AppointmentDetailView: React.FC = () => {
                 <VoteModal
                     visible={voteModalVisible}
                     onCancel={() => setVoteModalVisible(false)}
-                    onSuccess={async () => fetchDetail(selectedChucDanh.chi_tiet_dot_id)}
-                    chiTietDotBoNhiemId={selectedChucDanh.chi_tiet_dot_id}
+                    onSuccess={async () => fetchDetail(selectedChucDanh.chiTietDotId)}
+                    chiTietDotBoNhiemId={selectedChucDanh.chiTietDotId}
                     candidates={validCandidates}
-                    currentStep={selectedChucDanh.buoc_hien_tai}
+                    currentStep={selectedChucDanh.buocHienTai}
                 />
             )}
         </div>

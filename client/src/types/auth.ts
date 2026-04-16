@@ -1,16 +1,16 @@
 export interface LoginType {
-  ten_dang_nhap: string;
-  mat_khau: string;
+  tenDangNhap: string;
+  matKhau: string;
 }
 export type VaiTro = 'VC' | 'VCQL' | 'BGH' | 'PTCCT';
 
 export interface AuthUser {
   id: number;
-  ten_dang_nhap: string;
-  vai_tro: VaiTro;
-  ho_va_ten: string;
+  tenDangNhap: string;
+  vaiTro: VaiTro;
+  hoVaTen: string;
   avatar?: string;
-  don_vi_id: number;
+  donViId: number;
 }
 export interface AuthContextType{
   user: AuthUser | null;

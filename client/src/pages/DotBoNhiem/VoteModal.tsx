@@ -33,11 +33,11 @@ interface VotePayload {
     }[];
 }
 
-export interface Candidate {
-    chi_tiet_bn_id: number;
-    ma_vien_chuc: string;
-    ho_va_ten: string;
-    trang_thai: number;
+interface Candidate {
+    chiTietBnId: number;
+    maVienChuc: string;
+    hoVaTen: string;
+    trangThai: number;
 }
 
 interface VoteModalProps {
@@ -71,7 +71,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
     const [validBallots, setValidBallots] = useState<number | null>(null);
 
     const activeCandidates = useMemo(
-        () => candidates.filter(c => c.trang_thai === 1),
+        () => candidates.filter(c => c.trangThai === 1),
         [candidates]
     );
 
@@ -82,7 +82,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         setValidBallots(null);
         setCandidateVotes(
             activeCandidates.map(c => ({
-                chi_tiet_bn_id: c.chi_tiet_bn_id,
+                chi_tiet_bn_id: c.chiTietBnId,
                 so_phieu_dong_y: null,
                 so_phieu_khong_dong_y: null,
             }))
@@ -158,8 +158,8 @@ export const VoteModal: React.FC<VoteModalProps> = ({
             render: (_: unknown, record: Candidate) => (
                 <InputNumber
                     min={0} style={{ width: "100%" }}
-                    value={candidateVotes.find(v => v.chi_tiet_bn_id === record.chi_tiet_bn_id)?.so_phieu_dong_y ?? undefined}
-                    onChange={val => handleCandidateVoteChange(record.chi_tiet_bn_id, "so_phieu_dong_y", val)}
+                    value={candidateVotes.find(v => v.chi_tiet_bn_id === record.chiTietBnId)?.so_phieu_dong_y ?? undefined}
+                    onChange={val => handleCandidateVoteChange(record.chiTietBnId, "so_phieu_dong_y", val)}
                 />
             ),
         },
@@ -168,15 +168,15 @@ export const VoteModal: React.FC<VoteModalProps> = ({
             render: (_: unknown, record: Candidate) => (
                 <InputNumber
                     min={0} style={{ width: "100%" }}
-                    value={candidateVotes.find(v => v.chi_tiet_bn_id === record.chi_tiet_bn_id)?.so_phieu_khong_dong_y ?? undefined}
-                    onChange={val => handleCandidateVoteChange(record.chi_tiet_bn_id, "so_phieu_khong_dong_y", val)}
+                    value={candidateVotes.find(v => v.chi_tiet_bn_id === record.chiTietBnId)?.so_phieu_khong_dong_y ?? undefined}
+                    onChange={val => handleCandidateVoteChange(record.chiTietBnId, "so_phieu_khong_dong_y", val)}
                 />
             ),
         },
         {
             title: "Kiểm tra", key: "check", width: 110,
             render: (_: unknown, record: Candidate) => {
-                const v = candidateVotes.find(x => x.chi_tiet_bn_id === record.chi_tiet_bn_id);
+                const v = candidateVotes.find(x => x.chi_tiet_bn_id === record.chiTietBnId);
                 if (v?.so_phieu_dong_y == null || v?.so_phieu_khong_dong_y == null)
                     return <Tag>—</Tag>;
                 const total = v.so_phieu_dong_y + v.so_phieu_khong_dong_y;
@@ -187,7 +187,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         {
             title: "Tỉ lệ", key: "ti_le", width: 140,
             render: (_: unknown, record: Candidate) => {
-                const v = candidateVotes.find(x => x.chi_tiet_bn_id === record.chi_tiet_bn_id);
+                const v = candidateVotes.find(x => x.chi_tiet_bn_id === record.chiTietBnId);
                 if (v?.so_phieu_dong_y == null || !validBallots)
                     return <Tag>—</Tag>;
                 const ratio = v.so_phieu_dong_y / validBallots;

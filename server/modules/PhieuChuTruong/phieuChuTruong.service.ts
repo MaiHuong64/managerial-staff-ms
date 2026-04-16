@@ -13,7 +13,7 @@ export const getPCTById = async (id: number) => {
 
 export const createPhieuChuTruong = async (payload: CreatePhieuChuTruongDTO, user: any) => {
     const client = await pool.connect();
-    try {
+    try { 
         await client.query("BEGIN");
         const maPhieu = await nextBatchCode(client);
         const phieuChuTruong = await insertPhieuChuTruong(client, payload, user, maPhieu);

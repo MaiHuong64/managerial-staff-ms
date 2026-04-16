@@ -46,7 +46,7 @@ export const VCDashboard: React.FC = () => {
         </div>
         <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-100">
           <span className="text-slate-600">Chào mừng, </span>
-          <span className="font-semibold text-blue-600">{user?.ho_va_ten || 'Viên chức'}</span>
+          <span className="font-semibold text-blue-600">{user?.hoVaTen || 'Viên chức'}</span>
         </div>
       </div>
       
@@ -58,7 +58,7 @@ export const VCDashboard: React.FC = () => {
         <Row gutter={[32, 16]} align="middle">
           <Col xs={24} md={6} className="text-center border-r border-slate-100">
             <Avatar size={100} icon={<UserOutlined />} className="mb-4 bg-blue-50 text-blue-500 shadow-inner" />
-            <h3 className="text-lg font-bold text-slate-800 m-0">{user?.ho_va_ten || 'Viên chức'}</h3>
+            <h3 className="text-lg font-bold text-slate-800 m-0">{user?.hoVaTen || 'Viên chức'}</h3>
             <p className="text-slate-500 font-medium">{userProfile.ma_vien_chuc}</p>
           </Col>
           <Col xs={24} md={18}>

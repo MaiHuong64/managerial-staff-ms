@@ -10,3 +10,4 @@ export const approvePhieuChuTruong = (id: number) =>
     axiosClient.post(`/phieu-chu-truong/${id}/approve`);
 export const rejectPhieuChuTruong = (id: number, lyDoTuChoi: string) =>
     axiosClient.post(`/phieu-chu-truong/${id}/reject`, { lyDoTuChoi });
+ 
