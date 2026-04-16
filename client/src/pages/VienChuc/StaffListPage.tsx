@@ -12,7 +12,7 @@ export const StaffPage: React.FC = () => {
     // const [setLoading] = useState(true);
     
     useEffect(() => {
-        if(user?.vai_tro === "VCQL"){
+        if(user?.vaiTro === "VCQL"){
             getVienChucTheoDonVi()
             .then(res => setStaffList(res.data.data))
             .catch(console.error);

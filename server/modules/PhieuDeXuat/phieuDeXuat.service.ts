@@ -15,6 +15,7 @@ export const createPhieuDeXuat = async (payload: CreatePhieuDeXuatDTO, user: any
         await client.query("COMMIT");
         return phieu;
     } catch (err) {
+        console.error("Lỗi tạo phiếu:", err);
         await client.query('ROLLBACK');
         throw err;
     } finally {
@@ -28,15 +29,15 @@ export const getList = async () => {
 export const getDetail = async (id: number) => {
     const rows = await getPhieuDeXuatById(id);
     if(!rows.length) throw new Error("Không tìm thấy thông tin phiếu")
-    const { chi_tiet_id, ho_va_ten, vien_chuc_id, du_dieu_kien, ly_do_khong_du, ghi_chu_ct, ...phieu } = rows[0]
+    const { chiTietId, hoVaTen, vienChucId, duDieuKien, lyDoKhongDu, ghiChu, ...phieu } = rows[0];
     return {
-        ...phieu, nhanSu: rows.filter((r: any) => r.chi_tiet_id).map( (r:any) => ({
-            id: r.chi_tiet_id,
-            vien_chuc_id: r.vien_chuc_id,
-            ho_va_ten: r.ho_va_ten,
-            du_dieu_kien: r.du_dieu_kien,
-            ly_do_khong_du: r.ly_do_khong_du,
-            ghi_chu: r.ghi_chu_ct,
+        ...phieu, nhanSu: rows.filter((r: any) => r.chiTietId).map( (r:any) => ({
+            id: r.chiTietId,
+            vienChucId: r.vienChucId,
+            hoVaTen: r.hoVaTen,
+            duDieuKien: r.duDieuKien,
+            lyDoKhongDu: r.lyDoKhongDu,
+            ghiChu: r.ghiChuCt,
         }))
     }
 }
@@ -44,7 +45,7 @@ export const submitPDX = async (id: number, user: any) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        if (user.vai_tro !== 'VCQL')
+        if (user.vaiTro !== 'VCQL')
             throw new Error("Không có quyền gửi phiếu");
         const result = await submitPhieuDeXuat(client, id);
         if (!result) throw new Error("Phiếu không tồn tại hoặc đã được gửi");
@@ -61,7 +62,7 @@ export const approvePDX = async (id: number, user: any, payload: UpdateTrangThai
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        if (user.vai_tro !== 'PTCCT')
+        if (user.vaiTro !== 'PTCCT')
             throw new Error("Không có quyền duyệt phiếu");
         if (!payload.dotQuyHoachId)
             throw new Error("Vui lòng chọn đợt quy hoạch");

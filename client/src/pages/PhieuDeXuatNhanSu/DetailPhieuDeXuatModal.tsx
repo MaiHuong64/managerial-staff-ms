@@ -1,13 +1,8 @@
 import { Button, Descriptions, Form, Input, message, Modal, Select, Table, Tag } from "antd";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hook/useAuth";
-import {
-    approvePhieuDeXuatNhanSu,
-    getPhieuDeXuatNhanSuById,
-    guiPhieuDeXuatNhanSu,
-    rejectPhieuDeXuatNhanSu,
-} from "../../api/phieuDeXuat.api";
-import { DU_DIEU_KIEN, TRANG_THAI_PHIEU_DE_XUAT, type PhieuDeXuatDetail } from "../../types/PhieuDeXuatNhanSu";
+import { approvePhieuDeXuatNhanSu, getPhieuDeXuatNhanSuById, guiPhieuDeXuatNhanSu, rejectPhieuDeXuatNhanSu} from "../../api/phieuDeXuat.api";
+import { DU_DIEU_KIEN, TRANG_THAI_PHIEU_DE_XUAT, type PhieuDeXuatNhanSuChiTiet } from "../../types/PhieuDeXuatNhanSu";
 import dayjs from "dayjs";
 import { getDotQuyHoachList } from "../../api/dotQuyHoach.api";
 import type { DotQuyHoach } from "../../types/QuyHoach";
@@ -20,7 +15,7 @@ interface Props {
 
 export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess }) => {
     const { user } = useAuth();
-    const [data, setData] = useState<PhieuDeXuatDetail | null>(null);
+    const [data, setData] = useState<PhieuDeXuatNhanSuChiTiet | null>(null);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -63,7 +58,7 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
             setApproveModal(false);
             onSuccess();
         } catch (error: any) {
-            if (error?.errorFields) return;
+            if (error.errorFields) return;
             message.error(error?.response?.data?.message || "Duyệt phiếu thất bại");
         } finally {
             setSubmitting(false);
@@ -80,7 +75,7 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
             setRejectModalVisible(false);
             onSuccess();
         } catch (error: any) {
-            if (error?.errorFields) return;
+            if (error.errorFields) return;
             message.error(error?.response?.data?.message || "Từ chối phiếu thất bại");
         } finally {
             setSubmitting(false);
@@ -101,21 +96,21 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
         }
     };
 
-    const trangThai = data ? TRANG_THAI_PHIEU_DE_XUAT[data.trang_thai] : null;
-    const canGui = data?.trang_thai === -1 && user?.vai_tro === 'VCQL';
-    const canDuyet = data?.trang_thai === 0 && user?.vai_tro === 'PTCCT';
+    const trangThai = data ? TRANG_THAI_PHIEU_DE_XUAT[data.trangThai] : null;
+    const guiPhieu = data?.trangThai === -1 && user?.vaiTro === 'VCQL';
+    const duyetPhieu = data?.trangThai === 0 && user?.vaiTro === 'PTCCT';
 
     const nhanSuColumns = [
-        { title: "Họ và tên", dataIndex: "ho_va_ten" },
+        { title: "Họ và tên", dataIndex: "hoVaTen" },
         {
             title: "Điều kiện",
-            dataIndex: "du_dieu_kien",
+            dataIndex: "duDieuKien",
             render: (val: number) => {
                 const dk = DU_DIEU_KIEN[val];
                 return <Tag color={dk?.color}>{dk?.label}</Tag>;
             }
         },
-        { title: "Ghi chú", dataIndex: "ghi_chu", render: (val: string) => val || "—" },
+        { title: "Ghi chú", dataIndex: "ghiChu", render: (val: string) => val || "—" },
     ];
 
     return (
@@ -129,49 +124,43 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
                 loading={loading}
                 footer={[
                     <Button key="close" onClick={onClose}>Đóng</Button>,
-                    canGui && (
-                        <Button key="gui" type="primary" loading={submitting} onClick={handleGui}>
-                            Gửi cho PTCCT
-                        </Button>
+                    guiPhieu && (
+                        <Button key="gui" type="primary" loading={submitting} onClick={handleGui}>Gửi cho PTCCT</Button>
                     ),
-                    canDuyet && (
-                        <Button key="reject" danger onClick={() => { rejectForm.resetFields(); setRejectModalVisible(true); }}>
-                            Từ chối
-                        </Button>
+                    duyetPhieu && (
+                        <Button key="reject" danger onClick={() => { rejectForm.resetFields(); setRejectModalVisible(true); }}>Từ chối</Button>
                     ),
-                    canDuyet && (
-                        <Button key="approve" type="primary" onClick={handleOpenApprove}>
-                            Duyệt
-                        </Button>
+                    duyetPhieu && (
+                        <Button key="approve" type="primary" onClick={handleOpenApprove}>Duyệt</Button>
                     ),
                 ]}
             >
                 {data && (
                     <>
                         <Descriptions bordered size="small" column={2} className="mb-4">
-                            <Descriptions.Item label="Mã phiếu">{data.ma_phieu_de_xuat}</Descriptions.Item>
+                            <Descriptions.Item label="Mã phiếu">{data.maPhieuDeXuat}</Descriptions.Item>
                             <Descriptions.Item label="Trạng thái">
                                 <Tag color={trangThai?.color}>{trangThai?.label}</Tag>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Tiêu đề" span={2}>{data.tieu_de}</Descriptions.Item>
-                            <Descriptions.Item label="Chức danh">{data.ten_chuc_danh}</Descriptions.Item>
-                            <Descriptions.Item label="Số lượng đề xuất">{data.so_luong_de_xuat}</Descriptions.Item>
-                            <Descriptions.Item label="Đơn vị">{data.ten_don_vi}</Descriptions.Item>
-                            <Descriptions.Item label="Người lập">{data.nguoi_lap}</Descriptions.Item>
+                            <Descriptions.Item label="Tiêu đề" span={2}>{data.tieuDe}</Descriptions.Item>
+                            <Descriptions.Item label="Chức danh">{data.tenChucDanh}</Descriptions.Item>
+                            <Descriptions.Item label="Số lượng đề xuất">{data.soLuongDeXuat}</Descriptions.Item>
+                            <Descriptions.Item label="Đơn vị">{data.tenDonVi}</Descriptions.Item>
+                            <Descriptions.Item label="Người lập">{data.nguoiLap}</Descriptions.Item>
                             <Descriptions.Item label="Ngày lập">
-                                {dayjs(data.ngay_lap).format("DD/MM/YYYY")}
+                                {dayjs(data.ngayLap).format("DD/MM/YYYY")}
                             </Descriptions.Item>
-                            {data.ngay_phe_duyet && (
+                            {data.ngayPheDuyet && (
                                 <Descriptions.Item label="Ngày phê duyệt">
-                                    {dayjs(data.ngay_phe_duyet).format("DD/MM/YYYY")}
+                                    {dayjs(data.ngayPheDuyet).format("DD/MM/YYYY")}
                                 </Descriptions.Item>
                             )}
-                            {data.noi_dung && (
-                                <Descriptions.Item label="Nội dung" span={2}>{data.noi_dung}</Descriptions.Item>
+                            {data.noiDung && (
+                                <Descriptions.Item label="Nội dung" span={2}>{data.noiDung}</Descriptions.Item>
                             )}
-                            {data.ghi_chu && (
+                            {data.ghiChu && (
                                 <Descriptions.Item label="Ghi chú PTCCT" span={2}>
-                                    <span className="text-red-500">{data.ghi_chu}</span>
+                                    <span className="text-red-500">{data.ghiChu}</span>
                                 </Descriptions.Item>
                             )}
                         </Descriptions>
@@ -217,7 +206,7 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
                             optionFilterProp="label"
                             options={dotQHList.map(d => ({
                                 value: d.id,
-                                label: `${d.ten_quy_hoach} — ${d.nam_thuc_hien}`,
+                                label: `${d.tenQuyHoach} — ${d.namThucHien}`,
                             }))}
                         />
                     </Form.Item>

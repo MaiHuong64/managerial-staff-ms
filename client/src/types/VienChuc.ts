@@ -1,30 +1,31 @@
+
 export interface VienChuc {
     id: number;
-    ma_vien_chuc: string | null,
-    ho_va_ten: string,
-    gioi_tinh: number, // 0: nam, 1: nu, 2: khac
-    so_cccd: string,
-    so_dien_thoai: string,
-    email: string,
-    dia_chi: string,
-    ngay_sinh: string,
-    dan_toc: string,
-    trinh_do_chuyen_mon: string,
-    ngay_ket_nap: string,
-    ngay_chinh_thuc: string,
-    chuyen_nganh: string,
-    ngach: string,
-    nam_tot_nghiep: number,
-    trinh_do_ly_luan_CT: string,
-    trinh_do_ngoai_ngu: string,
-    trinh_do_tin_hoc: string,
-    ngay_tao: string,
-    ngay_cap_nhat: string,
-};
+    maVienChuc: string | null;
+    hoVaTen: string;
+    gioiTinh: number, // 0: nam, 1: nu, 2: khac
+    soCccd: string;
+    soDienThoai: string;
+    email: string;
+    diaChi: string;
+    ngaySinh: string;
+    danToc: string;
+    trinhDoChuyenMon: string;
+    ngayKetNap: string;
+    ngayChinhThuc: string;
+    chuyenNganh: string;
+    ngach: string;
+    namTotNghiep: number;
+    trinhDoLyLuanCt: string; // Chữ CT viết thành Ct để khớp với chuẩn auto-map của snake-camel
+    trinhDoNgoaiNgu: string;
+    trinhDoTinHoc: string;
+    ngayTao: string;
+    ngayCapNhat: string;
+}
 
-export interface DanhSachVienChuc extends  VienChuc{
-    ten_don_vi: string;
-    chuc_vu_hien_tai: string;
-    vai_tro: string;
-    trang_thai: number;
-}   
+export interface DanhSachVienChuc extends VienChuc {
+    tenDonVi: string;
+    chucVuHienTai: string;
+    vaiTro: string;
+    trangThai: number;
+}

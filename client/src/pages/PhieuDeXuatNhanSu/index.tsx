@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../hook/useAuth"
-import { Button, Card, Col, message, Popconfirm, Row, Statistic, Table, Tag } from "antd";
+import { Button, Card, Col, message, Row, Statistic, Table, Tag } from "antd";
 import dayjs from "dayjs";
 import Search from "antd/es/transfer/search";
 import { PlusOutlined } from "@ant-design/icons";
-import { TRANG_THAI_PHIEU_DE_XUAT, type PhieuDeXuat } from "../../types/PhieuDeXuatNhanSu";
-import { approvePhieuDeXuatNhanSu, getAllPhieuDeXuatNhanSu, rejectPhieuDeXuatNhanSu } from "../../api/phieuDeXuat.api";
+import { TRANG_THAI_PHIEU_DE_XUAT, type PhieuDeXuatNhanSu } from "../../types/PhieuDeXuatNhanSu";
 import CreateDeXuatNhanSuModal from "./CreateDeXuatNhanSuModal";
 import DetailPhieuDeXuatModal from "./DetailPhieuDeXuatModal";
+import { getAllPhieuDeXuatNhanSu } from "../../api/phieuDeXuat.api";
 
 export const PhieuDeXuatNhanSuPage: React.FC = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [phieuDeXuatNhanSu, setphieuDeXuatNhanSu] = useState<PhieuDeXuat[]>([]);
+    const [phieuDeXuatNhanSu, setphieuDeXuatNhanSu] = useState<PhieuDeXuatNhanSu[]>([]);
     const [searchText, setSearchText] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -31,51 +31,31 @@ export const PhieuDeXuatNhanSuPage: React.FC = () => {
 
     useEffect(() => { fetchData(); }, []);
 
-    const handleApprove = async (id: number) => {
-        try {
-            await approvePhieuDeXuatNhanSu(id);
-            message.success("Đã phê duyệt!");
-            fetchData();
-        } catch {
-            message.error("Thao tác thất bại");
-        }
-    };
-
-    const handleReject = async (id: number) => {
-        try {
-            await rejectPhieuDeXuatNhanSu(id);
-            message.success("Đã từ chối!");
-            fetchData();
-        } catch {
-            message.error("Thao tác thất bại");
-        }
-    };
-
     const status = useMemo(() => ({
-        nhap: phieuDeXuatNhanSu.filter(item => item.trang_thai === -1).length,
-        choDuyet: phieuDeXuatNhanSu.filter(item => item.trang_thai === 0).length,
-        daDuyet: phieuDeXuatNhanSu.filter(item => item.trang_thai === 1).length,
+        nhap: phieuDeXuatNhanSu.filter(item => item.trangThai === -1).length,
+        choDuyet: phieuDeXuatNhanSu.filter(item => item.trangThai === 0).length,
+        daDuyet: phieuDeXuatNhanSu.filter(item => item.trangThai === 1).length,
     }), [phieuDeXuatNhanSu]);
 
     const filteredData = useMemo(() => {
         if (!searchText) return phieuDeXuatNhanSu;
         const lower = searchText.toLowerCase();
         return phieuDeXuatNhanSu.filter(item =>
-            item.ten_chuc_danh?.toLowerCase().includes(lower) ||
-            item.tieu_de?.toLowerCase().includes(lower)
+            item.tenChucDanh?.toLowerCase().includes(lower) ||
+            item.tieuDe?.toLowerCase().includes(lower)
         );
     }, [phieuDeXuatNhanSu, searchText]);
 
     const columns = [
-        { title: "Mã phiếu", dataIndex: 'ma_phieu_de_xuat', width: 110 },
-        { title: "Tiêu đề", dataIndex: 'tieu_de' },
-        { title: "Chức danh", dataIndex: 'ten_chuc_danh' },
+        { title: "Mã phiếu", dataIndex: 'maPhieuDeXuat', width: 110 },
+        { title: "Tiêu đề", dataIndex: 'tieuDe' },
+        { title: "Chức danh", dataIndex: 'tenChucDanh' },
         {
-            title: 'Ngày lập', dataIndex: 'ngay_lap', width: 110,
+            title: 'Ngày lập', dataIndex: 'ngayLap', width: 110,
             render: (date: string) => dayjs(date).format("DD/MM/YYYY")
         },
         {
-            title: 'Trạng thái', dataIndex: 'trang_thai', width: 120,
+            title: 'Trạng thái', dataIndex: 'trangThai', width: 120,
             render: (trangThai: number) => {
                 const s = TRANG_THAI_PHIEU_DE_XUAT[trangThai] ?? { label: '?', color: 'default' }
                 return <Tag color={s.color}>{s.label}</Tag>;
@@ -83,19 +63,9 @@ export const PhieuDeXuatNhanSuPage: React.FC = () => {
         },
         {
             title: 'Thao tác', width: 200,
-            render: (_: unknown, record: PhieuDeXuat) => (
+            render: (_: unknown, record: PhieuDeXuatNhanSu) => (
                 <div className="flex gap-2">
                     <Button size="small" onClick={() => setSelectedId(record.id)}>Xem</Button>
-                    {user?.vai_tro === 'PTCCT' && record.trang_thai === 0 && (
-                        <>
-                            <Popconfirm title="Phê duyệt phiếu này?" onConfirm={() => handleApprove(record.id)} okText="Duyệt" cancelText="Hủy">
-                                <Button type="primary" size="small">Duyệt</Button>
-                            </Popconfirm>
-                            <Popconfirm title="Từ chối phiếu này?" onConfirm={() => handleReject(record.id)} okText="Từ chối" cancelText="Hủy" okButtonProps={{ danger: true }}>
-                                <Button danger size="small">Từ chối</Button>
-                            </Popconfirm>
-                        </>
-                    )}
                 </div>
             )
         },
@@ -107,7 +77,7 @@ export const PhieuDeXuatNhanSuPage: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-bold m-0">Quản lý đề xuất nhân sự quy hoạch</h1>
                     <p className="text-gray-500 mt-1">
-                        Đơn vị: <span className="font-semibold text-gray-700">{user?.ho_va_ten || "Đang tải..."}</span>
+                        Đơn vị: <span className="font-semibold text-gray-700">{user?.hoVaTen || "Đang tải..."}</span>
                     </p>
                 </div>
             </div>
@@ -136,7 +106,7 @@ export const PhieuDeXuatNhanSuPage: React.FC = () => {
                         placeholder="🔍 Tìm theo tiêu đề, chức danh..."
                         onChange={(e) => setSearchText(e.target.value)}
                     />
-                    {user?.vai_tro === 'VCQL' && (
+                    {user?.vaiTro === 'VCQL' && (
                         <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
                             Lập phiếu đề xuất
                         </Button>

@@ -11,7 +11,7 @@ export const DashboardPage = () => {
   const renderDashboard = () => {
     if (!user) return null;
 
-    switch (user.vai_tro) {
+    switch (user.vaiTro) {
       case 'VC':
         return <VCDashboard />;
       case 'VCQL':
