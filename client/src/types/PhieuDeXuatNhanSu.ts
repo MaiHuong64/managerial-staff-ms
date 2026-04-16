@@ -1,38 +1,39 @@
 import type { ChucDanh } from "./ChucDanh";
 import type { VienChuc } from "./VienChuc";
 
-export interface PhieuDeXuat {
+export interface PhieuDeXuatNhanSu {
     id: number;
-    ma_phieu_de_xuat: string;
-    tieu_de: string;
-    noi_dung: string | null;
-    so_luong_de_xuat: number | null;
-    ngay_lap: string;
-    ngay_phe_duyet: string | null;
-    trang_thai: number; // 0: chờ duyệt, 1: đã duyệt, 2: từ chối
-    ghi_chu: string | null;
-    don_vi_id: number;
-    chuc_danh_id: number;
-    nguoi_lap: string;
+    maPhieuDeXuat: string;
+    tieuDe: string;
+    noiDung: string | null;
+    soLuongDeXuat: number | null;
+    ngayLap: string;
+    ngayPheDuyet: string | null;
+    trangThai: number;
+    ghiChu: string | null;
+    donViId: number;
+    chucDanhId: number;
+    nguoiLap: string;
 
-    ten_don_vi: string;
-    ten_chuc_danh: string;
-    so_nguoi_de_xuat: number;
+    tenDonVi: string;
+    tenChucDanh: string;
+    soNguoiDeXuat: number;
 }
 
 export interface ChiTietPhieuDeXuat {
     id: number; 
-    vien_chuc_id: number;
-    ho_va_ten: string;
-    du_dieu_kien: number; // 0: chưa xét, 1: đủ, 2: không đủ
-    ly_do_khong_du: string | null;
-    ghi_chu: string | null;
+    vienChucId: number;
+    hoVaTen: string;
+    duDieuKien: number; 
+    lyDoKhongDu: string | null;
+    ghiChu: string | null;
 }
-export interface ChucDanhWithVienChuc{
-    chucDanh: ChucDanh,
-    vienChucList: VienChuc[]
+
+export interface ChucDanhWithVienChuc {
+    chucDanh: ChucDanh;
+    vienChucList: VienChuc[];
 }
-export interface PhieuDeXuatDetail extends Omit<PhieuDeXuat, 'so_nguoi_de_xuat'> {
+export interface PhieuDeXuatNhanSuChiTiet extends Omit<PhieuDeXuatNhanSu, 'soNguoiDeXXuat'> {
     nhanSu: ChiTietPhieuDeXuat[];
 }
 

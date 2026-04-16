@@ -4,7 +4,7 @@ import { getAllPhieuDeXuatNhanSu, gePhieuDeXuatNhanSutById, approvePhieuDeXuatNh
 
 const router = Router();
 
-router.use(verifyToken);
+// router.use(verifyToken);
 
 router.get("/", getAllPhieuDeXuatNhanSu);
 router.get("/:id", gePhieuDeXuatNhanSutById);
