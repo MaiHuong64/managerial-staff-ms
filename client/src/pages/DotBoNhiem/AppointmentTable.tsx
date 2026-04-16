@@ -1,34 +1,34 @@
 import React from "react";
 import { Table, Tag, Badge } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
-import type { DotBoNhiem } from "../../types/BoNhiem";
+import type { DanhSachDotBoNhiem } from "../../types/BoNhiem";
 import { useNavigate } from "react-router-dom";
 import { BUOC_HIEN_TAI_MAP } from "../../components/common/status";
 
 interface Props {
-    data: DotBoNhiem[];
+    data: DanhSachDotBoNhiem[];
     loading: boolean;
 }
 
-export const AppoinmentTable: React.FC<Props> = ({ data, loading }) => {
+export const  AppoinmentTable: React.FC<Props> = ({ data, loading }) => {
     const navigate = useNavigate();
 
     const columns = [
         {
             title: "Đợt bổ nhiệm",
-            dataIndex: "ten_dot_bo_nhiem",
-            key: "ten_dot_bo_nhiem",
-            render: (text: string, record: DotBoNhiem) => (
+            dataIndex: "tenDotBoNhiem",
+            key: "tenDotBoNhiem",
+            render: (text: string, record: DanhSachDotBoNhiem) => (
                 <div>
                     <div className="font-semibold text-slate-800 text-sm">{text}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">{record.ma_dot_bo_nhiem}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{record.maDotBoNhiem}</div>
                 </div>
             ),
         },
         {
             title: "Số phiếu",
-            dataIndex: "so_phieu",
-            key: "so_phieu",
+            dataIndex: "soPhieu",
+            key: "soPhieu",
             width: 110,
             align: "center" as const,
             render: (value: number) => (
@@ -39,9 +39,9 @@ export const AppoinmentTable: React.FC<Props> = ({ data, loading }) => {
             ),
         },
         {
-            title: "Trạng thái",
-            dataIndex: "buoc_hien_tai",
-            key: "buoc_hien_tai",
+            title: "Bước hiện tại",
+            dataIndex: "buocHienTai",
+            key: "buocHienTai",
             width: 220,
             render: (status: number | null) => {
                 if (status === null)

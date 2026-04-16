@@ -17,8 +17,8 @@ const LoginForm: React.FC = () => {
         setLoading(true);
       
         try {
-            const response = await loginApi(values.ten_dang_nhap, values.mat_khau);
-            console.log(values.ten_dang_nhap, values.mat_khau);
+            const response = await loginApi(values.tenDangNhap, values.matKhau);
+            console.log(values.tenDangNhap, values.matKhau);
             const { token, ...userData } = response.data.data;
             localStorage.setItem('token', token);
         
@@ -40,7 +40,7 @@ const LoginForm: React.FC = () => {
         <Form  form={form}  layout="vertical"  onFinish={onFinish}  requiredMark={false}  className="w-full">
             <Form.Item 
                 label={<span className="text-sm font-medium text-[#0f172a]">Tên đăng nhập / Mã viên chức</span>} 
-                name="ten_dang_nhap" 
+                name="tenDangNhap" 
                 rules={[{ required: true, message: "Vui lòng nhập tên đăng nhập!" }]}
             >
                 <Input 
@@ -51,7 +51,7 @@ const LoginForm: React.FC = () => {
             </Form.Item>
 
             <Form.Item  label={<span className="text-sm font-medium text-[#0f172a]">
-                Mật khẩu</span>}  name="mat_khau" rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]} className="mb-8">
+                Mật khẩu</span>}  name="matKhau" rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]} className="mb-8">
                 <Input.Password 
                     prefix={<LockOutlined className="text-[#94a3b8] mr-1" />}
                     placeholder="Nhập mật khẩu của bạn" 

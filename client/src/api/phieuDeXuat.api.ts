@@ -12,8 +12,8 @@ export const createPhieuDeXuatNhanSu = (data: unknown) =>
 export const guiPhieuDeXuatNhanSu = (id: number) =>
     axiosClient.patch(`/phieu-de-xuat/${id}/submit`);
 
-export const approvePhieuDeXuatNhanSu = (id: number) =>
-    axiosClient.post(`/phieu-de-xuat/${id}/approve`, { trangThai: 1 });
+export const approvePhieuDeXuatNhanSu = (id: number, dotQuyHoachId: number) =>
+    axiosClient.post(`/phieu-de-xuat/${id}/approve`, { trangThai: 1, dotQuyHoachId });
 
 export const rejectPhieuDeXuatNhanSu = (id: number, ghiChu?: string) =>
     axiosClient.post(`/phieu-de-xuat/${id}/reject`, { trangThai: 2, ghiChu });

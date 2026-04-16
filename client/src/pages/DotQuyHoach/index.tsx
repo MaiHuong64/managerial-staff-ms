@@ -44,10 +44,10 @@ export const PlanningPage: React.FC = () => {
     }, [planningList, searchText]);
 
     const stats = useMemo(() => ({
-        total:     planningList.length,
+        total: planningList.length,
         dauNhiemKy: planningList.filter(d => d.loai_quy_hoach === 1).length,
-        raSoat:     planningList.filter(d => d.loai_quy_hoach === 2).length,
-        hoanThanh:  planningList.filter(d => d.trang_thai === 1).length,
+        raSoat: planningList.filter(d => d.loai_quy_hoach === 2).length,
+        hoanThanh: planningList.filter(d => d.trang_thai === 1).length,
     }), [planningList]);
 
     const cols = [

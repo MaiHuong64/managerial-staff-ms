@@ -1,7 +1,7 @@
 import { Form, Input, InputNumber, message, Modal, Select } from "antd";
 import { useEffect, useState } from "react";
-import { createPhieuChuTruong } from "../../api/phieuChuTruong.api";
-import { getChucDanhList } from "../../api/chucDanh.api";
+import { createPhieuChuTruong } from "../../../api/phieuChuTruong.api";
+import { getChucDanhList } from "../../../api/chucDanh.api";
 
 interface Props {
     isVisible: boolean;

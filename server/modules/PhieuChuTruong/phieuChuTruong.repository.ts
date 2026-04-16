@@ -1,3 +1,4 @@
+import { toCamel } from "snake-camel";
 import pool from "../../config/db";
 import { CreatePhieuChuTruongDTO } from "./phieuChuTruong.dto";
 
@@ -17,7 +18,7 @@ export const getAllPlanning = async () => {
         LEFT JOIN chuc_danh_quan_ly cd ON cd.id = ptc.chuc_danh_id
         LEFT JOIN dot_quy_hoach dqt ON dqt.id = ptc.dot_quy_hoach_id`
     )
-    return result.rows;
+    return result.rows.map(toCamel);
 }
 export const getById = async (id: number) => {
     const result = await pool.query(
@@ -33,7 +34,7 @@ export const getById = async (id: number) => {
 export const getDetailForPosition = async (id: number) => {
     const result = await pool.query(
         `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh
-        FROM phieu_chu_truong ptc 
+        FROM phieu_chu_truong ptc   
         LEFT JOIN don_vi dv ON ptc.don_vi_id = dv.id
         LEFT JOIN chuc_danh_quan_ly cd ON cd.id = ptc.chuc_danh_id
         LEFT JOIN dot_quy_hoach dqt ON dqt.id = ptc.dot_quy_hoach_id

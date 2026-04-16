@@ -97,14 +97,16 @@
         nhiem_ky VARCHAR(20),
         so_qd_phe_duyet VARCHAR(20),
         ngay_qd_phe_duyet DATE,
-        trang_thai SMALLINT
+        trang_thai SMALLINT,
+        dot_goc_id SMALLINT, 
+        CONSTRAINT fk_dqh FOREIGN KEY (dot_goc_id) REFERENCES dot_quy_hoach(id),
     );
 
     CREATE TABLE chi_tiet_quy_hoach (
         id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         ngay_vao_qh DATE,
         ngay_ra_qh DATE,
-        buoc_hien_tai SMALLINT DEFAULT 2, -- 2: vòng 2, 3: hội nghị CB chủ chốt, 4: hoàn thành
+        buoc_hien_tai SMALLINT DEFAULT 2, -- 2: HN lãnh đạo lần 1, 3: HN CB chủ chốt, 4: HN lãnh đạo mở rộng, 5: HN lãnh đạo lần 2, 6: hoàn thành, 0: không đạt
         so_qd_ra_khoi_quy_hoach VARCHAR(50),
         ngay_qd_ra_khoi_quy_hoach DATE,
         ly_do_ra_khoi_quy_hoach TEXT,
@@ -175,6 +177,8 @@
         don_vi_id INT NOT NULL,
         chuc_danh_id INT NOT NULL,
         nguoi_lap VARCHAR(50),
+        nguoi_duyet VARCHAR(50),
+        ly_do_tu_choi TEXT,
         CONSTRAINT fk_pct_dqh FOREIGN KEY (dot_quy_hoach_id) REFERENCES dot_quy_hoach(id),
         CONSTRAINT fk_pct_dv FOREIGN KEY (don_vi_id) REFERENCES don_vi(id),
         CONSTRAINT fk_pct_cd FOREIGN KEY (chuc_danh_id) REFERENCES chuc_danh_quan_ly(id)

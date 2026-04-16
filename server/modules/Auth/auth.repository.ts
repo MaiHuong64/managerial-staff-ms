@@ -1,4 +1,5 @@
 import pool from "../../config/db";
+import { mapToCamel } from "../../utils/mapper";
 
 export const AuthRepository = {
     findByUsername: async (username: string) => {
@@ -10,7 +11,7 @@ export const AuthRepository = {
             WHERE t.ten_dang_nhap = $1
         `;
         const result = await pool.query(query, [username]);
-        return result.rows[0];
+        return mapToCamel<any>(result.rows[0]);
     },
 
     checkExistUser: async (username: string) => {
@@ -28,6 +29,6 @@ export const AuthRepository = {
              RETURNING id, ten_dang_nhap, vai_tro`,
             [username, hashedPassword, role]
         );
-        return result.rows[0];
+        return mapToCamel<any>(result.rows[0]);
     }
 };
