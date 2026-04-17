@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Table, Tag, Spin, Steps } from "antd";
-import type { ChiTietQuyHoach } from "../../types/ChiTietQuyHoach";
+import type { ChiTietQuyHoach, DotQuyHoach } from "../../types/QuyHoach";
 import type { ColumnsType } from "antd/es/table";
 import {
     ArrowLeftOutlined, TeamOutlined,
@@ -20,7 +20,7 @@ export const PlanningDetailPage: React.FC = () => {
     const navigate = useNavigate();
 
     const [staffList, setStaffList] = useState<ChiTietQuyHoach[]>([]);
-    const [planning, setPlanning] = useState<any | null>(null);
+    const [planning, setPlanning] = useState<DotQuyHoach | null>(null);
     const [loading, setLoading] = useState(true);
     const [voteModalOpen, setVoteModalOpen] = useState(false);
 
@@ -42,17 +42,17 @@ export const PlanningDetailPage: React.FC = () => {
 
     // Tính currentStep của đợt quy hoạch: Bước nhỏ nhất của các ứng viên chưa hoàn thành/loại
     const currentStep = useMemo(() => {
-        const activeCandidates = staffList.filter(s => s.buoc_hien_tai >= 2 && s.buoc_hien_tai <= 5);
+        const activeCandidates = staffList.filter(s => s.buocHienTai >= 2 && s.buocHienTai <= 5);
         if (activeCandidates.length === 0) return null;
-        return Math.min(...activeCandidates.map(s => s.buoc_hien_tai));
+        return Math.min(...activeCandidates.map(s => s.buocHienTai));
     }, [staffList]);
 
     const canVote = currentStep !== null && [2, 3, 4, 5].includes(currentStep);
 
     const stats = useMemo(() => ({
         total: staffList.length,
-        active: staffList.filter(s => s.trang_thai === 1).length,
-        exited: staffList.filter(s => s.trang_thai !== 1).length,
+        active: staffList.filter(s => s.trangThai === 1).length,
+        exited: staffList.filter(s => s.trangThai !== 1).length,
     }), [staffList]);
 
     const columns: ColumnsType<ChiTietQuyHoach> = [
@@ -65,15 +65,15 @@ export const PlanningDetailPage: React.FC = () => {
                         <UserOutlined className="text-indigo-600 text-xs" />
                     </div>
                     <div>
-                        <div className="font-semibold text-slate-800 text-sm">{r.ho_va_ten}</div>
-                        <div className="text-[10px] text-slate-400">{r.ma_vien_chuc}</div>
+                        <div className="font-semibold text-slate-800 text-sm">{r.hoVaTen}</div>
+                        <div className="text-[10px] text-slate-400">{r.maVienChuc}</div>
                     </div>
                 </div>
             ),
         },
         {
             title: "Đơn vị",
-            dataIndex: "ten_don_vi",
+            dataIndex: "tenDonVi",
             render: (val: string) => (
                 <div className="flex items-center gap-1.5 text-sm text-slate-600">
                     <HomeOutlined className="text-slate-300 text-xs" />
@@ -83,7 +83,7 @@ export const PlanningDetailPage: React.FC = () => {
         },
         {
             title: "Tiến trình",
-            dataIndex: "buoc_hien_tai",
+            dataIndex: "buocHienTai",
             width: 180,
             render: (step: number) => {
                 const config: Record<number, { color: string; label: string; icon?: React.ReactNode }> = {
@@ -100,15 +100,15 @@ export const PlanningDetailPage: React.FC = () => {
         },
         {
             title: "Ngày vào QH",
-            dataIndex: "ngay_vao_qh",
+            dataIndex: "ngayVaoQH",
             width: 120,
             render: (val: string) => <span className="text-xs text-slate-500">{val ? formatDate(val) : "—"}</span>,
         },
         {
             title: "Trạng thái",
-            key: "trang_thai",
+            key: "trangThai",
             width: 120,
-            render: (_, r) => r.trang_thai === 1
+            render: (_, r) => r.trangThai === 1
                 ? <Tag color="success" bordered={false}>Đang QH</Tag>
                 : <Tag color="default" bordered={false}>Đã ra khỏi QH</Tag>,
         },
@@ -134,10 +134,10 @@ export const PlanningDetailPage: React.FC = () => {
                         />
                         <div className="min-w-0">
                             <h1 className="text-lg font-bold text-slate-800 truncate m-0 leading-tight">
-                                {planning?.ten_quy_hoach}
+                                {planning?.tenQuyHoach}
                             </h1>
                             <div className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-medium">
-                                Quy hoạch {planning?.loai_quy_hoach === 1 ? "Đầu nhiệm kỳ" : "Rà soát hàng năm"} · Năm {planning?.nam_thuc_hien}
+                                Quy hoạch {planning?.loaiQuyHoach === 1 ? "Đầu nhiệm kỳ" : "Rà soát hàng năm"} · Năm {planning?.namThucHien}
                             </div>
                         </div>
                     </div>
@@ -212,12 +212,12 @@ export const PlanningDetailPage: React.FC = () => {
                     onSuccess={() => { setVoteModalOpen(false); fetchData(); }}
                     dotQuyHoachId={Number(id)}
                     candidates={staffList.map(s => ({
-                        chi_tiet_qh_id: s.chi_tiet_id,
-                        ma_vien_chuc: s.ma_vien_chuc,
-                        ho_va_ten: s.ho_va_ten,
-                        ten_chuc_danh: s.ten_chuc_danh,
-                        ten_don_vi: s.ten_don_vi,
-                        buoc_hien_tai: s.buoc_hien_tai
+                        chi_tiet_qh_id: s.chiTietId,
+                        ma_vien_chuc: s.maVienChuc,
+                        ho_va_ten: s.hoVaTen,
+                        ten_chuc_danh: s.tenChucDanh,
+                        ten_don_vi: s.tenDonVi,
+                        buoc_hien_tai: s.buocHienTai
                     }))}
                     currentStep={currentStep}
                 />
