@@ -38,34 +38,34 @@ export const PlanningPage: React.FC = () => {
         if (!searchText.trim()) return planningList;
         const q = searchText.toLowerCase();
         return planningList.filter(d =>
-            d.ten_quy_hoach.toLowerCase().includes(q) ||
-            d.nam_thuc_hien.toString().includes(q)
+            d.tenQuyHoach.toLowerCase().includes(q) ||
+            d.namThucHien.toString().includes(q)
         );
     }, [planningList, searchText]);
 
     const stats = useMemo(() => ({
         total: planningList.length,
-        dauNhiemKy: planningList.filter(d => d.loai_quy_hoach === 1).length,
-        raSoat: planningList.filter(d => d.loai_quy_hoach === 2).length,
-        hoanThanh: planningList.filter(d => d.trang_thai === 1).length,
+        dauNhiemKy: planningList.filter(d => d.loaiQuyHoach === 1).length,
+        raSoat: planningList.filter(d => d.loaiQuyHoach === 2).length,
+        hoanThanh: planningList.filter(d => d.trangThai === 1).length,
     }), [planningList]);
 
     const cols = [
         {
             title: "Đợt quy hoạch",
-            dataIndex: "ten_quy_hoach",
-            key: "ten_quy_hoach",
+            dataIndex: "tenQuyHoach",
+            key: "tenQuyHoach",
             render: (text: string, record: DotQuyHoach) => (
                 <div>
                     <div className="font-semibold text-slate-800 text-sm">{text}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">Năm {record.nam_thuc_hien}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">Năm {record.namThucHien}</div>
                 </div>
             ),
         },
         {
             title: "Loại",
-            dataIndex: "loai_quy_hoach",
-            key: "loai_quy_hoach",
+            dataIndex: "loaiQuyHoach",
+            key: "loaiQuyHoach",
             width: 140,
             render: (val: number) =>
                 val === 1
@@ -74,15 +74,15 @@ export const PlanningPage: React.FC = () => {
         },
         {
             title: "Nhiệm kỳ",
-            dataIndex: "nhiem_ky",
+            dataIndex: "nhiemKy",
             width: 120,
             render: (val: string) => val ?? <span className="text-slate-300 italic text-xs">—</span>,
         },
         
         {
             title: "Số người",
-            dataIndex: "so_luong",
-            key: "so_luong",
+            dataIndex: "soLuong",
+            key: "soLuong",
             width: 100,
             align: "center" as const,
             render: (val: number) => (
@@ -91,8 +91,8 @@ export const PlanningPage: React.FC = () => {
         },
         {
             title: "Trạng thái",
-            dataIndex: "trang_thai",
-            key: "trang_thai",
+            dataIndex: "trangThai",
+            key: "trangThai",
             width: 130,
             render: (val: number) =>
                 val === 1
