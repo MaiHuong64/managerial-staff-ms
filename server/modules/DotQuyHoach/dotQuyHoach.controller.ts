@@ -1,5 +1,5 @@
 import {Request, Response } from "express";
-import { addPlanningCandidates, createPlanningBatch, fetchAllPlanning, findPlanningBatchById, fetchCandidatesForChucDanh, filterPlanningCandidates } from "./dotQuyHoach.service";
+import { addPlanningCandidates, createPlanningBatch, fetchAllPlanning, findPlanningBatchById, fetchCandidatesForChucDanh, filterPlanningCandidates, fetchRoot } from "./dotQuyHoach.service";
 import { AddPlanningBatchDetailDTO } from "./dotQuyHoach.dto";
 import { submitVoteResult } from "./dotQuyHoach.validate.service";
 
@@ -57,6 +57,14 @@ export const getById = async (req: Request, res: Response) => {
 export const getAll = async (req: Request, res: Response) => {
     try {
         const data = await fetchAllPlanning();
+        return res.status(200).json({success: true, data});
+    } catch (error) {
+        return res.status(500).json({success: false, message: "Lỗi server"});
+    }
+}
+export const getRoot = async (req: Request, res: Response) => {
+    try {
+        const data = await fetchRoot();
         return res.status(200).json({success: true, data});
     } catch (error) {
         return res.status(500).json({success: false, message: "Lỗi server"});

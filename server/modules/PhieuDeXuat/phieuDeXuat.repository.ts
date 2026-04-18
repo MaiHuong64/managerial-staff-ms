@@ -43,7 +43,7 @@ export const getPhieuDeXuatById = async (id: number): Promise<ChiTietPhieuDeXuat
 }
 
 export const insertPhieuDeXuat = async (client: any, payload: CreatePhieuDeXuatDTO , user: any, maPhieu: string): Promise<PhieuDeXuatNhanSu> => {
-    const { hoVaTen, donViId } = user;
+    const { hoVaTen, donViId } = user
     const result = await client.query (
         `
         INSERT INTO phieu_de_xuat_nhan_su_quy_hoach
@@ -108,4 +108,20 @@ export const updateDuDieuKien = async (client: any, chiTietPhieuId: number, payl
         RETURNING *`,[payload.duDieuKien, payload.lyDo, chiTietPhieuId]
     )
     return mapToCamel(result.rows[0]);
+}
+export const updateTrangThaiPhieuDuDieuKien = async (client: any, phieuId: number) => {
+    const result = await client.query(
+        `UPDATE phieu_de_xuat_nhan_su_quy_hoach
+         SET trang_thai = 3
+         WHERE id = $1 RETURNING *`,
+        [phieuId]
+    );
+    return mapToCamel(result.rows[0]);
+}
+export const getPhieuIdByChiTietId = async (client: any, chiTietId: number) => {
+    const result = await client.query(
+        `SELECT phieu_de_xuat_id FROM chi_tiet_phieu_de_xuat WHERE id = $1`,
+        [chiTietId]
+    );
+    return mapToCamel(result.rows[0].phieu_de_xuat_id);
 }

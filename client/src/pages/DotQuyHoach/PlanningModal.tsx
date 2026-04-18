@@ -1,8 +1,8 @@
 import { Form, message, Modal, Input, Select, InputNumber, Button } from "antd";
 import type { DotQuyHoach } from "../../types/QuyHoach";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createDotQuyHoach } from "../../api/dotQuyHoach.api";
+import { createDotQuyHoach, getRoot } from "../../api/dotQuyHoach.api";
 
 interface PlanningModalProps {
     open: boolean;
@@ -13,9 +13,24 @@ interface PlanningModalProps {
 export const PlanningModal: React.FC<PlanningModalProps> = ({open, onClose, onSuccess}) => {
     const [form] = Form.useForm();
     const navigate = useNavigate();
+
+    const [danhSachQuyHoach, setdanhSachQuyHoach] = useState<DotQuyHoach[]>([]);
+
+    const loaiQuyHoach = Form.useWatch('loaiQuyHoach', form);
+    
     useEffect( () => {
         form.resetFields();
-        form.setFieldsValue({nam_thuc_hien: new Date().getFullYear()});
+        form.setFieldsValue({namThucHien: new Date().getFullYear()});
+
+        const fetchData = async () => {
+            try {
+                const result = await getRoot();
+                setdanhSachQuyHoach(result.data.data);
+            } catch (error) {
+                console.error("Lỗi lấy danh sách đợt quy hoạch", error);
+            }
+        };
+        fetchData();
     }, [open, form]);
 
     const handleFinish = async (values: Partial<DotQuyHoach>) => {
@@ -37,13 +52,13 @@ export const PlanningModal: React.FC<PlanningModalProps> = ({open, onClose, onSu
                 <Form form={form} layout="vertical" onFinish={handleFinish} className="mt-4">
                     
                     <Form.Item label={<span className="font-medium text-gray-700">Tên đợt quy hoạch</span>}
-                    name='ten_quy_hoach' rules={[{required: true, message: 'Vui lòng nhập tên đợt'}]}>
+                    name='tenQuyHoach' rules={[{required: true, message: 'Vui lòng nhập tên đợt'}]}>
                         <Input placeholder="VD: Quy hoạch A1 giai đoạn 2025-2030" className="rounded-lg h-10" />
                     </Form.Item>
 
                     <div className="grid grid-cols-2 gap-4">
                         <Form.Item label={<span className="font-medium text-gray-700">Loại quy hoạch</span>}
-                            name="loai_quy_hoach"
+                            name="loaiQuyHoach"
                             rules={[{ required: true, message: 'Vui lòng chọn loại!' }]}>
                             <Select className="h-10 rounded-lg">
                                 <Select.Option value={1}>Đầu nhiệm kỳ</Select.Option>
@@ -53,11 +68,28 @@ export const PlanningModal: React.FC<PlanningModalProps> = ({open, onClose, onSu
                         
                         <Form.Item
                             label={<span className="font-medium text-gray-700">Năm thực hiện</span>}
-                            name="nam_thuc_hien"
+                            name="namThucHien"
                             rules={[{ required: true, message: 'Vui lòng nhập năm!' }]}>
                             <InputNumber className="w-full h-10 rounded-lg" min={2000} max={2100} />
                         </Form.Item>
 
+
+                        {loaiQuyHoach === 2 && (
+                            <Form.Item 
+                                label={<span className="font-medium text-gray-700">Đợt gốc</span>}
+                                name="dotGocId"
+                                rules={[{required: true, message: "Vui lòng chọn đợt gốc"}]}>
+                                <Select
+                                    showSearch placeholder="--Chọn đợt quy hoạch gốc--" 
+                                    className="h-10 rounded-lg"
+                                    optionFilterProp="children"
+                                >
+                                    {danhSachQuyHoach.map(ds => (
+                                        <Select.Option key={ds.id} value={ds.id}> {ds.tenQuyHoach} ({ds.namThucHien})</Select.Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        )}
                         <div className="flex justify-end gap-3 mt-6 pt-4">
                             <Button onClick={onClose} className="rounded-xl h-10 px-6 font-medium">Hủy</Button>
                             <Button type="primary" htmlType="submit" className="bg-indigo-500">Tạo mới</Button>

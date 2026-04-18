@@ -41,13 +41,15 @@ export const PlanningDetailPage: React.FC = () => {
     useEffect(() => { fetchData(); }, [id]);
 
     // Tính currentStep của đợt quy hoạch: Bước nhỏ nhất của các ứng viên chưa hoàn thành/loại
+    // Nếu đầu nhiệm kỳ => từ bước 2 tới 5, Hằng năm: 1-> 4
     const currentStep = useMemo(() => {
-        const activeCandidates = staffList.filter(s => s.buocHienTai >= 2 && s.buocHienTai <= 5);
+        const [minStep, maxStep] = planning?.loaiQuyHoach === 1 ? [2,5] : [1,4]
+        const activeCandidates = staffList.filter(s => s.buocHienTai >= minStep && s.buocHienTai <= maxStep);
         if (activeCandidates.length === 0) return null;
         return Math.min(...activeCandidates.map(s => s.buocHienTai));
-    }, [staffList]);
+    }, [staffList, planning]);
 
-    const canVote = currentStep !== null && [2, 3, 4, 5].includes(currentStep);
+    const canVote = currentStep !== null && (planning?.loaiQuyHoach === 1 ? [2, 3, 4, 5].includes(currentStep) : [1, 2, 3, 4].includes(currentStep));
 
     const stats = useMemo(() => ({
         total: staffList.length,
@@ -167,13 +169,17 @@ export const PlanningDetailPage: React.FC = () => {
                         </div>
                         <Steps
                             size="small"
-                            current={currentStep ? currentStep - 2 : 4}
-                            items={[
-                                { title: 'HN Lãnh đạo 1', description: 'Thảo luận' },
+                            current={planning?.loaiQuyHoach === 2 ? currentStep - 1 : currentStep - 2}
+                            items={planning?.loaiQuyHoach === 2 ? [
+                                { title: 'Rà soát đưa ra', description: 'Biểu quyết' },
                                 { title: 'HN CB Chủ chốt', description: 'Lấy phiếu' },
                                 { title: 'HN Lãnh đạo MR', description: 'Biểu quyết' },
-                                { title: 'HN Lãnh đạo 2', description: 'Chốt danh sách' },
-                            ]}
+                                { title: 'HN Lãnh đạo 2', description: 'Chốt danh sách' }]
+                                : 
+                                [{ title: 'HN Lãnh đạo 1', description: 'Thảo luận' },
+                                { title: 'HN CB Chủ chốt', description: 'Lấy phiếu' },
+                                { title: 'HN Lãnh đạo MR', description: 'Biểu quyết' },
+                                { title: 'HN Lãnh đạo 2', description: 'Chốt danh sách' }]}
                         />
                     </div>
                 )}
@@ -211,13 +217,13 @@ export const PlanningDetailPage: React.FC = () => {
                     onCancel={() => setVoteModalOpen(false)}
                     onSuccess={() => { setVoteModalOpen(false); fetchData(); }}
                     dotQuyHoachId={Number(id)}
-                    candidates={staffList.map(s => ({
-                        chi_tiet_qh_id: s.chiTietId,
-                        ma_vien_chuc: s.maVienChuc,
-                        ho_va_ten: s.hoVaTen,
-                        ten_chuc_danh: s.tenChucDanh,
-                        ten_don_vi: s.tenDonVi,
-                        buoc_hien_tai: s.buocHienTai
+                    ungVien={staffList.map(s => ({
+                        chiTietQHId: s.chiTietId,
+                        maVienChuc: s.maVienChuc,
+                        hoVaTen: s.hoVaTen,
+                        tenChucDanh: s.tenChucDanh,
+                        tenDonVi: s.tenDonVi,
+                        buocHienTai: s.buocHienTai,
                     }))}
                     currentStep={currentStep}
                 />

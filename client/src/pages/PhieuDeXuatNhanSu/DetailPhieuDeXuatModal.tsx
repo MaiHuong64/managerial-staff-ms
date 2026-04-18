@@ -49,9 +49,11 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
     };
 
     const handleApprove = async () => {
+        console.log("=== handleApprove bắt đầu ==="); // đặt ngay đầu hàm
         if (!id) return;
         try {
             const values = await approveForm.validateFields();
+            console.log("Payload gửi lên:", { id, dotQuyHoachId: values.dotQuyHoachId });
             setSubmitting(true);
             await approvePhieuDeXuatNhanSu(id, values.dotQuyHoachId);
             message.success("Đã duyệt phiếu và thêm nhân sự vào đợt quy hoạch");
