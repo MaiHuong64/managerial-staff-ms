@@ -3,6 +3,8 @@ import axiosClient from "../utils/AxiosClient";
 export const getDotQuyHoachList = () =>
     axiosClient.get("/quy-hoach");
 
+export const getRoot = () =>
+    axiosClient.get("/quy-hoach/root");
 export const getDotQuyHoachDetailById = (id: number) =>
     axiosClient.get(`/quy-hoach/${id}`);
 

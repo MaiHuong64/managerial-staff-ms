@@ -4,7 +4,7 @@ import { create, getAll, submitVoteBoNhiem, getById, getCandidates, addCandidate
 
 const router = Router();
 
-// router.use(verifyToken);
+router.use(verifyToken);
 router.get('/', getAll)
 router.post('/', create)
 router.post('/submit', submitVoteBoNhiem)

@@ -9,6 +9,22 @@ export const validateVoteInput = (data: KetQuaHoiNghiQH) => {
         throw new Error("Số người có mặt không vượt quá số người triệu tập ")
 }
 
+export const processStep1_170 = async (client: any, data: KetQuaHoiNghiQH) => {
+    for(const uv of data.ketQuaUngVien) {
+        if(uv.soPhieuDongY + uv.soPhieuKhongDongY != data.soPhieuHopLe)
+            throw new Error (`Ứng viên ${uv.chiTietQHId}: tổng phiếu không khớp`);
+        const tiLe = data.soNguoiCoMat > 0 ? uv.soPhieuDongY / data.soNguoiTrieuTap : 0
+        const ketQua = tiLe > 0.5 ? KetQuaPhieuBauQH.KhongDat : KetQuaPhieuBauQH.Dat;
+
+        insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap, 
+            data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe, 
+            data.soPhieuHopLe, uv.soPhieuDongY, uv.soPhieuKhongDongY, ketQua])
+
+        const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH.HoiNghiCBChuChot : 0
+        await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+    }
+}
+
 export const processStep2 = async (client: any, data: KetQuaHoiNghiQH) => {
     for(const uv of data.ketQuaUngVien){
         await upsertKetQuaBuoc2(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap, data.soNguoiCoMat])
@@ -70,12 +86,17 @@ export const submitVoteResult = async (data: KetQuaHoiNghiQH) => {
         const current = await getBuocHienTaiByDot(client, data.dotQHId);
         if (!current?.buoc_hien_tai)
             throw new Error("Đợt quy hoạch không có ứng viên đang xử lý");
+
         const currentStep = Number(current.buoc_hien_tai);
+        const loaiQuyHoach = Number(current.loai_quy_hoach);
 
         const ungVien = await getUngVienByDotAndBuoc(client, data.dotQHId, currentStep);
         if (data.ketQuaUngVien.length !== ungVien.length)
             throw new Error(`Số ứng viên không khớp: gửi ${data.ketQuaUngVien.length}, DB có ${ungVien.length}`);
         switch (currentStep) {
+            case BuocHoiNghiQH.RaSoatDuaRa:
+                if (loaiQuyHoach !== 2) throw new Error("Bước không hợp lệ");
+                await processStep1_170(client, data); break;
             case BuocHoiNghiQH.HoiNghiLanhDao:
                 await processStep2(client, data); break;
             case BuocHoiNghiQH.HoiNghiCBChuChot:
