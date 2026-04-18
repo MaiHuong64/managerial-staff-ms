@@ -1,6 +1,6 @@
 import pool from "../../config/db";
-import { CreatePhieuDeXuatDTO, UpdateTrangThaiPhieu } from "./phieuDeXuat.dto";
-import { getAllPhieuDeXuat, getCode, getPhieuDeXuatById, insertChiTietPhieu, insertPhieuDeXuat, submitPhieuDeXuat, updateTrangThaiPhieu, insertVaoChiTietQuyHoach } from "./phieuDeXuat.repository";
+import { CreatePhieuDeXuatDTO, UpdateDuDieuKienDTO, UpdateTrangThaiPhieu } from "./phieuDeXuat.dto";
+import { getAllPhieuDeXuat, getCode, getPhieuDeXuatById, insertChiTietPhieu, insertPhieuDeXuat, submitPhieuDeXuat, updateTrangThaiPhieu, insertVaoChiTietQuyHoach, updateDuDieuKien, getPhieuIdByChiTietId, updateTrangThaiPhieuDuDieuKien } from "./phieuDeXuat.repository";
 
 export const createPhieuDeXuat = async (payload: CreatePhieuDeXuatDTO, user: any) => {
     const client = await pool.connect();
@@ -58,6 +58,30 @@ export const submitPDX = async (id: number, user: any) => {
         client.release();
     }
 }
+
+// Duyệt các ứng viên trong phiếu đề xuất chủ
+export const CheckCandidateCondition = async (chiTietId: number, user: any, payload: UpdateDuDieuKienDTO) => {
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+        if (user.vaiTro !== 'PTCCT') {
+            throw new Error("Không có quyền đối soát hồ sơ");
+        }
+        const result = await updateDuDieuKien(client, chiTietId, payload);
+        // const phieuId = await getPhieuIdByChiTietId(client, chiTietId);
+        // if (phieuId) {
+        //     await updateTrangThaiPhieuDuDieuKien(client, phieuId);
+        // }
+        await client.query("COMMIT");
+        return result;
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
 export const approvePDX = async (id: number, user: any, payload: UpdateTrangThaiPhieu) => {
     const client = await pool.connect();
     try {
@@ -84,7 +108,7 @@ export const rejectPDX = async (id: number, user: any, payload: UpdateTrangThaiP
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        if(user.vai_tro !== 'PTCCT')
+        if(user.vaiTro !== 'PTCCT')
             throw new Error("Không có quyền duyệt phiếu");
         const result = await updateTrangThaiPhieu(client, payload.trangThai, id, payload.ghiChu);
         await client.query('COMMIT');

@@ -1,4 +1,5 @@
 export enum BuocHoiNghiQH {
+    RaSoatDuaRa = 1,  
     HoiNghiLanhDao = 2,
     HoiNghiCBChuChot = 3,
     HoiNghiLanhDaoMoRong = 4,
@@ -24,3 +25,4 @@ export interface KetQuaHoiNghiQH {
     soPhieuHopLe: number;
     ketQuaUngVien: PhieuBauQH[]
 }
+

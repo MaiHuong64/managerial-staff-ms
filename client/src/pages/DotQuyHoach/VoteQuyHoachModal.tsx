@@ -3,58 +3,38 @@ import {
   Modal,Form,InputNumber,Table,Tag,Alert,Typography,message, Card,} from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { submitVoteQuyHoach } from '../../api/dotQuyHoach.api';
-
+import type { UngVienQuyHoach, DuLieuKetQuaHoiNghi } from '../../types/QuyHoach';
 const { Text } = Typography;
-
-// --- TYPES ---
-export interface QHCandidate {
-  chi_tiet_qh_id: number;
-  ma_vien_chuc: string;
-  ho_va_ten: string;
-  ten_chuc_danh: string;
-  ten_don_vi: string;
-  buoc_hien_tai: number;
-}
-
-interface CandidateVoteInput {
-  chiTietQHId: number;
-  soPhieuDongY: number;
-  soPhieuKhongDongY: number;
-}
-
-export interface VoteQHPayload {
-  dotQHId: number;
-  buocHoiNghi: number;
-  soNguoiTrieuTap: number;
-  soNguoiCoMat: number;
-  soPhieuPhatRa: number;
-  soPhieuThuVe: number;
-  soPhieuHopLe: number;
-  ketQuaUngVien: CandidateVoteInput[];
-}
 
 interface VoteQuyHoachModalProps {
   visible: boolean;
   onCancel: () => void;
   onSuccess: () => void;
   dotQuyHoachId: number;
-  candidates: QHCandidate[];
+  ungVien: UngVienQuyHoach[];
   currentStep: number;
 }
 
-const STEP_NAMES: Record<number, string> = {
+const STEP_NAMES_QT169: Record<number, string> = {
   2: "HN lãnh đạo lần 1 — Thảo luận",
   3: "HN CB chủ chốt — Lấy phiếu",
   4: "HN lãnh đạo mở rộng — Biểu quyết",
   5: "HN lãnh đạo lần 2 — Biểu quyết chốt",
 };
 
+// const STEP_NAMES_QT170: Record<number, string> = {
+//   1: "Bước 1 — Rà soát đưa ra khỏi quy hoạch",
+//   2: "HN CB chủ chốt — Lấy phiếu bổ sung",
+//   3: "HN lãnh đạo mở rộng — Biểu quyết",
+//   4: "HN lãnh đạo lần 2 — Biểu quyết chốt",
+// };
+
 const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
   visible,
   onCancel,
   onSuccess,
   dotQuyHoachId,
-  candidates,
+  ungVien,
   currentStep,
 }) => {
   const [form] = Form.useForm();
@@ -67,8 +47,8 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
 
   // Chỉ lọc các ứng viên thuộc bước hiện tại
   const activeCandidates = useMemo(() => 
-    candidates.filter(c => c.buoc_hien_tai === currentStep),
-    [candidates, currentStep]
+    ungVien.filter(c => c.buocHienTai === currentStep),
+    [ungVien, currentStep]
   );
 
   // Watch values để tính toán realtime
@@ -82,7 +62,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
       const formValues = await form.validateFields();
       setLoading(true);
 
-      const payload: VoteQHPayload = {
+      const payload: DuLieuKetQuaHoiNghi = {
         dotQHId: dotQuyHoachId,
         buocHoiNghi: currentStep,
         soNguoiTrieuTap: formValues.soNguoiTrieuTap,
@@ -91,9 +71,9 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
         soPhieuThuVe: currentStep === 2 ? 0 : formValues.soPhieuThuVe,
         soPhieuHopLe: currentStep === 2 ? 0 : formValues.soPhieuHopLe,
         ketQuaUngVien: activeCandidates.map(c => ({
-          chiTietQHId: c.chi_tiet_qh_id,
-          soPhieuDongY: currentStep === 2 ? 0 : (formValues[`dongY_${c.chi_tiet_qh_id}`] || 0),
-          soPhieuKhongDongY: currentStep === 2 ? 0 : (formValues[`khongDongY_${c.chi_tiet_qh_id}`] || 0),
+          chiTietQHId: c.chiTietQHId,
+          soPhieuDongY: currentStep === 2 ? 0 : (formValues[`dongY_${c.chiTietQHId}`] || 0),
+          soPhieuKhongDongY: currentStep === 2 ? 0 : (formValues[`khongDongY_${c.chiTietQHId}`] || 0),
         })),
       };
 
@@ -111,13 +91,13 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
   const renderAlert = () => {
     switch (currentStep) {
       case 2:
-        return <Alert message={STEP_NAMES[2]} description="Hội nghị thảo luận — ghi nhận danh sách, chưa bỏ phiếu." type="info" showIcon icon={<InfoCircleOutlined />} className="mb-4" />;
+        return <Alert message={STEP_NAMES_QT169[2]} description="Hội nghị thảo luận — ghi nhận danh sách, chưa bỏ phiếu." type="info" showIcon icon={<InfoCircleOutlined />} className="mb-4" />;
       case 3:
-        return <Alert message={STEP_NAMES[3]} description="Ngưỡng đạt: >= 30% số người CÓ MẶT." type="info" showIcon className="mb-4" />;
+        return <Alert message={STEP_NAMES_QT169[3]} description="Ngưỡng đạt: >= 30% số người CÓ MẶT." type="info" showIcon className="mb-4" />;
       case 4:
-        return <Alert message={STEP_NAMES[4]} description="Ngưỡng đạt: > 50% số người CÓ MẶT." type="info" showIcon className="mb-4" />;
+        return <Alert message={STEP_NAMES_QT169[4]} description="Ngưỡng đạt: > 50% số người CÓ MẶT." type="info" showIcon className="mb-4" />;
       case 5:
-        return <Alert message={STEP_NAMES[5]} description="Ngưỡng đạt: > 50% số người TRIỆU TẬP (không dựa trên số có mặt)." type="warning" showIcon icon={<WarningOutlined />} className="mb-4" />;
+        return <Alert message={STEP_NAMES_QT169[5]} description="Ngưỡng đạt: > 50% số người TRIỆU TẬP (không dựa trên số có mặt)." type="warning" showIcon icon={<WarningOutlined />} className="mb-4" />;
       default:
         return null;
     }
@@ -125,20 +105,20 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
 
   const columns = [
     { title: 'STT', dataIndex: 'index', key: 'index', width: 60, render: (_: unknown, __: unknown, index: number) => index + 1 },
-    { title: 'Họ và tên', dataIndex: 'ho_va_ten', key: 'ho_va_ten', render: (text: string, record: QHCandidate) => (
+    { title: 'Họ và tên', dataIndex: 'hoVaTen', key: 'hoVaTen', render: (text: string, record: UngVienQuyHoach) => (
         <div>
           <div className="font-medium text-slate-900">{text}</div>
-          <div className="text-xs text-slate-500">{record.ma_vien_chuc}</div>
+          <div className="text-xs text-slate-500">{record.maVienChuc}</div>
         </div>
       ) 
     },
-    { title: 'Chức danh', dataIndex: 'ten_chuc_danh', key: 'ten_chuc_danh' },
+    { title: 'Chức danh', dataIndex: 'tenChucDanh', key: 'tenChucDanh' },
     {
       title: 'Phiếu Đồng ý',
       key: 'dongY',
       width: 150,
-      render: (_: unknown, record: QHCandidate) => (
-        <Form.Item name={`dongY_${record.chi_tiet_qh_id}`} noStyle rules={[{ required: true, message: '' }]}>
+      render: (_: unknown, record: UngVienQuyHoach) => (
+        <Form.Item name={`dongY_${record.chiTietQHId}`} noStyle rules={[{ required: true, message: '' }]}>
           <InputNumber min={0} max={soPhieuHopLe} className="w-full" placeholder="Số phiếu" />
         </Form.Item>
       ),
@@ -147,8 +127,8 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
       title: 'Không đồng ý',
       key: 'khongDongY',
       width: 150,
-      render: (_: unknown, record: QHCandidate) => (
-        <Form.Item name={`khongDongY_${record.chi_tiet_qh_id}`} noStyle rules={[{ required: true, message: '' }]}>
+      render: (_: unknown, record: UngVienQuyHoach) => (
+        <Form.Item name={`khongDongY_${record.chiTietQHId}`} noStyle rules={[{ required: true, message: '' }]}>
           <InputNumber min={0} max={soPhieuHopLe} className="w-full" placeholder="Số phiếu" />
         </Form.Item>
       ),
@@ -157,9 +137,9 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
       title: 'Kiểm tra',
       key: 'check',
       width: 120,
-      render: (_: unknown, record: QHCandidate) => {
-        const dy = values?.[`dongY_${record.chi_tiet_qh_id}`] || 0;
-        const kdy = values?.[`khongDongY_${record.chi_tiet_qh_id}`] || 0;
+      render: (_: unknown, record: UngVienQuyHoach) => {
+        const dy = values?.[`dongY_${record.chiTietQHId}`] || 0;
+        const kdy = values?.[`khongDongY_${record.chiTietQHId}`] || 0;
         const total = dy + kdy;
         const isMatch = soPhieuHopLe > 0 && total === soPhieuHopLe;
 
@@ -174,8 +154,8 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
       title: 'Tỉ lệ',
       key: 'ratio',
       width: 180,
-      render: (_: unknown, record: QHCandidate) => {
-        const dy = values?.[`dongY_${record.chi_tiet_qh_id}`] || 0;
+      render: (_: unknown, record: UngVienQuyHoach) => {
+        const dy = values?.[`dongY_${record.chiTietQHId}`] || 0;
         let ratio = 0;
         let isPass = false;
 
@@ -203,7 +183,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
 
   return (
     <Modal
-      title={<span className="text-xl font-bold text-slate-800">Cập nhật kết quả: {STEP_NAMES[currentStep]}</span>}
+      title={<span className="text-xl font-bold text-slate-800">Cập nhật kết quả: {STEP_NAMES_QT169[currentStep]}</span>}
       open={visible}
       onCancel={onCancel}
       onOk={handleSubmit}
