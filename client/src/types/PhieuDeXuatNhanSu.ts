@@ -33,7 +33,7 @@ export interface ChucDanhWithVienChuc {
     chucDanh: ChucDanh;
     vienChucList: VienChuc[];
 }
-export interface PhieuDeXuatNhanSuChiTiet extends Omit<PhieuDeXuatNhanSu, 'soNguoiDeXXuat'> {
+export interface PhieuDeXuatNhanSuChiTiet extends Omit<PhieuDeXuatNhanSu, 'soNguoiDeXuat'> {
     nhanSu: ChiTietPhieuDeXuat[];
 }
 

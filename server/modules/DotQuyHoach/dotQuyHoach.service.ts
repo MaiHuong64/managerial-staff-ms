@@ -1,11 +1,17 @@
 import pool from "../../config/db";
 import { AddPlanningBatchDetailDTO, CreatePlanningBatchDTO } from "./dotQuyHoach.dto";
-import { filterCandidates, getAllPlanning, getCandidatesByChucDanhId, getDetail, getPlanningById, insertPlanningBatch, insertPlanningDetail, copyChiTietFromDotGoc } from "./dotQuyHoach.repository";
+import { filterCandidates, getAllPlanning, getCandidatesByChucDanhId, getDetail, getPlanningById, insertPlanningBatch, insertPlanningDetail, copyChiTietFromDotGoc, getPlanningRoot } from "./dotQuyHoach.repository";
 
 export const fetchAllPlanning = async () => {
     const data = await getAllPlanning();
     return data;
 }
+
+export const fetchRoot = async () => {
+    const data = await getPlanningRoot();
+    return data;
+}
+
 export const findPlanningBatchById = async (id: number) => {
     const planning = await getPlanningById(id);
     if (!planning)

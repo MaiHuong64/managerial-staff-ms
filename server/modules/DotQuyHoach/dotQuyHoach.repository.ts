@@ -24,6 +24,15 @@ export const getAllPlanning = async () => {
     )
     return result.rows.map(toCamel);
 }
+export const getPlanningRoot = async () => {
+    const result = await pool.query(
+        `select d.* 
+        from dot_quy_hoach d left join chi_tiet_quy_hoach c on d.id = c.dot_quy_hoach_id
+        where d.loai_quy_hoach = 1
+        group by d.id`
+    )
+    return result.rows.map(toCamel);
+}
 export const getDetail = async (id: number) => {
     const result = await pool.query(
         `SELECT
@@ -60,8 +69,8 @@ export const copyChiTietFromDotGoc = async (client: any, dotRaSoatId: number, do
         `INSERT INTO chi_tiet_quy_hoach
              (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id,
               ngay_vao_qh, loai_nguon, buoc_hien_tai, trang_thai)
-         SELECT $1, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, 2, 6, 1
-         FROM chi_tiet_quy_hoach
+         SELECT $1, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, 2, 1, 1
+         FROM chi_tiet_quy_hoach 
          WHERE dot_quy_hoach_id = $2 AND trang_thai = 1
          ON CONFLICT (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id) DO NOTHING`,
         [dotRaSoatId, dotGocId]

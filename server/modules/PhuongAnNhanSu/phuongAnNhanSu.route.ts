@@ -10,6 +10,7 @@ router.get("/", getAll);
 router.get("/:id", getById);
 router.post('/', create);
 router.patch('/:id/trinh', submit);
+
 router.patch('/:id/duyet', approve);
 router.patch('/:id/tu-choi', reject);
 

@@ -116,12 +116,7 @@ export const PlanningPage: React.FC = () => {
                 title="Quy hoạch cán bộ"
                 description="Quản lý các đợt quy hoạch viên chức"
                 action={
-                    <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        size="large"
-                        onClick={() => setIsModalOpen(true)}
-                    >
+                    <Button type="primary" icon={<PlusOutlined />} size="large" onClick={() => setIsModalOpen(true)} >
                         Tạo đợt quy hoạch
                     </Button>
                 }

@@ -28,7 +28,7 @@ export const getBuocHienTaiByDot = async (client: any, dotQhId: number) => {
     const result = await client.query(
         `SELECT MIN(buoc_hien_tai) AS buoc_hien_tai
          FROM chi_tiet_quy_hoach
-         WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai BETWEEN 2 AND 5`,
+         WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai BETWEEN 1 AND 5 AND ct.buoc_hien_tai != 6`,
         [dotQhId]
     );
     return result.rows[0];

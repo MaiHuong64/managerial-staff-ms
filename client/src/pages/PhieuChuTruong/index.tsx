@@ -52,17 +52,17 @@ export const PhieuChuTruongPage: React.FC = () => {
     };
 
     const status = useMemo(() => ({
-        choDuyet: phieuChuTruong.filter(item => item.trang_thai === 1).length,
-        daDuyet: phieuChuTruong.filter(item => item.trang_thai === 2).length,
-        tuChoi: phieuChuTruong.filter(item => item.trang_thai === 0).length,
+        choDuyet: phieuChuTruong.filter(item => item.trangThai === 1).length,
+        daDuyet: phieuChuTruong.filter(item => item.trangThai === 2).length,
+        tuChoi: phieuChuTruong.filter(item => item.trangThai === 0).length,
     }), [phieuChuTruong]);
 
     const filteredData = useMemo(() => {
         if (!searchText) return phieuChuTruong;
         const lower = searchText.toLowerCase();
         return phieuChuTruong.filter(item =>
-            item.so_to_trinh_chu_truong?.toLowerCase().includes(lower) ||
-            item.ten_chuc_danh?.toLowerCase().includes(lower)
+            item.soToTrinhChuTruong?.toLowerCase().includes(lower) ||
+            item.tenChucDanh?.toLowerCase().includes(lower)
         );
     }, [phieuChuTruong, searchText]);
 
@@ -73,15 +73,15 @@ export const PhieuChuTruongPage: React.FC = () => {
     };
 
     const columns = [
-        { title: "Số tờ trình", dataIndex: 'so_to_trinh_chu_truong' },
-        { title: "Chức danh đề xuất", dataIndex: 'ten_chuc_danh' },
-        { title: "SL", dataIndex: 'so_luong_de_xuat' },
+        { title: "Số tờ trình", dataIndex: 'soToTrinhChuTruong' },
+        { title: "Chức danh đề xuất", dataIndex: 'tenChucDanh' },
+        { title: "SL", dataIndex: 'soLuongDeXuat' },
         {
-            title: 'Ngày lập', dataIndex: 'ngay_lap',
+            title: 'Ngày lập', dataIndex: 'ngayLap',
             render: (date: string) => dayjs(date).format("DD/MM/YYYY")
         },
         {
-            title: 'Trạng thái', dataIndex: 'trang_thai',
+            title: 'Trạng thái', dataIndex: 'trangThai',
             render: (tt: number) => trangThaiTag(tt)
         },
         {
@@ -89,7 +89,7 @@ export const PhieuChuTruongPage: React.FC = () => {
                    render: (_: unknown, record: PhieuChuTruong) => (
                        <div className="flex gap-2">
                            {/* <Button size="small" onClick={() => setSelectedId(record.id)}>Xem</Button> */}
-                           {user?.vai_tro === 'BGH' && record.trang_thai === 1 && (
+                           {user?.vaiTro === 'BGH' && record.trangThai === 1 && (
                                <>
                                     <Popconfirm title="Phê duyệt phiếu này?" onConfirm={() => handleApprove(record.id)} okText="Duyệt" cancelText="Hủy">
                                        <Button type="primary" size="small">Duyệt</Button>
@@ -137,7 +137,7 @@ export const PhieuChuTruongPage: React.FC = () => {
                         placeholder="🔍 Tìm theo số tờ trình, chức danh..."
                         onChange={(e) => setSearchText(e.target.value)}
                     />
-                    {user?.vai_tro === 'VCQL' && (
+                    {user?.vaiTro === 'VCQL' && (
                         <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
                             Lập Tờ trình đề xuất
                         </Button>

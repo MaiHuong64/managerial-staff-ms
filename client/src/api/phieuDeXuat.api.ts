@@ -12,6 +12,9 @@ export const createPhieuDeXuatNhanSu = (data: unknown) =>
 export const guiPhieuDeXuatNhanSu = (id: number) =>
     axiosClient.patch(`/phieu-de-xuat/${id}/submit`);
 
+export const auditPhieuDeXuatCandidate = (chiTietId: number, body: { duDieuKien: 1 | 2; lyDo?: string }) =>
+    axiosClient.patch(`/phieu-de-xuat/chi-tiet/${chiTietId}/audit`, body);
+
 export const approvePhieuDeXuatNhanSu = (id: number, dotQuyHoachId: number) =>
     axiosClient.post(`/phieu-de-xuat/${id}/approve`, { trangThai: 1, dotQuyHoachId });
 
