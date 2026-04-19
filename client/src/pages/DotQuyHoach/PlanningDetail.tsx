@@ -3,11 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, Table, Tag, Spin, Steps } from "antd";
 import type { ChiTietQuyHoach, DotQuyHoach } from "../../types/QuyHoach";
 import type { ColumnsType } from "antd/es/table";
-import {
-    ArrowLeftOutlined, TeamOutlined,
-    CheckCircleOutlined, UserOutlined, HomeOutlined,
-    FormOutlined,
-} from "@ant-design/icons";
+import { ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined, UserOutlined, HomeOutlined, FormOutlined, SyncOutlined} from "@ant-design/icons";
 import VoteQuyHoachModal from "./VoteQuyHoachModal";
 import { getDotQuyHoachDetailById } from "../../api/dotQuyHoach.api";
 import { StatCard } from "../../components/common/StatCard";
@@ -53,8 +49,9 @@ export const PlanningDetailPage: React.FC = () => {
 
     const stats = useMemo(() => ({
         total: staffList.length,
-        active: staffList.filter(s => s.trangThai === 1).length,
-        exited: staffList.filter(s => s.trangThai !== 1).length,
+        // active: staffList.filter(s => s.buocHienTai > 0 && s.buocHienTai !== 6).length,
+        done: staffList.filter(s => s.buocHienTai === 6).length,
+        exited: staffList.filter(s => s.buocHienTai === 0).length,
     }), [staffList]);
 
     const columns: ColumnsType<ChiTietQuyHoach> = [
@@ -187,7 +184,8 @@ export const PlanningDetailPage: React.FC = () => {
                 {/* ── Stat cards ──────────────────────────── */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <StatCard title="Tổng ứng viên" value={stats.total} icon={<TeamOutlined />} color="indigo" />
-                    <StatCard title="Đang trong quy trình" value={stats.active} icon={<CheckCircleOutlined />} color="emerald" />
+                    {/* <StatCard title="Đang trong quy trình" value={stats.active} icon={<SyncOutlined />} color="sky" /> */}
+                    <StatCard title="Hoàn thành" value={stats.done} icon={<CheckCircleOutlined />} color="emerald" />
                     <StatCard title="Không đạt / Đã ra" value={stats.exited} icon={<UserOutlined />} color="amber" />
                 </div>
 
@@ -202,7 +200,7 @@ export const PlanningDetailPage: React.FC = () => {
                     <Table
                         dataSource={staffList}
                         columns={columns}
-                        rowKey="chi_tiet_id"
+                        rowKey="chiTietId"
                         pagination={{
                             pageSize: 10,
                             showTotal: (total, range) => `${range[0]}–${range[1]} / ${total} viên chức`,
@@ -217,6 +215,7 @@ export const PlanningDetailPage: React.FC = () => {
                     onCancel={() => setVoteModalOpen(false)}
                     onSuccess={() => { setVoteModalOpen(false); fetchData(); }}
                     dotQuyHoachId={Number(id)}
+                    loaiQuyHoach={planning?.loaiQuyHoach}
                     ungVien={staffList.map(s => ({
                         chiTietQHId: s.chiTietId,
                         maVienChuc: s.maVienChuc,
@@ -226,6 +225,7 @@ export const PlanningDetailPage: React.FC = () => {
                         buocHienTai: s.buocHienTai,
                     }))}
                     currentStep={currentStep}
+                    
                 />
             )}
         </div>

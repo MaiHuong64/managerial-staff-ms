@@ -1,11 +1,12 @@
 import { Button, Card, Select } from "antd"
 import { TeamOutlined, PlusOutlined } from "@ant-design/icons";
-import type { ChucDanhItem, PCT } from "../../../types/BoNhiem";
+import type { ChucDanhDeXuat } from "../../../types/BoNhiem";
+import type { PhieuChuTruong } from "../../../types/PhieuChuTruong";
 
     
 interface Props{
-    pctList: PCT[];
-    chucDanhList: ChucDanhItem[];
+    pctList:  PhieuChuTruong[];
+    chucDanhList: ChucDanhDeXuat[];
     selectedPctId: number | null;
     onSelect: (id: number) => void;
     addingPct: boolean;
@@ -23,8 +24,8 @@ export const PctSelect: React.FC<Props> = ({ pctList, chucDanhList, selectedPctI
                 value={selectedPctId}
                 onChange={(val) => onSelect(val)}
                 options={pctList
-                .filter(p => !chucDanhList.find(cd => cd.pct_id === p.id))
-                .map(p => ({ value: p.id, label: `${p.ten_chuc_danh} — ${p.ten_don_vi}` }))}
+                .filter(p => !chucDanhList.find(cd => cd.phieuChuTruongId === p.id))
+                .map(p => ({ value: p.id, label: `${p.tenChucDanh} — ${p.tenDonVi}` }))}
                 />
             <Button
                 type="dashed"

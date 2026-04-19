@@ -1,9 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { DotQuyHoach } from "../../types/QuyHoach";
-import {
-    PlusOutlined, SearchOutlined,
-    FundProjectionScreenOutlined, CheckCircleOutlined, SyncOutlined,
-} from "@ant-design/icons";
+import {PlusOutlined, SearchOutlined, FundProjectionScreenOutlined, CheckCircleOutlined, SyncOutlined } from "@ant-design/icons";
 import { Button, Input, Table, Tag } from "antd";
 import { useNavigate } from "react-router-dom";
 import { PlanningModal } from "./PlanningModal";
@@ -68,11 +65,9 @@ export const PlanningPage: React.FC = () => {
             key: "loaiQuyHoach",
             width: 140,
             render: (val: number) =>
-                val === 1
-                    ? <Tag color="purple" className="rounded-full px-3 text-xs border-0">Đầu nhiệm kỳ</Tag>
-                    : <Tag color="cyan"   className="rounded-full px-3 text-xs border-0">Rà soát</Tag>,
+                val === 1 ? <Tag color="purple" className="rounded-full px-3 text-xs border-0">Đầu nhiệm kỳ</Tag> : <Tag color="cyan"   className="rounded-full px-3 text-xs border-0">Rà soát</Tag>,
         },
-        {
+        { 
             title: "Nhiệm kỳ",
             dataIndex: "nhiemKy",
             width: 120,

@@ -1,5 +1,5 @@
 import { BuocHoiNghiQH, KetQuaHoiNghiQH, KetQuaPhieuBauQH} from "./dotQuyHoach.validate.type";
-import { getBuocHienTaiByDot, getUngVienByDotAndBuoc, insertKetQuaQuyHoach, updateBuocHienTaiById, upsertKetQuaBuoc2, } from "./dotQuyHoach.validate.repository";
+import { checkBatchDone, getBuocHienTaiByDot, getUngVienByDotAndBuoc, insertKetQuaQuyHoach, updateBuocHienTaiById, updateStatusBatch, upsertKetQuaBuoc2, updateStatusCandidate} from "./dotQuyHoach.validate.repository";
 import pool from "../../config/db";
 
 export const validateVoteInput = (data: KetQuaHoiNghiQH) => {
@@ -45,6 +45,10 @@ export const processStep3 = async (client: any, data: KetQuaHoiNghiQH) => {
         ])
         const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH.HoiNghiLanhDaoMoRong : 0
         await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+        
+        // Cap nhat trang thai cho ung vien
+        if(ketQua === KetQuaPhieuBauQH.KhongDat)
+            await updateStatusCandidate(client, uv.chiTietQHId, 0);
     }
 }
 
@@ -60,6 +64,9 @@ const processStep4  = async (client: any, data: KetQuaHoiNghiQH) => {
         ])
         const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH.HoiNghiLanhDaoLan2 : 0
         await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+
+        if(ketQua === KetQuaPhieuBauQH.KhongDat)
+            await updateStatusCandidate(client, uv.chiTietQHId, 0);
     }
 }
 //Bước 5: HN lãnh đạo lần 2 — phiếu kín, ngưỡng > 50% triệu tập
@@ -74,6 +81,9 @@ const processStep5 = async (client: any, data: KetQuaHoiNghiQH) => {
         ])
         const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH.HoanThanh : 0
         await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+        
+        if(ketQua === KetQuaPhieuBauQH.KhongDat)
+            await updateStatusCandidate(client, uv.chiTietQHId, 0);
     }
 };
 
@@ -84,6 +94,7 @@ export const submitVoteResult = async (data: KetQuaHoiNghiQH) => {
     try {
         await client.query("BEGIN");
         const current = await getBuocHienTaiByDot(client, data.dotQHId);
+        console.log('current:', current); 
         if (!current?.buoc_hien_tai)
             throw new Error("Đợt quy hoạch không có ứng viên đang xử lý");
 
@@ -108,7 +119,16 @@ export const submitVoteResult = async (data: KetQuaHoiNghiQH) => {
             default:
                 throw new Error("Bước không hợp lệ");
         }
+
+        const isDone = await checkBatchDone(client, data.dotQHId);
+        console.log('=== checkBatchDone ===', isDone, typeof isDone);
+        if (isDone) {
+            console.log('=== updating batch status ===');
+            await updateStatusBatch(client, data.dotQHId);
+            console.log('=== batch status updated ===');
+        }
         await client.query("COMMIT");
+        console.log('=== COMMIT done ===');
     } catch (error) {
         await client.query("ROLLBACK");
         throw error;
@@ -117,3 +137,5 @@ export const submitVoteResult = async (data: KetQuaHoiNghiQH) => {
     }
     
 }
+
+
