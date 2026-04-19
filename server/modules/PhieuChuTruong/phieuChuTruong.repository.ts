@@ -44,7 +44,7 @@ export const getDetailForPosition = async (id: number) => {
     return result.rows;
 }
 export const insertPhieuChuTruong = async (client: any, payload: CreatePhieuChuTruongDTO, user: any, maPhieu: string) => {
-    const {ho_va_ten, don_vi_id} = user
+    const {hoVaTen, donViId} = user
     const result = await client.query(
         `INSERT INTO phieu_chu_truong
          (ma_phieu, so_to_trinh_chu_truong, tieu_de, ly_do_de_xuat,
@@ -54,7 +54,7 @@ export const insertPhieuChuTruong = async (client: any, payload: CreatePhieuChuT
         [maPhieu, payload.soToTrinhChuTruong, payload.tieuDe,
          payload.lyDoDeXuat, payload.soLuongDeXuat, payload.nguonNhanSu,
          payload.dotQuyHoachId ?? null, payload.chucDanhId,
-         don_vi_id, ho_va_ten]
+         donViId, hoVaTen]
     )
     return result.rows[0];
 } 

@@ -18,9 +18,9 @@ interface CreateBatchModalProps {
 }
 
 interface FormValues {
-    ten_dot_bo_nhiem: string;
-    ngay_bat_dau: dayjs.Dayjs;
-    ngay_ket_thuc?: dayjs.Dayjs;
+    tenDotBoNhiem: string;
+    ngayBatDau: dayjs.Dayjs;
+    ngayKetThuc?: dayjs.Dayjs;
 }
 
 export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onCancel, onSuccess }) => {
@@ -106,10 +106,10 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
         setLoading(true);
         try {
             const res = await createDotBoNhiem({
-                tenDotBoNhiem: values.ten_dot_bo_nhiem,
-                nguoiLap: user?.ho_va_ten,
-                ngayBatDau: values.ngay_bat_dau?.format("YYYY-MM-DD") ?? null,
-                ngayKetThuc: values.ngay_ket_thuc?.format("YYYY-MM-DD") ?? null,
+                tenDotBoNhiem: values.tenDotBoNhiem,
+                nguoiLap: user?.hoVaTen,
+                ngayBatDau: values.ngayBatDau?.format("YYYY-MM-DD") ?? null,
+                ngayKetThuc: values.ngayKetThuc?.format("YYYY-MM-DD") ?? null,
                 phieuChuTruong: chucDanhList.map(cd => cd.pctId),
             });
             if (res.data.success) {

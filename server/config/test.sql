@@ -151,7 +151,7 @@
         CONSTRAINT fk_hsqh_ctqh FOREIGN KEY (chi_tiet_qh_id) REFERENCES chi_tiet_quy_hoach(id)
     );
 
-    -- Danh mục tài liệu trong hồ sơ
+    -- Danh mục tài liệu trong hồ sơ    
     CREATE TABLE chi_tiet_ho_so_quy_hoach (
         id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         ten_tai_lieu VARCHAR(255) NOT NULL,
