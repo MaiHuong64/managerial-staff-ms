@@ -23,12 +23,13 @@ export const upsertKetQuaBuoc2 = async (client: any, params: any[]) => {
     )
 }
 
-// Lấy bước hiện tại của đợt (MIN của các ứng viên đang active)
+// Lấy bước hiện tại của đợt (MIN của các ứng viên đang hoạt động)
 export const getBuocHienTaiByDot = async (client: any, dotQhId: number) => {
     const result = await client.query(
-        `SELECT MIN(buoc_hien_tai) AS buoc_hien_tai
-         FROM chi_tiet_quy_hoach
-         WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai BETWEEN 1 AND 5 AND ct.buoc_hien_tai != 6`,
+        `SELECT MIN(buoc_hien_tai) AS buoc_hien_tai, d.loai_quy_hoach 
+         FROM chi_tiet_quy_hoach ct JOIN dot_quy_hoach d ON ct.dot_quy_hoach_id = d.id
+         WHERE ct.dot_quy_hoach_id = $1 AND ct.buoc_hien_tai BETWEEN 1 AND 5 AND ct.buoc_hien_tai != 6
+         GROUP BY  d.loai_quy_hoach `,
         [dotQhId]
     );
     return result.rows[0];
@@ -50,5 +51,34 @@ export const updateBuocHienTaiById = async (client: any, buoc: number, chiTietQh
     await client.query(
         `UPDATE chi_tiet_quy_hoach SET buoc_hien_tai = $1 WHERE id = $2`,
         [buoc, chiTietQhId]
+    )
+}
+//Kiểm tra tất cả các ứng viên đã vote xong chưa
+export const checkBatchDone = async (client: any, dotQuyHoachId: number ) => {
+    const result = await client.query (
+        `SELECT COUNT(*) AS con_active
+         FROM chi_tiet_quy_hoach
+         WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai > 0 AND buoc_hien_tai != 6`,
+        [dotQuyHoachId]
+    )
+    console.log('=== all candidates at checkBatchDone time ===', result.rows);
+    
+    const count = await client.query(
+        `SELECT COUNT(*) AS con_active FROM chi_tiet_quy_hoach
+         WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai > 0 AND buoc_hien_tai != 6`,
+        [dotQuyHoachId]
+    );
+    console.log('=== con_active ===', count.rows[0].con_active);
+    return Number(count.rows[0].con_active) === 0;
+}
+export const updateStatusBatch = async (client: any, dotQuyHoachId: number) => {
+    await client.query(
+        `UPDATE dot_quy_hoach SET trang_thai = 1 WHERE id = $1`, [dotQuyHoachId]
+    )
+}
+
+export const updateStatusCandidate = async (client: any, chiTietQhId: number, trangThai: number) => {
+    await client.query(
+        `UPDATE chi_tiet_quy_hoach SET trang_thai = $1 WHERE id = $2`,[trangThai, chiTietQhId]
     )
 }
