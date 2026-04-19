@@ -13,6 +13,7 @@ interface VoteQuyHoachModalProps {
   dotQuyHoachId: number;
   ungVien: UngVienQuyHoach[];
   currentStep: number;
+  loaiQuyHoach?: number;
 }
 
 const STEP_NAMES_QT169: Record<number, string> = {
@@ -22,21 +23,14 @@ const STEP_NAMES_QT169: Record<number, string> = {
   5: "HN lãnh đạo lần 2 — Biểu quyết chốt",
 };
 
-// const STEP_NAMES_QT170: Record<number, string> = {
-//   1: "Bước 1 — Rà soát đưa ra khỏi quy hoạch",
-//   2: "HN CB chủ chốt — Lấy phiếu bổ sung",
-//   3: "HN lãnh đạo mở rộng — Biểu quyết",
-//   4: "HN lãnh đạo lần 2 — Biểu quyết chốt",
-// };
+const STEP_NAMES_QT170: Record<number, string> = {
+  1: "Bước 1 — Rà soát đưa ra khỏi quy hoạch",
+  2: "HN CB chủ chốt — Lấy phiếu bổ sung",
+  3: "HN lãnh đạo mở rộng — Biểu quyết",
+  4: "HN lãnh đạo lần 2 — Biểu quyết chốt",
+};
 
-const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
-  visible,
-  onCancel,
-  onSuccess,
-  dotQuyHoachId,
-  ungVien,
-  currentStep,
-}) => {
+const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel, onSuccess, dotQuyHoachId, ungVien, currentStep, loaiQuyHoach}) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
 
@@ -81,7 +75,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
       message.success("Cập nhật kết quả hội nghị thành công");
       onSuccess();
     } catch (error: any) {
-      if (error?.errorFields) return; // Ant Design form validation error, bỏ qua
+      if (error?.errorFields) return;
       message.error(error.response?.data?.message || "Có lỗi xảy ra khi gửi dữ liệu");
     } finally {
       setLoading(false);
@@ -89,8 +83,22 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
   };
 
   const renderAlert = () => {
+    if(loaiQuyHoach === 2){
+      switch (currentStep) {
+        case 1: 
+          return <Alert message={STEP_NAMES_QT170[1]} description="Rà soát nhân sự không đủ tiêu chuẩn. Ngưỡng đưa ra: > 50% số người TRIỆU TẬP đồng ý." type='warning' showIcon className="mb-4" />;
+        case 2:
+          return <Alert message={STEP_NAMES_QT170[2]} description="Ngưỡng đạt: >= 30% số người CÓ MẶT." type="info" showIcon className="mb-4" />;
+        case 3:
+          return <Alert message={STEP_NAMES_QT170[3]} description="Ngưỡng đạt: > 50% số người CÓ MẶT." type="info" showIcon className="mb-4" />;
+        case 4:
+          return <Alert message={STEP_NAMES_QT170[4]} description="Ngưỡng đạt: > 50% số người TRIỆU TẬP (không dựa trên số có mặt)." type="warning" showIcon icon={<WarningOutlined />} className="mb-4" />;
+        default:
+          return null;
+    }
+    }
     switch (currentStep) {
-      case 2:
+      case 2: 
         return <Alert message={STEP_NAMES_QT169[2]} description="Hội nghị thảo luận — ghi nhận danh sách, chưa bỏ phiếu." type="info" showIcon icon={<InfoCircleOutlined />} className="mb-4" />;
       case 3:
         return <Alert message={STEP_NAMES_QT169[3]} description="Ngưỡng đạt: >= 30% số người CÓ MẶT." type="info" showIcon className="mb-4" />;
@@ -168,6 +176,9 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
         } else if (currentStep === 5 && soNguoiTrieuTap > 0) {
           ratio = (dy / soNguoiTrieuTap) * 100;
           isPass = ratio > 50;
+        }else if (currentStep === 2 && loaiQuyHoach === 2 && soNguoiTrieuTap > 0){
+          ratio = (dy / soNguoiTrieuTap) * 100;
+          isPass = ratio > 50;
         }
 
         return (
@@ -183,7 +194,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({
 
   return (
     <Modal
-      title={<span className="text-xl font-bold text-slate-800">Cập nhật kết quả: {STEP_NAMES_QT169[currentStep]}</span>}
+      title={<span className="text-xl font-bold text-slate-800">Cập nhật kết quả: {loaiQuyHoach === 2 ? STEP_NAMES_QT170[currentStep] : STEP_NAMES_QT169[currentStep]}</span>}
       open={visible}
       onCancel={onCancel}
       onOk={handleSubmit}

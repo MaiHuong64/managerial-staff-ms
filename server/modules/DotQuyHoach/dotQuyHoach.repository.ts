@@ -14,7 +14,7 @@ export const getPlanningById = async (id: number) => {
     const result = await pool.query(
         `SELECT * FROM dot_quy_hoach WHERE id = $1`, [id]
     );
-    return result.rows[0] ?? null;
+    return mapToCamel(result.rows[0]);
 }
 export const getAllPlanning = async () => {
     const result = await pool.query(
@@ -71,7 +71,7 @@ export const copyChiTietFromDotGoc = async (client: any, dotRaSoatId: number, do
               ngay_vao_qh, loai_nguon, buoc_hien_tai, trang_thai)
          SELECT $1, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, 2, 1, 1
          FROM chi_tiet_quy_hoach 
-         WHERE dot_quy_hoach_id = $2 AND trang_thai = 1
+         WHERE dot_quy_hoach_id = $2 AND trang_thai = 1 AND chi_tiet_quy_hoach.buoc_hien_tai = 6 
          ON CONFLICT (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id) DO NOTHING`,
         [dotRaSoatId, dotGocId]
     );

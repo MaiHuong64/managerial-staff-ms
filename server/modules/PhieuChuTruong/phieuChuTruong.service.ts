@@ -30,9 +30,9 @@ export const approvePCT = async (id: number, user: any) =>{
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        if(user.vai_tro !== "BGH")
+        if(user.vaiTro !== "BGH")
             throw new Error("Không có quyền duyệt phiếu");
-        const result = await approvePhieuChuTruong(client, id, user.ho_va_ten);
+        const result = await approvePhieuChuTruong(client, id, user.hoVaTen);
         await client.query("COMMIT");
         return result;
     } catch (error) {
@@ -48,7 +48,7 @@ export const rejectPCT = async (id: number, user: any, lyDoTuChoi: string) =>{
         await client.query("BEGIN");
         if(user.vai_tro !== "BGH")
             throw new Error("Không có quyền duyệt phiếu");
-        const result = await rejectPhieuChuTruong(client, id, user.ho_va_ten, lyDoTuChoi);
+        const result = await rejectPhieuChuTruong(client, id, user.hoVaTen, lyDoTuChoi);
         await client.query("COMMIT");
         return result;
     } catch (error) {
