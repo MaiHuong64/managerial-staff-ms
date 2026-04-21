@@ -4,7 +4,7 @@ import { addCandidates, create, filterCandidatesHandler, getAll, getById, getCan
 
 const router = Router()
 
-router.use(verifyToken);
+// router.use(verifyToken);
 router.get("/candidates/:chucDanhId", getCandidatesHandler);
 router.get("/filter", filterCandidatesHandler);
 router.get("/root", getRoot);

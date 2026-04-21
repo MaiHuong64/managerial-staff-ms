@@ -192,7 +192,8 @@
         ngay_ket_thuc DATE,
         ngay_phe_duyet DATE,
         so_quyet_dinh VARCHAR(50),
-        nguoi_lap VARCHAR(50)
+        nguoi_lap VARCHAR(50),
+        trang_thai SMALLINT DEFAULT 1; --1: Đang soạn thảo (chưa bắt đầu vote), 2: Đang bỏ phiếu (bước 2-5), 6: Hoàn thành, 0: Dừng
     );
 
     CREATE TABLE chi_tiet_dot_bo_nhiem (
@@ -214,6 +215,7 @@
         vien_chuc_id INT NOT NULL,
         chi_tiet_qh_id INT,
         buoc_hoi_nghi SMALLINT DEFAULT 2, -- Chức danh đang vote ở mức nào
+        trang_thai SMALLINT DEFAULT 1, --1: Đang xử lý (đang trong vòng vote), 2: Không đạt (bị loại sau vote), 3: Đạt (được chọn bổ nhiệm)
         CONSTRAINT fk_ctbn_ctdbn FOREIGN KEY (chi_tiet_dot_bo_nhiem_id) REFERENCES chi_tiet_dot_bo_nhiem(id),
         CONSTRAINT fk_ctbn_vc FOREIGN KEY (vien_chuc_id) REFERENCES vien_chuc(id),
         CONSTRAINT fk_ctbn_ctqh FOREIGN KEY (chi_tiet_qh_id) REFERENCES chi_tiet_quy_hoach(id),

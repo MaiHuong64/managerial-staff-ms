@@ -1,6 +1,6 @@
 import pool from "../../config/db";
 import { CreateAppointmentBatchDTO, UngVienQuyHoach } from "./dotBoNhiem.dto";
-import {getAllAppointment, getAppointmentById , getCandidatesFromQH, insertAppointmentBatch, insertAppointmentDetail, insertCandidateFromQH} from "./dotBoNhiem.repository"
+import {getAllAppointment, getAppointmentById, getCandidatesByDotId, getCandidatesFromQH, insertAppointmentBatch, insertAppointmentDetail, insertCandidateFromQH} from "./dotBoNhiem.repository"
 
 export const fetchAllAppointmentBatch = async () => {
     const data = await getAllAppointment();
@@ -55,3 +55,20 @@ export const createAppointmentBatch = async (payload: CreateAppointmentBatchDTO)
         client.release();
     }
 }
+export const fetchCandidates = async (chiTietDotId: number) => {
+    return await getCandidatesByDotId(chiTietDotId);
+}
+// export const startVotingProcess = async (id: number) => {
+//     const client = await pool.connect();
+//     try {
+//         await client.query('BEGIN');
+//         await startVotingById(client, id);
+//         await client.query("COMMIT");
+//     } catch (error) {
+//         console.error("Error starting voting process:", error);
+//         await client.query('ROLLBACK');
+//         throw error;   
+//     } finally {
+//         client.release();
+//     }
+// }
