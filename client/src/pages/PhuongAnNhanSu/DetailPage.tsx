@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {  Card, Col, Descriptions, Row, Statistic, Table, Tag,  Button, Input, Popconfirm, Spin, message } from 'antd';
 import {
@@ -9,22 +9,10 @@ import {
 import axiosClient from '../../utils/AxiosClient';
 import { useAuth } from '../../hook/useAuth';
 import dayjs from 'dayjs';
-import { approvePhuongAn, getPhuongAnById, rejectPhuongAn } from '../../api/phuongAnNhanSu.api';
+import { approvePhuongAn, getPhuongAnById, rejectPhuongAn, submitPhuongAn } from '../../api/phuongAnNhanSu.api';
+import { createHoSo, getHoSoByPhuongAn } from '../../api/hoSoBoNhiem.api';
+import type { ChiTietPA, fileHoSo, PhuongAnNhanSu } from '../../types/PhuongAnNhanSu';
 
-const getHoSoByPhuongAn = async (paId: string | number) => {
-    try {
-        const res = await axiosClient.get(`/ho-so-bo-nhiem/phuong-an/${paId}`);
-        return res.data;
-    } catch (error) {
-        return { success: false, data: [] };
-    }
-};
-
-const createHoSo = async (payload: unknown) => {
-    return await axiosClient.post(`/ho-so-bo-nhiem`, payload);
-};
-
-// 0=Hủy, 1=Soạn thảo, 2=Chờ duyệt, 3=Đã duyệt
 const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
     0: { label: 'Đã hủy', color: 'error' },
     1: { label: 'Đang soạn thảo', color: 'default' },
@@ -44,7 +32,7 @@ const PersonnelPlanDetailPage = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<PhuongAnNhanSu | null>(null);
     const [loading, setLoading] = useState(true);
     const [yKien, setYKien] = useState('');
     const [approving, setApproving] = useState(false);
@@ -59,14 +47,14 @@ const PersonnelPlanDetailPage = () => {
             setLoading(true);
             const res = await getPhuongAnById(Number(id));
             setData(res.data.data);
-            setYKien(res.data.data.y_kien_bgh ?? '');
+            setYKien(res.data.data.yKienBGH?? '');
 
             // Fetch danh sách hồ sơ liên quan nếu phương án đã được phê duyệt
-            if (res.data.data.trang_thai === 3) {
-                const resHS = await getHoSoByPhuongAn(id!);
-                if (resHS.success) {
+            if (res.data.data.trangThai === 3) {
+                const resHS = await getHoSoByPhuongAn(Number(id));
+                if (resHS.data.success) {
                     const newMap = new Map();
-                    resHS.data.forEach((hs: any) => newMap.set(hs.chi_tiet_pa_id, hs));
+                    resHS.data.data.forEach((hs: fileHoSo) => newMap.set(hs.chiTietPaId, hs));
                     setHoSoMap(newMap);
                 }
             }
@@ -82,7 +70,7 @@ const PersonnelPlanDetailPage = () => {
     const handleSubmit = async () => {
         try {
             setSubmitting(true);
-            await axiosClient.patch(`/phuong-an-nhan-su/${id}/trinh`);
+            await submitPhuongAn(Number(id));
             message.success('Đã trình BGH thành công');
             fetchData();
         } catch (err: any) {
@@ -121,16 +109,14 @@ const PersonnelPlanDetailPage = () => {
     const handleCreateHoSo = async (chiTietPAId: number) => {
         try {
             setCreatingHoSoId(chiTietPAId);
-            const res = await createHoSo({ chiTietPAId });
-            if ((res as any).data.success) {
+            console.log('payload:', {chiTietPAId });
+            const res = await createHoSo(chiTietPAId)
+            
+            if (res.data.success) {
                 message.success('Đã tạo hồ sơ bổ nhiệm mới');
-                // Cập nhật lại Map hồ sơ
-                const resHS = await getHoSoByPhuongAn(id!);
-                if (resHS.success) {
-                    const newMap = new Map();
-                    resHS.data.forEach((hs: any) => newMap.set(hs.chi_tiet_pa_id, hs));
-                    setHoSoMap(newMap);
-                }
+                // Lấy ID hồ sơ từ response của server trả về
+                const newHoSoId = res.data.data.id; 
+                navigate(`/ho-so-bo-nhiem/${newHoSoId}`);
             }
         } catch (err: any) {
             message.error(err?.response?.data?.message || 'Lỗi khi lập hồ sơ');
@@ -148,19 +134,19 @@ const PersonnelPlanDetailPage = () => {
         <div className="text-center mt-10 text-red-500">Không tìm thấy phương án!</div>
     );
 
-    const trangThaiInfo = TRANG_THAI_MAP[data.trang_thai] ?? { label: '?', color: 'default' };
-    const canSubmit = user?.vai_tro === 'PTCCT' && data.trang_thai === 1;
-    const canApprove = user?.vai_tro === 'BGH' && data.trang_thai === 2;
-    const boNhiemCount = data.chi_tiet.filter((c: any) => c.loai_phuong_an === 'Bổ nhiệm').length;
-    const boNhiemLaiCount = data.chi_tiet.filter((c: any) => c.loai_phuong_an === 'Bổ nhiệm lại').length;
+    const trangThaiInfo = TRANG_THAI_MAP[data.trangThai] ?? { label: '?', color: 'default' };
+    const canSubmit = user?.vaiTro === 'PTCCT' && data.trangThai === 1;
+    const canApprove = user?.vaiTro === 'BGH' && data.trangThai === 2;
+    const boNhiemCount = data.chiTiet.filter((c: ChiTietPA) => c.loaiPhuongAn === 'Bổ nhiệm').length;
+    const boNhiemLaiCount = data.chiTiet.filter((c: ChiTietPA) => c.loaiPhuongAn === 'Bổ nhiệm lại').length;
 
     const cols = [
         {
-            title: 'Mã VC', dataIndex: 'ma_vien_chuc', key: 'ma_vien_chuc', width: 90,
+            title: 'Mã VC', dataIndex: 'maVienChuc', key: 'maVienChuc', width: 90,
             render: (text: string) => <span className="font-mono text-xs text-slate-500">{text ?? '—'}</span>,
         },
         {
-            title: 'Họ và tên', dataIndex: 'ho_va_ten', key: 'ho_va_ten',
+            title: 'Họ và tên', dataIndex: 'hoVaTen', key: 'hoVaTen',
             render: (text: string) => (
                 <div className="flex items-center gap-2">
                     <UserOutlined className="text-blue-400" />
@@ -169,21 +155,21 @@ const PersonnelPlanDetailPage = () => {
             ),
         },
         {
-            title: 'Chức danh', dataIndex: 'ten_chuc_danh', key: 'ten_chuc_danh',
+            title: 'Chức danh', dataIndex: 'tenChucDanh', key: 'tenChucDanh',
             render: (text: string) => <Tag color="purple" className="border-0 bg-purple-50 text-purple-600 font-medium">{text}</Tag>,
         },
         {
-            title: 'Loại PA', dataIndex: 'loai_phuong_an', key: 'loai_phuong_an', width: 130,
+            title: 'Loại PA', dataIndex: 'loaiPhuongAn', key: 'loaiPhuongAn', width: 130,
             render: (text: string) => (
                 <Tag color={LOAI_PA_COLOR[text] ?? 'default'} className="rounded-full px-3">{text}</Tag>
             ),
         },
         {
-            title: 'Hồ sơ BN', key: 'ho_so_bn', width: 150,
-            render: (_: unknown, record: any) => {
-                if (data.trang_thai !== 3) return <span className="text-gray-300">—</span>;
+            title: 'Hồ sơ BN', key: 'hoSoBn', width: 150,
+            render: (_: unknown, record: ChiTietPA) => {
+                if (data.trangThai !== 3) return <span className="text-gray-300">—</span>;
 
-                const hoSo = hoSoMap.get(record.chi_tiet_pa_id);
+                const hoSo = hoSoMap.get(record.chiTietPaId);
                 if (hoSo) {
                     return (
                         <Button
@@ -197,14 +183,9 @@ const PersonnelPlanDetailPage = () => {
                     );
                 }
                 return (
-                    <Button
-                        type="primary"
-                        size="small"
-                        ghost
-                        icon={<PlusOutlined />}
-                        loading={creatingHoSoId === record.chi_tiet_pa_id}
-                        onClick={() => handleCreateHoSo(record.chi_tiet_pa_id)}
-                    >
+                    <Button type="primary" size="small" ghost icon={<PlusOutlined />}
+                        loading={creatingHoSoId === record.chiTietPaId}
+                        onClick={() => handleCreateHoSo(record.chiTietPaId)}>
                         Lập hồ sơ
                     </Button>
                 );
@@ -236,7 +217,7 @@ const PersonnelPlanDetailPage = () => {
             <Row gutter={16}>
                 <Col span={6}>
                     <Card size="small" bordered={false} className="shadow-sm">
-                        <Statistic title="Tổng nhân sự" value={data.chi_tiet.length}
+                        <Statistic title="Tổng nhân sự" value={data.chiTiet.length}
                             prefix={<TeamOutlined />} valueStyle={{ color: '#1890ff' }} />
                     </Card>
                 </Col>
@@ -267,16 +248,16 @@ const PersonnelPlanDetailPage = () => {
                 </div>
             } className="shadow-sm rounded-xl">
                 <Descriptions bordered column={2} size="small">
-                    <Descriptions.Item label="Mã phương án"><span className="font-mono font-bold text-blue-600">{data.ma_phuong_an}</span></Descriptions.Item>
+                    <Descriptions.Item label="Mã phương án"><span className="font-mono font-bold text-blue-600">{data.maPhuongAn}</span></Descriptions.Item>
                     <Descriptions.Item label="Trạng thái"><Tag color={trangThaiInfo.color}>{trangThaiInfo.label}</Tag></Descriptions.Item>
-                    <Descriptions.Item label="Số tờ trình">{data.so_to_trinh ?? '—'}</Descriptions.Item>
-                    <Descriptions.Item label="Ngày lập tờ trình">{data.ngay_to_trinh ? dayjs(data.ngay_to_trinh).format('DD/MM/YYYY') : '—'}</Descriptions.Item>
-                    <Descriptions.Item label="Ngày lập">{dayjs(data.ngay_lap).format('DD/MM/YYYY')}</Descriptions.Item>
-                    <Descriptions.Item label="Ngày duyệt">{data.ngay_phe_duyet ? dayjs(data.ngay_phe_duyet).format('DD/MM/YYYY') : '—'}</Descriptions.Item>
-                    <Descriptions.Item label="Ghi chú" span={2}>{data.ghi_chu || '—'}</Descriptions.Item>
-                    {data.y_kien_bgh && (
+                    <Descriptions.Item label="Số tờ trình">{data.soToTrinh ?? '—'}</Descriptions.Item>
+                    <Descriptions.Item label="Ngày lập tờ trình">{data.ngayToTrinh ? dayjs(data.ngayToTrinh).format('DD/MM/YYYY') : '—'}</Descriptions.Item>
+                    <Descriptions.Item label="Ngày lập">{dayjs(data.ngayLap).format('DD/MM/YYYY')}</Descriptions.Item>
+                    <Descriptions.Item label="Ngày duyệt">{data.ngayPheDuyet ? dayjs(data.ngayPheDuyet).format('DD/MM/YYYY') : '—'}</Descriptions.Item>
+                    <Descriptions.Item label="Ghi chú" span={2}>{data.ghiChu || '—'}</Descriptions.Item>
+                    {data.yKienBGH && (
                         <Descriptions.Item label="Ý kiến BGH" span={2} labelStyle={{ color: '#1d4ed8', fontWeight: 'bold' }}>
-                            <span className="text-blue-700 font-medium">{data.y_kien_bgh}</span>
+                            <span className="text-blue-700 font-medium">{data.yKienBGH}</span>
                         </Descriptions.Item>
                     )}
                 </Descriptions>
@@ -289,9 +270,9 @@ const PersonnelPlanDetailPage = () => {
                 </div>
             } className="shadow-sm rounded-xl overflow-hidden">
                 <Table
-                    rowKey="chi_tiet_pa_id"
+                    rowKey="chiTietPaId"
                     columns={cols}
-                    dataSource={data.chi_tiet}
+                    dataSource={data.chiTiet}
                     pagination={false}
                     size="middle"
                     bordered

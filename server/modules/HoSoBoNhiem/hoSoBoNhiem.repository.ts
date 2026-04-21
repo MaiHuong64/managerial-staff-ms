@@ -1,5 +1,6 @@
 import pool from "../../config/db";
-import { UploadFileDTO } from "./hoSoBoNhiem.type";
+import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
+import { DinhDangFile, HoSoBoNhiem, UploadFileDTO } from "./hoSoBoNhiem.type";
 
 export const getNextCode = async (client: any) => {
     const result = await client.query(
@@ -9,7 +10,7 @@ export const getNextCode = async (client: any) => {
     return 'HS' + nextId.toString().padStart(3, '0');
 };
 export const getHoSoBoNhiemById = async (client: any, id: number) => {
-    const result = await client.query(
+    const result = await client.query( 
         `SELECT hsbn.id, hsbn.ma_ho_so, hsbn.ngay_lap, hsbn.trang_thai, hsbn.ghi_chu,
         hsbn.chi_tiet_pa_id,
         vc.ho_va_ten, vc.ma_vien_chuc, cd.ten_chuc_danh, dv.ten_don_vi
@@ -24,7 +25,7 @@ export const getHoSoBoNhiemById = async (client: any, id: number) => {
         WHERE hsbn.id = $1`,
         [id]
     );
-    return result.rows[0] ?? null;
+    return mapToCamel<HoSoBoNhiem>(result.rows[0])
 }
 export const getChiTietHoSo = async (hoSoId: number) => {
     const result = await pool.query(
@@ -39,7 +40,7 @@ export const insertHoSoBoNhiem = async (client: any, maHoSo: string, chiTietPA: 
         `INSERT INTO ho_so_bo_nhiem (ma_ho_so, ngay_lap, chi_tiet_pa_id, ghi_chu) VALUES ($1, $2, $3, $4) RETURNING *`,
         [maHoSo, new Date(), chiTietPA, ghiChu]
     );
-    return result.rows[0];
+    return mapToCamel(result.rows[0]);
 }
 
 export const getAllHoSo = async () => {
@@ -59,7 +60,7 @@ export const getAllHoSo = async () => {
         GROUP BY hsbn.id, vc.ho_va_ten, vc.ma_vien_chuc, cd.ten_chuc_danh, dv.ten_don_vi
         ORDER BY hsbn.id DESC
     `)
-    return result.rows;  
+    return mapArrayToCamel(result.rows);  
 }
 export const getHoSoByPhuongAnId = async (id: number) => {
     const result = await pool.query(`
@@ -79,14 +80,14 @@ export const getHoSoByPhuongAnId = async (id: number) => {
         GROUP BY hsbn.id, vc.ho_va_ten, vc.ma_vien_chuc, cd.ten_chuc_danh, dv.ten_don_vi
         ORDER BY hsbn.id DESC
         `, [id]);
-    return result.rows;
+    return mapArrayToCamel(result.rows);
 }
 
 export const insertChiTieHS = async (client: any, hoSoId: string, payload: UploadFileDTO) => {
     const result = await client.query (`
         INSERT INTO chi_tiet_ho_so (ho_so_bn_id, ten_tai_lieu, loai_tai_lieu, file_dinh_kem, ngay_cap_nhat) VALUES($1, $2, $3, $4, $5) RETURNING *
     `, [hoSoId, payload.tenTaiLieu, payload.loaiTaiLieu, payload.fileDinhKem, new Date()])
-    return result.rows[0];
+    return mapToCamel(result.rows[0]);
 }
 export const checkHoSoExistsByChiTietPAId = async (client: any,id: number) => {
     const result = await client.query(`
@@ -97,7 +98,7 @@ export const checkHoSoExistsByChiTietPAId = async (client: any,id: number) => {
 export const deleteChiTietHoSo = async (client: any, taiLieuId: number) => {
     const resutl = await client.query(`
         DELETE FROM chi_tiet_ho_so WHERE id = $1 RETURNING file_dinh_kem`, [taiLieuId])
-        return resutl.rows[0] ?? null;
+        return mapToCamel<DinhDangFile>(resutl.rows[0])
 }
 export const updateTrangThaiHoSo = async (client: any, id: number, trangThai: number) => {
     await client.query(`

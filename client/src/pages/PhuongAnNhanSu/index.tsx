@@ -46,25 +46,25 @@ const PersonnelProposalPage: React.FC = () => {
 
     const cols = [
         {
-            title: 'Mã phương án', dataIndex: 'ma_phuong_an', key: 'ma_phuong_an', width: 130,
+            title: 'Mã phương án', dataIndex: 'maPhuongAn', key: 'maPhuongAn', width: 130,
             render: (text: string) => <span className="font-mono font-semibold">{text}</span>,
         },
         {
-            title: 'Số tờ trình', dataIndex: 'so_to_trinh', key: 'so_to_trinh', width: 160,
+            title: 'Số tờ trình', dataIndex: 'soToTrinh', key: 'soToTrinh', width: 160,
             render: (text: string) => text ?? '—',
         },
         {
-            title: 'Ngày lập', dataIndex: 'ngay_lap', key: 'ngay_lap', width: 120,
+            title: 'Ngày lập', dataIndex: 'ngayLap', key: 'ngayLap', width: 120,
             render: (text: string) => text
                 ? new Date(text).toLocaleDateString('vi-VN')
                 : '—',
         },
         {
-            title: 'Nhân sự', dataIndex: 'so_nhan_su', key: 'so_nhan_su', width: 100,
+            title: 'Nhân sự', dataIndex: 'soNhanSu', key: 'soNhanSu', width: 100,
             render: (n: number) => <Tag color="blue">{n ?? 0} người</Tag>,
         },
         {
-            title: 'Trạng thái', dataIndex: 'trang_thai', key: 'trang_thai', width: 150,
+            title: 'Trạng thái', dataIndex: 'trangThai', key: 'trangThai', width: 150,
             render: (s: number) => {
                 const info = TRANG_THAI_MAP[s] ?? { label: '?', color: 'default' };
                 return <Tag color={info.color}>{info.label}</Tag>;
@@ -80,9 +80,9 @@ const PersonnelProposalPage: React.FC = () => {
         },
     ];
 
-    const draftCount = listPA.filter(p => p.trang_thai === 1).length;
-    const pendingCount = listPA.filter(p => p.trang_thai === 2).length;
-    const approvedCount = listPA.filter(p => p.trang_thai === 3).length;
+    const draftCount = listPA.filter(p => p.trangThai === 1).length;
+    const pendingCount = listPA.filter(p => p.trangThai === 2).length;
+    const approvedCount = listPA.filter(p => p.trangThai === 3).length;
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen space-y-5">
