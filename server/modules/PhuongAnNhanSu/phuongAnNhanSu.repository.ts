@@ -1,5 +1,6 @@
 import pool from "../../config/db";
-import { CreatePhuongAnNhanSuDetailDTO, CreatePhuongAnNhanSuDTO } from "./phuongAnNhanSu.dto";
+import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
+import { CreatePhuongAnNhanSuDetailDTO, CreatePhuongAnNhanSuDTO, PhuongAnNhanSuDTO } from "./phuongAnNhanSu.dto";
 
 export const getAllPANS = async () => {
     const result = await pool.query(
@@ -11,10 +12,10 @@ export const getAllPANS = async () => {
          GROUP BY pa.id
          ORDER BY pa.id DESC`
     );
-    return result.rows;
+    return mapArrayToCamel(result.rows);
 }
 export const getPANSById = async (id: number) => {
-    return await pool.query(
+    const result = await pool.query(
         `SELECT
         ctpa.id AS chi_tiet_pa_id, ctpa.loai_phuong_an, ctpa.ghi_chu, ctpa.chi_tiet_bn_id,
         vc.ho_va_ten, vc.ma_vien_chuc,  
@@ -31,6 +32,7 @@ export const getPANSById = async (id: number) => {
         ORDER BY ctpa.id`,
         [id]
     );   
+    return mapArrayToCamel(result.rows);
 }
 export const getNextBatchCode = async (client: any) => {
     const result = await client.query(
@@ -47,7 +49,7 @@ export const insertPANS = async (client: any, maPhuongAn: string, payload: Creat
         `,
         [maPhuongAn, payload.soToTrinh, payload.ngayTrinh, payload.ngayLap || new Date(), payload.ghiChu || null]
     )
-    return resultPA.rows[0];
+    return mapToCamel<PhuongAnNhanSuDTO>(resultPA.rows[0]);
 }
 export const insertPANSDetail = async (client: any, phuongAnId: number, payload: CreatePhuongAnNhanSuDetailDTO[]) => {
     for (const item of payload){
@@ -61,25 +63,27 @@ export const insertPANSDetail = async (client: any, phuongAnId: number, payload:
 }
 
 export const getPAInfoById = async (id: number) => {
-    return await pool.query(
+    const result =  await pool.query(
         `SELECT id, ma_phuong_an, so_to_trinh, ngay_to_trinh, ngay_lap, trang_thai, y_kien_bgh, ngay_phe_duyet, ghi_chu
          FROM phuong_an_nhan_su WHERE id = $1`,
         [id]
     );
+    return mapToCamel(result.rows[0]);
 }
 
 export const getCandidates = async () => {
-    return await pool.query(
+    const result = await pool.query(
         `SELECT ctbn.id AS chi_tiet_bn_id, vc.ho_va_ten, cd.ten_chuc_danh, dv.ten_don_vi
-         FROM chi_tiet_bo_nhiem ctbn
-         JOIN vien_chuc vc ON vc.id = ctbn.vien_chuc_id
-         JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
-         JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
-         JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
-         JOIN don_vi dv ON dv.id = vc.don_vi_id
-         WHERE ctbn.id NOT IN (SELECT chi_tiet_bn_id FROM chi_tiet_phuong_an)
-         ORDER BY vc.ho_va_ten`
+        FROM chi_tiet_bo_nhiem ctbn
+        JOIN vien_chuc vc ON vc.id = ctbn.vien_chuc_id
+        JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
+        JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
+        JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+        JOIN don_vi dv ON dv.id = vc.don_vi_id
+        WHERE ctbn.id NOT IN (SELECT chi_tiet_bn_id FROM chi_tiet_phuong_an)
+        ORDER BY vc.ho_va_ten`
     );
+    return mapArrayToCamel(result.rows); 
 }
 
 export const updateStatus = async (client: any, chiTietPAId: number, trangThai: number, yKienBGH?: string) => {

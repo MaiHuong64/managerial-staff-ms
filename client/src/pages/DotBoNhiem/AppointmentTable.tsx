@@ -39,7 +39,7 @@ export const  AppoinmentTable: React.FC<Props> = ({ data, loading }) => {
         },
       {
     title: "Trạng thái",
-    dataIndex: "trangThai",  // ← đổi từ buocHienTai
+    dataIndex: "trangThai",
     key: "trangThai",
     width: 220,
     render: (val: number | null) => {
