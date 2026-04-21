@@ -4,10 +4,10 @@ import type { ColumnsType } from 'antd/es/table';
 import axiosClient from '../../utils/AxiosClient'; 
 
 export interface PersonnelData {
-    chi_tiet_bn_id: number;
-    ho_va_ten: string;
-    ten_chuc_danh: string;
-    ten_don_vi: string;
+    chiTietBnId: number;
+    hoVaTen: string;
+    tenChucDanh: string;
+    tenDonVi: string;
 }
 
 interface SelectPersonnelModalProps {
@@ -26,7 +26,6 @@ const SelectCandidateModal: React.FC<SelectPersonnelModalProps> = ({ isOpen, onC
         if (isOpen) {
             fetchDanhSachDat();
         } else {
-            // Xóa rỗng danh sách đã chọn khi đóng popup
             setSelectedIds([]); 
         }
     }, [isOpen]);
@@ -50,44 +49,42 @@ const SelectCandidateModal: React.FC<SelectPersonnelModalProps> = ({ isOpen, onC
     };
 
     const handleConfirm = () => {
-        const selectedData = danhSachDat.filter(ns => selectedIds.includes(ns.chi_tiet_bn_id));
+        const selectedData = danhSachDat.filter(ns => selectedIds.includes(ns.chiTietBnId));
         onConfirm(selectedData); 
     };
     const columns: ColumnsType<PersonnelData> = [
         {
             title: 'Họ và tên',
-            dataIndex: 'ho_va_ten',
-            key: 'ho_va_ten',
+            dataIndex: 'hoVaTen',
+            key: 'hoVaTen',
             render: (text) => <span className="font-medium text-blue-600">{text}</span>,
         },
         {
             title: 'Chức danh',
-            dataIndex: 'ten_chuc_danh',
-            key: 'ten_chuc_danh',
+            dataIndex: 'tenChucDanh',
+            key: 'tenChucDanh',
         },
         {
             title: 'Đơn vị',
-            dataIndex: 'ten_don_vi',
-            key: 'ten_don_vi',
+            dataIndex: 'tenDonVi',
+            key: 'tenDonVi',
         },
     ];
 
-    // 4. Cấu hình chức năng Checkbox (rowSelection)
     const rowSelection = {
         selectedRowKeys: selectedIds,
         onChange: (newSelectedRowKeys: React.Key[]) => {
-            setSelectedIds(newSelectedRowKeys); // Cập nhật state khi người dùng tick chọn
+            setSelectedIds(newSelectedRowKeys);
         },
     };
 
     return (
         <Modal
             title="Chọn Nhân Sự Đạt Chuẩn (Bước 5)"
-            open={isOpen} // Antd Modal dùng "open" thay vì "visible"
+            open={isOpen} 
             onCancel={onClose}
             width={800}
             destroyOnClose
-            // Tùy chỉnh 2 nút bấm ở dưới cùng của Modal
             footer={[
                 <Button key="cancel" onClick={onClose}>
                     Hủy bỏ
@@ -103,12 +100,12 @@ const SelectCandidateModal: React.FC<SelectPersonnelModalProps> = ({ isOpen, onC
             ]}
         >
             <Table
-                rowKey="chi_tiet_bn_id" 
-                rowSelection={rowSelection} // Bật tính năng ô checkbox
+                rowKey="chiTietBnId" 
+                rowSelection={rowSelection}
                 columns={columns}
                 dataSource={danhSachDat}
                 loading={isLoading}
-                pagination={{ pageSize: 8 }} // Tự động phân trang 8 người/trang cho gọn
+                pagination={{ pageSize: 8 }}
                 size="middle"
                 bordered
             />

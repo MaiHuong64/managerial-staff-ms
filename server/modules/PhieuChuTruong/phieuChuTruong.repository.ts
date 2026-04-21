@@ -79,4 +79,24 @@ export const submitPhieuChuTruong = async (client: any, id: number) => {
     )
     return result.rows[0];
 }
-
+export const getCandidatesForPA = async (client: any) => {
+    const result = await pool.query(
+        `SELECT ctbn.id AS chi_tiet_bn_id,
+                vc.ho_va_ten, vc.ma_vien_chuc,
+                cd.ten_chuc_danh,
+                dv.ten_don_vi
+        FROM chi_tiet_bo_nhiem ctbn
+        JOIN vien_chuc vc ON vc.id = ctbn.vien_chuc_id
+        LEFT JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
+        LEFT JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
+        LEFT JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+        LEFT JOIN don_vi dv ON dv.id = vc.don_vi_id
+        WHERE ctbn.trang_thai = 3
+        AND ctbn.id NOT IN ( SELECT ctpa.chi_tiet_bn_id 
+               FROM chi_tiet_phuong_an ctpa
+               WHERE ctpa.chi_tiet_bn_id IS NOT NULL
+           )
+         ORDER BY dv.ten_don_vi, vc.ho_va_ten`
+    );
+    return result.rows;
+}

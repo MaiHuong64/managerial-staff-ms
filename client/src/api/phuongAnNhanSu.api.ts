@@ -8,7 +8,10 @@ export const getPhuongAnById = (id: number) =>
 
 export const createPhuongAn = (data: unknown) =>
     axiosClient.post("/phuong-an-nhan-su", data);
- 
+
+export const submitPhuongAn = (id: number) => 
+    axiosClient.patch(`/phuong-an-nhan-su/${id}/trinh`);
+
 export const approvePhuongAn = (id: number, yKienBGH?: string) =>
     axiosClient.patch(`/phuong-an-nhan-su/${id}/duyet`, { yKienBGH });
 
