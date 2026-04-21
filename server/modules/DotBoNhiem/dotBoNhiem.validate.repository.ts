@@ -81,3 +81,9 @@ export const updateStepForChucDanh = async (client: any, buoc: number, chiTIetDo
         [buoc, chiTIetDottId]
     )
 }
+export const updateStatusCandidate = async (client: any, chiTietBnId: number, trangThai: number) => {
+    await client.query(
+        `UPDATE chi_tiet_bo_nhiem SET trang_thai = $1 WHERE id = $2`,
+        [trangThai, chiTietBnId]
+    );
+}

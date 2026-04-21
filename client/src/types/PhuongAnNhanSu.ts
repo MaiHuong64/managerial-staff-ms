@@ -1,14 +1,31 @@
 export interface PhuongAnNhanSu {
     id: number;
-    ma_phuong_an: string;
-    so_to_trinh: string;
-    ngay_to_trinh: string;
-    ngay_lap: string;
-    trang_thai: number;
-    so_nhan_su?: number ;
-    ghi_chu?: string;
+    maPhuongAn: string;
+    soToTrinh: string;
+    ngayToTrinh: string;
+    ngayLap: string;
+    ngayPheDuyet: string;
+    trangThai: number;
+    ghiChu: string;
+    yKienBGH: string;
+    chiTiet: ChiTietPA[];
 }
-export interface ChucDanhWithVienChuc{
+
+export interface ChucDanhWithVienChuc {
     chucDanhId: number;
     vienChucId: number;
+}
+// Types
+export interface ChiTietPA {
+    chiTietPaId: number;
+    maVienChuc: string;
+    hoVaTen: string;
+    tenChucDanh: string;
+    loaiPhuongAn: string;
+}
+
+export interface fileHoSo {
+    id: number;
+    chiTietPaId: number;
+    maHoSo: string;
 }

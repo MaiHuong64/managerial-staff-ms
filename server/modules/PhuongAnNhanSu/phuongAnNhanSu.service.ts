@@ -11,16 +11,15 @@ export const getById = async (id: number) => {
         getPAInfoById(id),
         getPANSById(id)
     ]);
-    if (!paResult.rows.length) throw new Error("Không tìm thấy phương án nhân sự");
+    if (!paResult) throw new Error("Không tìm thấy phương án nhân sự");
     return {
-        ...paResult.rows[0],
-        chi_tiet: chiTietResult.rows
+        ...paResult,
+        chiTiet: chiTietResult
     };
 }
 
 export const getCandidatesList = async () => {
-    const result = await getCandidates();
-    return result.rows;
+     return getCandidates();
 }
 
 export const createPANS = async (payload: CreatePhuongAnNhanSuDTO) => {

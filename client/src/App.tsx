@@ -19,6 +19,7 @@ import PhieuDeXuatNhanSuPage from './pages/PhieuDeXuatNhanSu'
 import { NotificationPage } from './pages/NotificationPage'
 import { DepartmentPage } from './pages/DepartmentPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
+import HoSoBoNhiemDetailPage from './pages/PhuongAnNhanSu/HoSoBoNhiemDetailPage'
 // Chặn route nếu chưa có token
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token')
@@ -64,6 +65,7 @@ function App() {
           <Route path='approvePlanning' element={<ApprovePhuongAnPage />} />
           <Route path='approveAppointment' element={<ComingSoonPage title="Duyệt bổ nhiệm" />} />
           <Route path='chuc-danh' element={<ComingSoonPage title="Quản lý chức danh" />} />
+          <Route path="/ho-so-bo-nhiem/:id" element={<HoSoBoNhiemDetailPage />} />
           <Route index element={<Navigate to="/dashboard" replace />} />
         </Route>       
       </Routes>

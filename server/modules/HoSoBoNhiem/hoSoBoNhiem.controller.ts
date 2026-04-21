@@ -8,7 +8,7 @@ export const getAll = async(req: Request, res: Response) => {
     } catch (error) {
         return res.status(500).json({success: false, message: "Internal server"});
     }
-}
+} 
 export const getChiTietHoSoById = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
@@ -30,8 +30,9 @@ export const getHoSoByPAId = async (req: Request, res: Response) => {
 export const createHSBN = async (req: Request, res: Response) => {
     try {
         const data = await createHoSo(req.body);
-        return res.status(200).json({success: true, message: "Tạo hồ sơ bổ nhiệm hồ sơ thành công"});
-    } catch (error) {
+        return res.status(200).json({success: true, data, message: "Tạo hồ sơ bổ nhiệm hồ sơ thành công"});
+    } catch (error: any) {
+         console.error('createHSBN error:', error.message);
         return res.status(500).json({success: false, message: error});
     }
 }

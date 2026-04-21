@@ -1,8 +1,7 @@
 import pool from "../../config/db";
-import { updateStatusCandidate } from "../DotQuyHoach/dotQuyHoach.validate.repository";
 import { KetQuaHoiNghi } from "./dotBoNhiem.dto";
 import { BuocHoiNghi, KetQuaPhieuBau } from "./dotBoNhiem.type";
-import { insertKetQuaBoNhiem, upsertKetQuaBuoc2, getChiTietDotBoNhiem, checkAllDone, updateStepForCandidate, updateStatusChiTietDot, updateStatusBatch, getBuocHienTai } from "./dotBoNhiem.validate.repository";
+import { insertKetQuaBoNhiem, upsertKetQuaBuoc2, getChiTietDotBoNhiem, checkAllDone, updateStepForCandidate, updateStatusChiTietDot, updateStatusBatch, getBuocHienTai, updateStatusCandidate } from "./dotBoNhiem.validate.repository";
 
 export const validateVoteInput = (data: KetQuaHoiNghi) => {
     if(!data.chiTietDotBoNhiemId || !data.buocHoiNghi)
