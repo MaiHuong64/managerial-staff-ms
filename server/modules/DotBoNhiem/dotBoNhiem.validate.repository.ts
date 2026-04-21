@@ -1,5 +1,3 @@
-import { TrangThaiUngVien } from "./dotBoNhiem.type"
-
 export const insertKetQuaBoNhiem = async (client: any, params: any[]) => {
     await client.query(
         `INSERT INTO ket_qua_bo_nhiem
@@ -26,30 +24,21 @@ export const upsertKetQuaBuoc2 = async (client: any, params: any[]) => {
 }
 
 export const getChiTietDotBoNhiem = async (client: any, id: number) => {
-    const result =  await client.query (
-       `SELECT ctdbn.dot_bo_nhiem_id, ctbn.buoc_hoi_nghi
+    const result = await client.query (
+       `SELECT ctdbn.dot_bo_nhiem_id
         FROM chi_tiet_dot_bo_nhiem ctdbn
-        JOIN chi_tiet_bo_nhiem ctbn ON ctbn.chi_tiet_dot_bo_nhiem_id = ctdbn.id
-        WHERE ctdbn.id = $1
-        LIMIT 1`,
-        [id]
+        WHERE ctdbn.id = $1`,[id]
     );
     return result.rows[0];
 }
-export const updateBuocHienTai = async (client: any, buoc: number, id: number) => {
-    await client.query(
-        `UPDATE chi_tiet_bo_nhiem SET buoc_hoi_nghi = $1 WHERE chi_tiet_dot_bo_nhiem_id = $2`,
-        [buoc, id]
-    )
-}
 
-export const getBuocHienTai = async (client: any, dotBoNhiemId: number) => {
+export const getBuocHienTai = async (client: any, chiTietDotBoNhiemId: number) => {
     const result = await client.query(
-        `SELECT MIN(ctbn.buoc_hoi_nghi) FILTER (WHERE ctbn.buoc_hoi_nghi NOT IN (0, 6)) AS min_step
+        `SELECT MIN(ctbn.buoc_hoi_nghi) 
+                FILTER (WHERE ctbn.buoc_hoi_nghi NOT IN (0, 6)) AS min_step
          FROM chi_tiet_bo_nhiem ctbn
-         JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctbn.chi_tiet_dot_bo_nhiem_id = ctdbn.id
-         WHERE ctdbn.dot_bo_nhiem_id = $1`,
-        [dotBoNhiemId]
+         WHERE ctbn.chi_tiet_dot_bo_nhiem_id = $1`,
+        [chiTietDotBoNhiemId]
     );
     return result.rows[0].min_step;
 }
@@ -65,9 +54,30 @@ export const checkAllDone = async (client: any, dotBoNhiemId: number) => {
     return result.rows[0];
 
 }
-export const startProcess = async(client: any, chiTietDotBoNhiemId: number) => {
+export const updateStepForCandidate = async (client: any, buoc: number, chiTietBnId: number) => {
     await client.query(
-        `UPDATE chi_tiet_bo_nhiem SET buoc_hoi_nghi = 2 WHERE chi_tiet_dot_bo_nhiem_id = $1`,
-        [chiTietDotBoNhiemId]
+        `UPDATE chi_tiet_bo_nhiem SET buoc_hoi_nghi = $1 WHERE id = $2`,
+        [buoc, chiTietBnId]
+    )
+}
+
+export const updateStatusBatch = async (client: any, dotBoNhiemId: number, trangThai: number) => {
+    await client.query(
+        `UPDATE dot_bo_nhiem SET trang_thai = $1 WHERE id = $2`,
+        [trangThai, dotBoNhiemId]
     );
+}
+export const updateStatusChiTietDot = async (client: any, chiTietDotId: number, trangThai: number) => {
+    await client.query(
+        `UPDATE chi_tiet_dot_bo_nhiem SET trang_thai = $1 WHERE id = $2`,
+        [trangThai, chiTietDotId]
+    );
+}
+export const updateStepForChucDanh = async (client: any, buoc: number, chiTIetDottId: number) => {
+    await client.query (
+        `UPDATE chi_tiet_dot_bo_nhiem
+         SET buoc_hien_tai = $1
+         WHERE id = $2`,
+        [buoc, chiTIetDottId]
+    )
 }

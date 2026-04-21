@@ -11,12 +11,17 @@ export enum TrangThaiDotBoNhiem {
     HoanThanh = 2
 }
 export enum TrangThaiUngVien{
-    DangXuLy = 0,
-    KhongDat = 1,
+    DangXuLy = 1,
+    KhongDat = 0,
     Dat = 2
 }
 //Kết quả phiếu bầu của từng ứng viên
 export enum KetQuaPhieuBau {
     KhongDat = 0,
     Dat = 1
+}
+export enum TrangThaiDoBoNhiem {
+    ChuanBi = 0,
+    DangBau = 1,
+    HoanThanh = 2 
 }
