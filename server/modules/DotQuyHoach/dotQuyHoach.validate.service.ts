@@ -121,12 +121,7 @@ export const submitVoteResult = async (data: KetQuaHoiNghiQH) => {
         }
 
         const isDone = await checkBatchDone(client, data.dotQHId);
-        console.log('=== checkBatchDone ===', isDone, typeof isDone);
-        if (isDone) {
-            console.log('=== updating batch status ===');
-            await updateStatusBatch(client, data.dotQHId);
-            console.log('=== batch status updated ===');
-        }
+        if (isDone) await updateStatusBatch(client, data.dotQHId);
         await client.query("COMMIT");
         console.log('=== COMMIT done ===');
     } catch (error) {
