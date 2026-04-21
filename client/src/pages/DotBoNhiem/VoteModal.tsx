@@ -5,31 +5,29 @@ import { Modal, Form, InputNumber, Button, Card, Table, Tag, Alert, message } fr
 import { submitVote } from "../../api/dotBoNhiem.api";
 
 interface VoteFormValues {
-    so_nguoi_trieu_tap: number;
-    so_nguoi_co_mat: number;
-    so_phieu_phat_ra: number;
-    so_phieu_thu_ve: number;
-    so_phieu_hop_le: number;
+    soNguoiTrieuTap: number;
+    soNguoiCoMat: number;
+    soPhieuPhatRa: number;
+    soPhieuThuVe: number;
+    soPhieuHopLe: number;
 }
-
 interface CandidateVoteInput {
-    chi_tiet_bn_id: number;
-    so_phieu_dong_y: number | null;
-    so_phieu_khong_dong_y: number | null;
+    chiTietBnId: number;
+    soPhieuDongY: number | null;
+    soPhieuKhongDongY: number | null;
 }
-
 interface VotePayload {
-    chi_tiet_dot_bo_nhiem_id: number;
-    buoc_hoi_nghi: number;
-    so_nguoi_trieu_tap: number;
-    so_nguoi_co_mat: number;
-    so_phieu_phat_ra: number;
-    so_phieu_thu_ve: number;
-    so_phieu_hop_le: number;
-    ket_qua_ung_vien: {
-        chi_tiet_bn_id: number;
-        so_phieu_dong_y: number;
-        so_phieu_khong_dong_y: number;
+    chiTietDotBoNhiemId: number;
+    buocHoiNghi: number;
+    soNguoiTrieuTap: number;
+    soNguoiCoMat: number;
+    soPhieuPhatRa: number;
+    soPhieuThuVe: number;
+    soPhieuHopLe: number;
+    ketQuaUngVien: {
+        chiTietBnId: number;
+        soPhieuDongY: number;
+        soPhieuKhongDongY: number;
     }[];
 }
 
@@ -82,20 +80,20 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         setValidBallots(null);
         setCandidateVotes(
             activeCandidates.map(c => ({
-                chi_tiet_bn_id: c.chiTietBnId,
-                so_phieu_dong_y: null,
-                so_phieu_khong_dong_y: null,
+                chiTietBnId: c.chiTietBnId,
+                soPhieuDongY: null,
+                soPhieuKhongDongY: null,
             }))
         );
     }, [visible, activeCandidates, form]);
 
     const handleCandidateVoteChange = (
         id: number,
-        field: "so_phieu_dong_y" | "so_phieu_khong_dong_y",
+        field: "soPhieuDongY" | "soPhieuKhongDongY",
         value: number | null
     ) => {
         setCandidateVotes(prev =>
-            prev.map(v => v.chi_tiet_bn_id === id ? { ...v, [field]: value } : v)
+            prev.map(v => v.chiTietBnId === id ? { ...v, [field]: value } : v)
         );
     };
 
@@ -103,7 +101,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         // Validate bước cần nhập phiếu ứng viên
         if (currentStep && STEPS_REQUIRE_VOTES.includes(currentStep)) {
             const incomplete = candidateVotes.filter(
-                v => v.so_phieu_dong_y === null || v.so_phieu_khong_dong_y === null
+                v => v.soPhieuDongY === null || v.soPhieuKhongDongY === null
             );
             if (incomplete.length > 0) {
                 message.error("Vui lòng nhập đầy đủ số phiếu cho tất cả ứng viên");
@@ -114,17 +112,17 @@ export const VoteModal: React.FC<VoteModalProps> = ({
         setLoading(true);
         try {
             const payload: VotePayload = {
-                chi_tiet_dot_bo_nhiem_id: chiTietDotBoNhiemId,
-                buoc_hoi_nghi: currentStep!,
-                so_nguoi_trieu_tap: values.so_nguoi_trieu_tap,
-                so_nguoi_co_mat: values.so_nguoi_co_mat,
-                so_phieu_phat_ra: values.so_phieu_phat_ra ?? 0,
-                so_phieu_thu_ve: values.so_phieu_thu_ve ?? 0,
-                so_phieu_hop_le: values.so_phieu_hop_le ?? 0,
-                ket_qua_ung_vien: candidateVotes.map(v => ({
-                    chi_tiet_bn_id: v.chi_tiet_bn_id,
-                    so_phieu_dong_y: v.so_phieu_dong_y ?? 0,
-                    so_phieu_khong_dong_y: v.so_phieu_khong_dong_y ?? 0,
+                chiTietDotBoNhiemId: chiTietDotBoNhiemId,
+                buocHoiNghi: currentStep!,
+                soNguoiTrieuTap: values.soNguoiTrieuTap,
+                soNguoiCoMat: values.soNguoiCoMat,
+                soPhieuPhatRa: values.soPhieuPhatRa ?? 0,
+                soPhieuThuVe: values.soPhieuThuVe ?? 0,
+                soPhieuHopLe: values.soPhieuHopLe ?? 0,
+                ketQuaUngVien: candidateVotes.map(v => ({
+                    chiTietBnId: v.chiTietBnId,
+                    soPhieuDongY: v.soPhieuDongY ?? 0,
+                    soPhieuKhongDongY: v.soPhieuKhongDongY ?? 0,
                 })),
             };
 
@@ -151,15 +149,15 @@ export const VoteModal: React.FC<VoteModalProps> = ({
     };
 
     const candidateColumns = [
-        { title: "Mã VC", dataIndex: "ma_vien_chuc", width: 100 },
-        { title: "Họ và tên", dataIndex: "ho_va_ten", width: 180 },
+        { title: "Mã VC", dataIndex: "maVienChuc", width: 100 },
+        { title: "Họ và tên", dataIndex: "hoVaTen", width: 180 },
         {
-            title: "Phiếu đồng ý", key: "dong_y", width: 140,
+            title: "Phiếu đồng ý", key: "dongY", width: 140,
             render: (_: unknown, record: Candidate) => (
                 <InputNumber
                     min={0} style={{ width: "100%" }}
-                    value={candidateVotes.find(v => v.chi_tiet_bn_id === record.chiTietBnId)?.so_phieu_dong_y ?? undefined}
-                    onChange={val => handleCandidateVoteChange(record.chiTietBnId, "so_phieu_dong_y", val)}
+                    value={candidateVotes.find(v => v.chiTietBnId === record.chiTietBnId)?.soPhieuDongY ?? undefined}
+                    onChange={val => handleCandidateVoteChange(record.chiTietBnId, "soPhieuDongY", val)}
                 />
             ),
         },
@@ -168,29 +166,29 @@ export const VoteModal: React.FC<VoteModalProps> = ({
             render: (_: unknown, record: Candidate) => (
                 <InputNumber
                     min={0} style={{ width: "100%" }}
-                    value={candidateVotes.find(v => v.chi_tiet_bn_id === record.chiTietBnId)?.so_phieu_khong_dong_y ?? undefined}
-                    onChange={val => handleCandidateVoteChange(record.chiTietBnId, "so_phieu_khong_dong_y", val)}
+                    value={candidateVotes.find(v => v.chiTietBnId === record.chiTietBnId)?.soPhieuKhongDongY ?? undefined}
+                    onChange={val => handleCandidateVoteChange(record.chiTietBnId, "soPhieuKhongDongY", val)}
                 />
             ),
         },
         {
             title: "Kiểm tra", key: "check", width: 110,
             render: (_: unknown, record: Candidate) => {
-                const v = candidateVotes.find(x => x.chi_tiet_bn_id === record.chiTietBnId);
-                if (v?.so_phieu_dong_y == null || v?.so_phieu_khong_dong_y == null)
+                const v = candidateVotes.find(x => x.chiTietBnId === record.chiTietBnId);
+                if (v?.soPhieuDongY == null || v?.soPhieuKhongDongY == null)
                     return <Tag>—</Tag>;
-                const total = v.so_phieu_dong_y + v.so_phieu_khong_dong_y;
+                const total = v.soPhieuDongY + v.soPhieuKhongDongY;
                 const matched = validBallots !== null && total === validBallots;
                 return <Tag color={matched ? "success" : "error"}>{total} / {validBallots ?? "?"}</Tag>;
             },
         },
         {
-            title: "Tỉ lệ", key: "ti_le", width: 140,
+            title: "Tỉ lệ", key: "tiLe", width: 140,
             render: (_: unknown, record: Candidate) => {
-                const v = candidateVotes.find(x => x.chi_tiet_bn_id === record.chiTietBnId);
-                if (v?.so_phieu_dong_y == null || !validBallots)
+                const v = candidateVotes.find(x => x.chiTietBnId === record.chiTietBnId);
+                if (v?.soPhieuDongY == null || !validBallots)
                     return <Tag>—</Tag>;
-                const ratio = v.so_phieu_dong_y / validBallots;
+                const ratio = v.soPhieuDongY / validBallots;
                 const passed = ratio > 0.5;
                 return (
                     <Tag color={passed ? "success" : "error"}>
@@ -251,8 +249,8 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                         // Bước 2: chỉ cần số người
                         <div className="grid grid-cols-2 gap-4">
                             {([
-                                ["so_nguoi_trieu_tap", "Số người triệu tập"],
-                                ["so_nguoi_co_mat",    "Số người có mặt"   ],
+                                ["soNguoiTrieuTap", "Số người triệu tập"],
+                                ["soNguoiCoMat",    "Số người có mặt"   ],
                             ] as [string, string][]).map(([name, label]) => (
                                 <Form.Item key={name} label={label} name={name}
                                     rules={[{ required: true, message: `Vui lòng nhập ${label.toLowerCase()}` }]}>
@@ -264,17 +262,17 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                         // Bước 3-5: cần đầy đủ thông tin phiếu
                         <div className="grid grid-cols-3 gap-4">
                             {([
-                                ["so_nguoi_trieu_tap", "Số người triệu tập"],
-                                ["so_nguoi_co_mat", "Số người có mặt"   ],
-                                ["so_phieu_phat_ra", "Số phiếu phát ra"  ],
-                                ["so_phieu_thu_ve", "Số phiếu thu về"   ],
-                                ["so_phieu_hop_le", "Số phiếu hợp lệ"   ],
+                                ["soNguoiTrieuTap", "Số người triệu tập"],
+                                ["soNguoiCoMat",    "Số người có mặt"   ],
+                                ["soPhieuPhatRa",   "Số phiếu phát ra"  ],
+                                ["soPhieuThuVe",    "Số phiếu thu về"   ],
+                                ["soPhieuHopLe",    "Số phiếu hợp lệ"  ],
                             ] as [string, string][]).map(([name, label]) => (
                                 <Form.Item key={name} label={label} name={name}
                                     rules={[{ required: true, message: `Vui lòng nhập ${label.toLowerCase()}` }]}>
                                     <InputNumber
                                         min={0} style={{ width: "100%" }}
-                                        onChange={name === "so_phieu_hop_le"
+                                        onChange={name === "soPhieuHopLe"
                                             ? val => setValidBallots(val as number | null)
                                             : undefined
                                         }
@@ -302,7 +300,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                             />
                         )}
                         <Table
-                            rowKey="chi_tiet_bn_id"
+                            rowKey="chiTietBnId"
                             columns={candidateColumns}
                             dataSource={activeCandidates}
                             pagination={false}

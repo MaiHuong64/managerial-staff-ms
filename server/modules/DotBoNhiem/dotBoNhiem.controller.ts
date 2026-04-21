@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { fetchAllAppointmentBatch,  findAppointmentBatchById, createAppointmentBatch} from "./dotBoNhiem.service";
+import { fetchAllAppointmentBatch,  findAppointmentBatchById, createAppointmentBatch, fetchCandidates} from "./dotBoNhiem.service";
 import { submitVoteResult } from "./dotBoNhiem.validate.service";
 
 export const getAll = async (req: Request, res: Response) => {
@@ -48,24 +48,27 @@ export const submitVoteBoNhiem = async (req: Request, res: Response) => {
 // GET /bo-nhiem/detail/:chiTietDotId/candidates
 // Trả về danh sách ứng viên của 1 chi_tiet_dot_bo_nhiem
 export const getCandidates = async (req: Request, res: Response) => {
-    const chiTietDotId = Number(req.params.chiTietDotId);
-    // TODO: implement getCandidatesByChiTietDot(chiTietDotId)
-    return res.status(501).json({ success: false, message: "Chưa implement" });
+    try {
+        const chiTietDotId = Number(req.params.chiTietDotId);
+        const data = await fetchCandidates(chiTietDotId);
+        return res.status(200).json({ success: true, data });
+    } catch (error: any) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
 }
 
-// Thêm 1 ứng viên thủ công vào chi_tiet_dot_bo_nhiem
-// body: { vien_chuc_id, ly_do_vao, chi_tiet_qh_id }
-export const addCandidate = async (req: Request, res: Response) => {
-    const chiTietDotId = Number(req.params.chiTietDotId);
-    const { vienChucId, lyDoVao, chiTietQhId } = req.body;
-    // TODO: implement addCandidateToChiTietDot(chiTietDotId, { vien_chuc_id, ly_do_vao, chi_tiet_qh_id })
-    return res.status(501).json({ success: false, message: "Chưa implement" });
-}
-
-// POST /bo-nhiem/:id/start-voting
-// Bắt đầu quy trình bỏ phiếu: set buoc_hien_tai = 2 cho tất cả chi_tiet_dot_bo_nhiem
-export const startVoting = async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    // TODO: implement startVotingProcess(id)
-    return res.status(501).json({ success: false, message: "Chưa implement" });
-}
+// export const startVoting = async (req: Request, res: Response) => {
+//     try {
+//         const id = Number(req.params.id);
+//         await startVotingProcess(id);
+//         return res.status(200).json({ 
+//             success: true, 
+//             message: "Đã bắt đầu quy trình bổ nhiệm!" 
+//         });
+//     } catch (error: any) {
+//         return res.status(500).json({ 
+//             success: false, 
+//             message: error.message || "Lỗi khi bắt đầu quy trình" 
+//         });
+//     }
+// }

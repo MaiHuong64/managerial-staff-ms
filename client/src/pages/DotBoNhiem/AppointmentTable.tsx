@@ -3,7 +3,6 @@ import { Table, Tag, Badge } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import type { DanhSachDotBoNhiem } from "../../types/BoNhiem";
 import { useNavigate } from "react-router-dom";
-import { BUOC_HIEN_TAI_MAP } from "../../components/common/status";
 
 interface Props {
     data: DanhSachDotBoNhiem[];
@@ -38,26 +37,28 @@ export const  AppoinmentTable: React.FC<Props> = ({ data, loading }) => {
                 </div>
             ),
         },
-        {
-            title: "Bước hiện tại",
-            dataIndex: "buocHienTai",
-            key: "buocHienTai",
-            width: 220,
-            render: (status: number | null) => {
-                if (status === null)
-                    return <Badge status="default" text={<span className="text-slate-400 text-xs">Chưa bắt đầu</span>} />;
-                const state = BUOC_HIEN_TAI_MAP[status];
-                if (!state) return <Tag>—</Tag>;
-                return (
-                    <Tag
-                        color={state.color}
-                        className="rounded-full px-3 py-0.5 text-xs font-medium border-0"
-                    >
-                        {state.label}
-                    </Tag>
-                );
-            },
-        },
+      {
+    title: "Trạng thái",
+    dataIndex: "trangThai",  // ← đổi từ buocHienTai
+    key: "trangThai",
+    width: 220,
+    render: (val: number | null) => {
+        const map: Record<number, { label: string; color: string }> = {
+            1: { label: "Chưa bắt đầu", color: "default" },
+            2: { label: "Đang thực hiện", color: "processing" },
+            6: { label: "Hoàn thành", color: "success" },
+            0: { label: "Đã dừng", color: "error" },
+        };
+        if (val == null) return <Badge status="default" text={<span className="text-slate-400 text-xs">—</span>} />;
+        const state = map[val];
+        if (!state) return <Tag>—</Tag>;
+        return (
+            <Tag color={state.color} className="rounded-full px-3 py-0.5 text-xs font-medium border-0">
+                {state.label}
+            </Tag>
+        );
+    },
+},
         {
             title: "",
             key: "action",

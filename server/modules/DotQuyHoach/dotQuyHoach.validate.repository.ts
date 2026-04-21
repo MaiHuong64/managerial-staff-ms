@@ -61,14 +61,13 @@ export const checkBatchDone = async (client: any, dotQuyHoachId: number ) => {
          WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai > 0 AND buoc_hien_tai != 6`,
         [dotQuyHoachId]
     )
-    console.log('=== all candidates at checkBatchDone time ===', result.rows);
+    console.log(result.rows);
     
-    const count = await client.query(
+    const count = await client.query( 
         `SELECT COUNT(*) AS con_active FROM chi_tiet_quy_hoach
          WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai > 0 AND buoc_hien_tai != 6`,
         [dotQuyHoachId]
     );
-    console.log('=== con_active ===', count.rows[0].con_active);
     return Number(count.rows[0].con_active) === 0;
 }
 export const updateStatusBatch = async (client: any, dotQuyHoachId: number) => {

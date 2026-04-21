@@ -3,13 +3,13 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Steps, Table, Tag, Button, Empty, Spin, Badge } from "antd";
 import {
-    FormOutlined, PlayCircleOutlined, UserOutlined, HomeOutlined,
+    FormOutlined, UserOutlined, HomeOutlined,
     ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined,
     CloseCircleOutlined, StopOutlined,
 } from "@ant-design/icons";
 import VoteModal from "./VoteModal";
 import type { ChucDanh, DotBoNhiem, UngVien } from "../../types/ChiTietBoNhiem";
-import { getDotBoNhiemById, getCandidatesByChiTietDot, startVotingProcess } from "../../api/dotBoNhiem.api";
+import { getDotBoNhiemById, getCandidatesByChiTietDot } from "../../api/dotBoNhiem.api";
 
 const STATE_MAP: Record<number, { label: string; color: string; badgeStatus: "default" | "warning" | "processing" | "success" | "error" }> = {
     0: { label: "Đã dừng", color: "error", badgeStatus: "error" },
@@ -82,11 +82,6 @@ export const AppointmentDetailView: React.FC = () => {
         finally { setLoadingCandidates(false); }
     };
 
-    const handleStartVoting = async () => {
-        const result = await startVotingProcess(Number(id));
-        if (result.data.success) fetchDetail();
-    };
-
     useEffect(() => {
         if (id) fetchDetail();
     }, [id]);
@@ -101,11 +96,9 @@ export const AppointmentDetailView: React.FC = () => {
     );
 
     const stateInfo = STATE_MAP[batchInfo.trangThai];
-    const stepIndex = STEP_INDEX[selectedChucDanh?.buocHienTai ?? 2] ?? 0;
-    const canStartVoting = batchInfo.trangThai === 1;
-    const canVote = [2, 3, 4, 5].includes(batchInfo.trangThai)
-        && selectedChucDanh !== null
-        && [2, 3, 4, 5].includes(selectedChucDanh.buocHienTai);
+    const stepIndex = selectedChucDanh?.buocHienTai == null ? 6 : (STEP_INDEX[selectedChucDanh.buocHienTai] ?? 0);
+    // const canStartVoting = batchInfo.trangThai === 1;
+    const canVote = selectedChucDanh !== null && [2, 3, 4, 5].includes(selectedChucDanh.buocHienTai);
 
     const totalAllChucDanh = (batchInfo.chucDanhList ?? [])
     .reduce((sum, cd) => sum + Number(cd.soUngVien), 0);
@@ -132,8 +125,8 @@ export const AppointmentDetailView: React.FC = () => {
         },
         {
             title: "Đơn vị",
-            dataIndex: "ten_don_vi",
-            key: "ten_don_vi",
+            dataIndex: "tenDonVi",
+            key: "tenDonVi",
             render: (text: string) => (
                 <div className="flex items-center gap-1.5 text-sm text-slate-600">
                     <HomeOutlined className="text-slate-300 text-xs" />
@@ -142,18 +135,9 @@ export const AppointmentDetailView: React.FC = () => {
             ),
         },
         {
-            title: "Nguồn",
-            dataIndex: "ly_do_vao",
-            key: "ly_do_vao",
-            width: 130,
-            render: (text: string) => (
-                <Tag color="geekblue" className="rounded-full px-3 text-xs border-0">{text}</Tag>
-            ),
-        },
-        {
             title: "Chức vụ hiện tại",
-            dataIndex: "ten_chuc_danh",
-            key: "ten_chuc_danh",
+            dataIndex: "tenChucDanh",
+            key: "tenChucDanh",
             width: 160,
             render: (text: string) => text
                 ? <Tag color="purple" className="rounded-full px-3 text-xs border-0">{text}</Tag>
@@ -161,8 +145,8 @@ export const AppointmentDetailView: React.FC = () => {
         },
         {
             title: "Trạng thái",
-            dataIndex: "trang_thai",
-            key: "trang_thai",
+            dataIndex: "trangThai",
+            key: "trangThai",
             width: 110,
             render: (s: number) => {
                 const info = CANDIDATE_STATUS[s];
@@ -203,16 +187,7 @@ export const AppointmentDetailView: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                        {canStartVoting && (
-                            <Button
-                                type="primary"
-                                icon={<PlayCircleOutlined />}
-                                onClick={handleStartVoting}
-                                disabled={totalAllChucDanh === 0}
-                            >
-                                Bắt đầu quy trình
-                            </Button>
-                        )}
+                        
                         {canVote && selectedChucDanh && (
                             <Button
                                 type="primary"
@@ -228,7 +203,6 @@ export const AppointmentDetailView: React.FC = () => {
 
             <div className="p-6 space-y-5">
 
-                {/* ── Steps tracker ───────────────────────── */}
                 <div className="bg-white rounded-xl px-6 py-5 shadow-sm border border-slate-100">
                     <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">
                         Tiến trình bổ nhiệm
@@ -241,7 +215,6 @@ export const AppointmentDetailView: React.FC = () => {
                     />
                 </div>
 
-                {/* ── Info + Chức danh grid ─────────────── */}
                 <div className="grid grid-cols-3 gap-5">
 
                     {/* Batch info */}
@@ -249,8 +222,8 @@ export const AppointmentDetailView: React.FC = () => {
                         <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                             Thông tin đợt
                         </div>
-                        <InfoField label="Mã đợt"    value={batchInfo.maDotBoNhiem} />
-                        <InfoField label="Tên đợt"   value={batchInfo.tenDotBoNhiem} />
+                        <InfoField label="Mã đợt" value={batchInfo.maDotBoNhiem} />
+                        <InfoField label="Tên đợt" value={batchInfo.tenDotBoNhiem} />
                         <InfoField label="Ngày bắt đầu" value={batchInfo.ngayBatDau ? new Date(batchInfo.ngayBatDau).toLocaleDateString("vi-VN") : null} />
                         <InfoField label="Ngày kết thúc" value={batchInfo.ngayKetThuc ? new Date(batchInfo.ngayKetThuc).toLocaleDateString("vi-VN") : null} />
                         <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-3">
@@ -279,7 +252,7 @@ export const AppointmentDetailView: React.FC = () => {
                                     const stepDot = cd.buocHienTai === 6 ? "bg-emerald-400"
                                         : cd.buocHienTai === 0 ? "bg-red-400"
                                         : cd.buocHienTai != null ? "bg-indigo-400 animate-pulse"
-                                        : "bg-slate-buocHienTai";
+                                        : "bg-slate-300";
                                     return (
                                         <div
                                             key={cd.chiTietDotId}
@@ -357,7 +330,7 @@ export const AppointmentDetailView: React.FC = () => {
                         <Empty description="Chọn một chức danh để xem danh sách ứng viên" className="py-16" />
                     ) : (
                         <Table
-                            rowKey="chi_tiet_bn_id"
+                            rowKey="chiTietBnId"
                             columns={candidateColumns}
                             dataSource={candidates}
                             loading={loadingCandidates}
