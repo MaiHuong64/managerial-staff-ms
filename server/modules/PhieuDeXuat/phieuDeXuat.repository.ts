@@ -2,7 +2,7 @@ import pool from "../../config/db";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
 import { AddNhanSuDTO, ChiTietPhieuDeXuatNhanSu, CreatePhieuDeXuatDTO, DanhSachPhieuDeXuatNhanSu, PhieuDeXuatNhanSu, UpdateDuDieuKienDTO } from "./phieuDeXuat.dto";
 
-export const getCode = async (client: any) => {
+export const generatePhieuDeXuatCode = async (client: any) => {
     const result = await client.query(
         `SELECT CONCAT('PDX', LPAD((COALESCE(MAX(id), 0) + 1)::text, 3, '0')) AS ma_phieu_de_xuat
          FROM phieu_de_xuat_nhan_su_quy_hoach`
@@ -82,7 +82,7 @@ export const insertVaoChiTietQuyHoach = async (client: any, phieuId: number, dot
         SELECT $1, ct.vien_chuc_id, p.chuc_danh_id, p.don_vi_id, ct.id, 1, 2, 1, CURRENT_DATE
         FROM chi_tiet_phieu_de_xuat ct
         JOIN phieu_de_xuat_nhan_su_quy_hoach p ON p.id = ct.phieu_de_xuat_id
-        WHERE ct.phieu_de_xuat_id = $2
+        WHERE ct.phieu_de_xuat_id = $2 AND ct.du_dieu_kien = 1
         ON CONFLICT (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id) DO NOTHING`,
         [dotQuyHoachId, phieuId]
     );
@@ -124,4 +124,26 @@ export const getPhieuIdByChiTietId = async (client: any, chiTietId: number) => {
         [chiTietId]
     );
     return mapToCamel(result.rows[0].phieu_de_xuat_id);
+}
+
+export const checkAllCandidatesReviewed = async (client: any, phieuId: number): Promise<boolean> => {
+    const result = await client.query(
+        `SELECT COUNT(*) as total,
+                COUNT(CASE WHEN du_dieu_kien > 0 THEN 1 END) as reviewed
+         FROM chi_tiet_phieu_de_xuat
+         WHERE phieu_de_xuat_id = $1`,
+        [phieuId]
+    );
+    const { total, reviewed } = result.rows[0];
+    return Number(total) === Number(reviewed) && Number(total) > 0;
+}
+
+export const countEligibleCandidates = async (client: any, phieuId: number): Promise<number> => {
+    const result = await client.query(
+        `SELECT COUNT(*) as count
+         FROM chi_tiet_phieu_de_xuat
+         WHERE phieu_de_xuat_id = $1 AND du_dieu_kien = 1`,
+        [phieuId]
+    );
+    return Number(result.rows[0].count);
 }
