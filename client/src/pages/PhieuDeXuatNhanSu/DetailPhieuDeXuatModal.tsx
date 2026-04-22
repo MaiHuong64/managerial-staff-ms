@@ -1,11 +1,12 @@
-import { Button, Descriptions, Form, Input, message, Modal, Select, Table, Tag } from "antd";
+import { Button, Descriptions, Form, Input, message, Modal, Select, Space, Table, Tag } from "antd";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hook/useAuth";
-import { approvePhieuDeXuatNhanSu, getPhieuDeXuatNhanSuById, guiPhieuDeXuatNhanSu, rejectPhieuDeXuatNhanSu} from "../../api/phieuDeXuat.api";
-import { DU_DIEU_KIEN, TRANG_THAI_PHIEU_DE_XUAT, type PhieuDeXuatNhanSuChiTiet } from "../../types/PhieuDeXuatNhanSu";
+import { approvePhieuDeXuatNhanSu, auditPhieuDeXuatCandidate, getPhieuDeXuatNhanSuById, guiPhieuDeXuatNhanSu, rejectPhieuDeXuatNhanSu} from "../../api/phieuDeXuat.api";
+import { DU_DIEU_KIEN, TRANG_THAI_PHIEU_DE_XUAT, type ChiTietPhieuDeXuat, type PhieuDeXuatNhanSuChiTiet } from "../../types/PhieuDeXuatNhanSu";
 import dayjs from "dayjs";
 import { getDotQuyHoachList } from "../../api/dotQuyHoach.api";
 import type { DotQuyHoach } from "../../types/QuyHoach";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
 interface Props {
     id: number | null;
@@ -26,13 +27,21 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
     const [rejectModalVisible, setRejectModalVisible] = useState(false);
     const [rejectForm] = Form.useForm();
 
-    useEffect(() => {
+    const [auditModalVisible, setAuditModalVisible] = useState(false);
+    const [auditCandidate, setAuditCandidate] = useState<ChiTietPhieuDeXuat | null>(null);
+    const [auditForm] = Form.useForm();
+    const [auditing, setAuditing] = useState(false);
+
+    const fetchDetail = () => {
         if (!id) return;
         setLoading(true);
         getPhieuDeXuatNhanSuById(id)
             .then(res => setData(res.data.data))
             .catch(() => message.error("Không thể tải chi tiết phiếu"))
             .finally(() => setLoading(false));
+    }
+    useEffect(() => {
+       fetchDetail();
     }, [id]);
 
     // Load danh sách đợt quy hoạch khi mở approve modal
@@ -49,7 +58,7 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
     };
 
     const handleApprove = async () => {
-        console.log("=== handleApprove bắt đầu ==="); // đặt ngay đầu hàm
+        // console.log("=== handleApprove bắt đầu ==="); // đặt ngay đầu hàm
         if (!id) return;
         try {
             const values = await approveForm.validateFields();
@@ -91,13 +100,38 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
             await guiPhieuDeXuatNhanSu(id);
             message.success("Đã gửi phiếu cho PTCCT!");
             onSuccess();
-        } catch (error: any) {
-            message.error(error?.response?.data?.message || "Gửi phiếu thất bại");
+        } catch (error: unknown) {
+            if (error instanceof Error) message.error(error.message);
+            else message.error("Có lỗi xảy ra");
         } finally {
             setSubmitting(false);
         }
     };
 
+    const handleOpenAudit = (ungVien: ChiTietPhieuDeXuat, duDieuKien: number) => {
+        setAuditCandidate(ungVien);
+        auditForm.setFieldsValue({
+            duDieuKien, lyDoKhongDu: ungVien.lyDoKhongDu || ""
+        })
+        setAuditModalVisible(true);
+    }
+    const hanleAudit = async () => {
+        if(!id || !auditCandidate) return;
+        try {
+            const values = await auditForm.validateFields();
+            setAuditing(true);
+            await auditPhieuDeXuatCandidate(auditCandidate.id, {duDieuKien: values.duDieuKien, lyDo: values.lyDoKhongDu ?? ""});
+            message.success("Đã cập nhật xét duyệt");
+            setAuditCandidate(null);
+            setAuditModalVisible(false);
+            fetchDetail();
+        }  catch (error: any) {
+            if (error.errorFields) return;
+            message.error(error?.response?.data?.message || "Xét duyệt thất bại");
+        } finally {
+            setAuditing(false);
+        }
+    }
     const trangThai = data ? TRANG_THAI_PHIEU_DE_XUAT[data.trangThai] : null;
     const guiPhieu = data?.trangThai === -1 && user?.vaiTro === 'VCQL';
     const duyetPhieu = data?.trangThai === 0 && user?.vaiTro === 'PTCCT';
@@ -113,6 +147,17 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
             }
         },
         { title: "Ghi chú", dataIndex: "ghiChu", render: (val: string) => val || "—" },
+        ...(duyetPhieu ? [{
+            title: "Hành động",
+            key: "action",
+            render: (_: unknown, record: ChiTietPhieuDeXuat) => (
+                <Space>
+                    <Button size="small" type="primary" icon={<CheckCircleOutlined/>} onClick={() => handleOpenAudit(record, 1)}>Đủ điều kiện</Button>
+                    <Button size="small" type="primary" icon={<CloseCircleOutlined/>} onClick={() => handleOpenAudit(record, 2)}>Không điều kiện</Button>
+                    
+                </Space>
+            ),
+        }, ]: [])
     ];
 
     return (
@@ -126,15 +171,9 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
                 loading={loading}
                 footer={[
                     <Button key="close" onClick={onClose}>Đóng</Button>,
-                    guiPhieu && (
-                        <Button key="gui" type="primary" loading={submitting} onClick={handleGui}>Gửi cho PTCCT</Button>
-                    ),
-                    duyetPhieu && (
-                        <Button key="reject" danger onClick={() => { rejectForm.resetFields(); setRejectModalVisible(true); }}>Từ chối</Button>
-                    ),
-                    duyetPhieu && (
-                        <Button key="approve" type="primary" onClick={handleOpenApprove}>Duyệt</Button>
-                    ),
+                    guiPhieu && (<Button key="gui" type="primary" loading={submitting} onClick={handleGui}>Gửi cho PTCCT</Button>),
+                    duyetPhieu && ( <Button key="reject" danger onClick={() => { rejectForm.resetFields(); setRejectModalVisible(true); }}>Từ chối</Button>),
+                    duyetPhieu && ( <Button key="approve" type="primary" onClick={handleOpenApprove}>Duyệt</Button>),
                 ]}
             >
                 {data && (
@@ -229,7 +268,7 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
             >
                 <Form form={rejectForm} layout="vertical">
                     <Form.Item
-                        name="ghiChu"
+                        name="lyDoKhongDu"
                         label="Lý do từ chối"
                         rules={[{ required: true, message: "Vui lòng nhập lý do" }]}
                     >
@@ -237,8 +276,29 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
                     </Form.Item>
                 </Form>
             </Modal>
+
+            <Modal
+                title={`Xét duyệt: ${auditCandidate?.hoVaTen ?? ""}`}
+                open={auditModalVisible}
+                onCancel={() => setAuditModalVisible(false)}
+                onOk={hanleAudit}
+                okText="Xác nhận"
+                cancelText ="Hủy"
+                confirmLoading={auditing}
+                width={400}
+            >
+                <Form form={auditForm} layout="vertical">
+                    <Form.Item name="duDieuKien" label="Kết quả" rules={[{required: true, message: "Vui lòng chọn kết quả"}]}>
+                        <Select options={[{value: 1, label: "Đủ điều kiện"}, {value: 0, label:"Không đủ điều kiện"}]}></Select>
+                    </Form.Item>
+                    <Form.Item name="ghiChu" label="Ghi chú (Không bắt buộc)">
+                        <Input.TextArea rows={3} placeholder="Nhập ghi chú"/>
+                    </Form.Item>
+                </Form>
+            </Modal>
         </>
     );
 };
+
 
 export default DetailPhieuDeXuatModal;
