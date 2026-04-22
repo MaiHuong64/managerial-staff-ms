@@ -1,12 +1,12 @@
 import pool from "../../config/db";
 import { CreatePhieuDeXuatDTO, UpdateDuDieuKienDTO, UpdateTrangThaiPhieu } from "./phieuDeXuat.dto";
-import { getAllPhieuDeXuat, getCode, getPhieuDeXuatById, insertChiTietPhieu, insertPhieuDeXuat, submitPhieuDeXuat, updateTrangThaiPhieu, insertVaoChiTietQuyHoach, updateDuDieuKien, getPhieuIdByChiTietId, updateTrangThaiPhieuDuDieuKien } from "./phieuDeXuat.repository";
+import { getAllPhieuDeXuat, generatePhieuDeXuatCode, getPhieuDeXuatById, insertChiTietPhieu, insertPhieuDeXuat, submitPhieuDeXuat, updateTrangThaiPhieu, insertVaoChiTietQuyHoach, updateDuDieuKien, getPhieuIdByChiTietId, updateTrangThaiPhieuDuDieuKien, checkAllCandidatesReviewed, countEligibleCandidates } from "./phieuDeXuat.repository";
 
 export const createPhieuDeXuat = async (payload: CreatePhieuDeXuatDTO, user: any) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        const maPhieu = await getCode(client);
+        const maPhieu = await generatePhieuDeXuatCode(client);
         const phieu = await insertPhieuDeXuat(client, payload, user, maPhieu);
 
         for(const vc of payload.vienChucList){
@@ -90,6 +90,18 @@ export const approvePDX = async (id: number, user: any, payload: UpdateTrangThai
             throw new Error("Không có quyền duyệt phiếu");
         if (!payload.dotQuyHoachId)
             throw new Error("Vui lòng chọn đợt quy hoạch");
+
+        // Check đã xét hết từng viên chức chưa
+        const allReviewed = await checkAllCandidatesReviewed(client, id);
+        if (!allReviewed) {
+            throw new Error("Phải xét duyệt hết từng viên chức trước khi phê duyệt phiếu");
+        }
+
+        // Check có ít nhất 1 người đủ điều kiện
+        const eligibleCount = await countEligibleCandidates(client, id);
+        if (eligibleCount === 0) {
+            throw new Error("Không có viên chức nào đủ điều kiện để thêm vào quy hoạch");
+        }
 
         const result = await updateTrangThaiPhieu(client, payload.trangThai, id, payload.ghiChu);
         await insertVaoChiTietQuyHoach(client, id, payload.dotQuyHoachId);
