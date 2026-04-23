@@ -69,21 +69,28 @@ export const copyChiTietFromDotGoc = async (client: any, dotRaSoatId: number, do
         `INSERT INTO chi_tiet_quy_hoach
              (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id,
               ngay_vao_qh, loai_nguon, buoc_hien_tai, trang_thai)
-         SELECT $1, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, 2, 1, 1
-         FROM chi_tiet_quy_hoach 
-         WHERE dot_quy_hoach_id = $2 AND trang_thai = 1 AND chi_tiet_quy_hoach.buoc_hien_tai = 6 
+         SELECT $1, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, 2, 2, 1
+         FROM chi_tiet_quy_hoach
+         WHERE dot_quy_hoach_id = $2 AND trang_thai = 1 AND buoc_hien_tai = 6
          ON CONFLICT (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id) DO NOTHING`,
         [dotRaSoatId, dotGocId]
     );
 }
 export const insertPlanningDetail = async (client: any, payload: AddPlanningBatchDetailDTO) => {
+    // Lấy loại quy hoạch để xác định bước bắt đầu
+    const dotQH = await client.query(
+        `SELECT loai_quy_hoach FROM dot_quy_hoach WHERE id = $1`,
+        [payload.dotQuyHoachId]
+    );
+    const loaiQH = dotQH.rows[0]?.loai_quy_hoach;
+    const buocBatDau = loaiQH === 2 ? 2 : 1; // Loại 2 (rà soát) bắt đầu từ bước 2, loại 1 từ bước 1
+
     for(const vc of payload.vienChucId) {
         await client.query(
-            `
-            insert into chi_tiet_quy_hoach (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, trang_thai)
-            values ($1, $2, $3, $4, CURRENT_DATE, 1)
-            `, [payload.dotQuyHoachId, vc, payload.chucDanhId, payload.donViId]
-        )
+            `INSERT INTO chi_tiet_quy_hoach (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, buoc_hien_tai, trang_thai)
+             VALUES ($1, $2, $3, $4, CURRENT_DATE, $5, 1)`,
+            [payload.dotQuyHoachId, vc, payload.chucDanhId, payload.donViId, buocBatDau]
+        );
     }
 }
 

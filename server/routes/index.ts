@@ -10,6 +10,7 @@ import phieuChuTruongRouter from "../modules/PhieuChuTruong/phieuChuTruong.route
 import phieuDeXuatRoute from "../modules/PhieuDeXuat/phieuDeXuat.route"
 import phuongAnNhanSuRouter from "../modules/PhuongAnNhanSu/phuongAnNhanSu.route";
 import hoSoBoNhiemRouter from "../modules/HoSoBoNhiem/hoSoBoNhiem.route"
+import quyetDinhBoNhiemRouter from "../modules/QuyetDinhBoNhiem/quyetDinhBoNhiem.route"
 const router = Router();
 
 router.use("/auth", authRouter);
@@ -22,4 +23,5 @@ router.use('/phieu-de-xuat', phieuDeXuatRoute)
 router.use("/phieu-chu-truong", phieuChuTruongRouter)
 router.use("/phuong-an-nhan-su", phuongAnNhanSuRouter);
 router.use("/ho-so-bo-nhiem", hoSoBoNhiemRouter)
+router.use ("/quyet-dinh-bo-nhiem", quyetDinhBoNhiemRouter)
 export default router;

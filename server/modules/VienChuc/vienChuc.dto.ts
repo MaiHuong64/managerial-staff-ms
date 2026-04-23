@@ -1,30 +1,30 @@
 export interface CreateStaffDTO {
-    ho_va_ten: string;
-    gioi_tinh: string;
-    ngay_sinh: string;
-    dan_toc: string;
-    so_cccd: string;
-    so_dien_thoai: string;
+    hoVaTen: string;
+    gioiTinh: string;
+    ngaySinh: string;
+    danToc: string;
+    soCccd: string;
+    soDienThoai: string;
     email: string;
-    dia_chi: string;
-    trinh_do_chuyen_mon: string;
-    chuyen_nganh: string;
+    diaChi: string;
+    trinhDoChuyenMon: string;
+    chuyenNganh: string;
     ngach: string;
-    nam_tot_nghiep: number;
-    trinh_do_ly_luan_CT: string;
-    trinh_do_ngoai_ngu: string;
-    trinh_do_tin_hoc: string;
-    ngay_ket_nap: string;
-    ngay_chinh_thuc: string;
-    don_vi_id: number;
+    namTotNghiep: number;
+    trinhDoLyLuanCT: string;
+    trinhDoNgoaiNgu: string;
+    trinhDoTinHoc: string;
+    ngayKetNap: string;
+    ngayChinhThuc: string;
+    donViId: number;
 }
 
-// Các field được phép cập nhật (loại trừ so_cccd và ma_vien_chuc)
-export type UpdateStaffDTO = Partial<Omit<CreateStaffDTO, "so_cccd">>;
+// Các field được phép cập nhật (loại trừ soCccd)
+export type UpdateStaffDTO = Partial<Omit<CreateStaffDTO, "soCccd">>;
 
 export interface StaffProfileResult {
     profile: Record<string, any>;
-    lich_su_chuc_vu: Record<string, any>[];
-    xep_loai_vc: Record<string, any>[];
-    xep_loai_dang_vien: Record<string, any>[];
+    lichSuChucVu: Record<string, any>[];
+    xepLoaiVc: Record<string, any>[];
+    xepLoaiDangVien: Record<string, any>[];
 }

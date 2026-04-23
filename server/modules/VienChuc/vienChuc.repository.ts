@@ -1,6 +1,7 @@
 import { PoolClient } from "pg";
 import pool from "../../config/db";
 import { CreateStaffDTO, UpdateStaffDTO } from "./vienChuc.dto";
+import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
 
 export const findAll = async () => {
     const result = await pool.query(`
@@ -19,7 +20,7 @@ export const findAll = async () => {
             WHERE nkcv.trang_thai = 1
         ) nk ON nk.vien_chuc_id = vc.id
     `);
-    return result.rows;
+    return mapArrayToCamel(result.rows);
 };
 
 export const findById = async (id: number) => {
@@ -27,10 +28,16 @@ export const findById = async (id: number) => {
         `SELECT * FROM vien_chuc WHERE id = $1`,
         [id]
     );
-    return result.rows[0] ?? null;
+    return mapToCamel(result.rows[0] ?? null);
 };
 
 export const findProfileData = async (uid: number) => {
+    const tkResult = await pool.query(
+        `SELECT vien_chuc_id FROM tai_khoan WHERE id = $1`,
+        [uid]
+    );
+    const vcId = tkResult.rows[0]?.vien_chuc_id;
+    if (!vcId) return null;
     const [profile, history, staffEval, partyEval] = await Promise.all([
         pool.query(`
             SELECT vc.*, dv.ten_don_vi, cd.ten_chuc_danh,
@@ -43,7 +50,7 @@ export const findProfileData = async (uid: number) => {
             LEFT JOIN qd_bo_nhiem qd ON qd.id = nk.qd_bo_nhiem_id
             LEFT JOIN tai_khoan tk ON tk.ten_dang_nhap = vc.ma_vien_chuc
             WHERE vc.id = $1
-        `, [uid]),
+        `, [vcId]),
 
         pool.query(`
             SELECT vc.*, dv.ten_don_vi, cd.ten_chuc_danh,
@@ -55,14 +62,14 @@ export const findProfileData = async (uid: number) => {
             LEFT JOIN qd_bo_nhiem qd ON qd.id = nk.qd_bo_nhiem_id
             WHERE vc.id = $1
             ORDER BY nk.ngay_bat_dau DESC
-        `, [uid]),
+        `, [vcId]),
 
         pool.query(`
             SELECT nam_danh_gia, danh_gia, nhan_xet
             FROM xep_loai_vc
             WHERE vien_chuc_id = $1
             ORDER BY nam_danh_gia DESC
-        `, [uid]),
+        `, [vcId]),
 
         pool.query(`
             SELECT nam_danh_gia, danh_gia, nhan_xet
@@ -70,14 +77,14 @@ export const findProfileData = async (uid: number) => {
             WHERE vien_chuc_id = $1
             ORDER BY nam_danh_gia DESC
             LIMIT 3
-        `, [uid]),
+        `, [vcId]),
     ]);
 
     return {
-        profile: profile.rows[0] ?? null,
-        lich_su_chuc_vu: history.rows,
-        xep_loai_vc: staffEval.rows,
-        xep_loai_dang_vien: partyEval.rows,
+        profile: mapToCamel(profile.rows[0] ?? null),
+        lichSuChucVu: mapArrayToCamel(history.rows),
+        xepLoaiVc: mapArrayToCamel(staffEval.rows),
+        xepLoaiDangVien: mapArrayToCamel(partyEval.rows),
     };
 };
 
@@ -104,12 +111,12 @@ export const insertVienChuc = async (
         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
         RETURNING id, ma_vien_chuc, ho_va_ten`,
         [
-            ma_vien_chuc, data.ho_va_ten, data.gioi_tinh, data.ngay_sinh,
-            data.dan_toc, data.so_cccd, data.so_dien_thoai, data.email,
-            data.dia_chi, data.trinh_do_chuyen_mon, data.chuyen_nganh,
-            data.ngach, data.nam_tot_nghiep, data.trinh_do_ly_luan_CT,
-            data.trinh_do_ngoai_ngu, data.trinh_do_tin_hoc,
-            data.ngay_ket_nap, data.ngay_chinh_thuc, data.don_vi_id,
+            ma_vien_chuc, data.hoVaTen, data.gioiTinh, data.ngaySinh,
+            data.danToc, data.soCccd, data.soDienThoai, data.email,
+            data.diaChi, data.trinhDoChuyenMon, data.chuyenNganh,
+            data.ngach, data.namTotNghiep, data.trinhDoLyLuanCT,
+            data.trinhDoNgoaiNgu, data.trinhDoTinHoc,
+            data.ngayKetNap, data.ngayChinhThuc, data.donViId,
         ]
     );
     return result.rows[0];
