@@ -9,6 +9,7 @@ import {
 import dayjs from 'dayjs';
 import { getHoSoById, uploadTaiLieu, deleteTaiLieu, hoanThienHoSo } from '../../api/hoSoBoNhiem.api';
 import { LOAI_TAI_LIEU_MAP, type HoSo, type TaiLieu } from '../../types/HoSoBoNhiem';
+import CreateDecisionModal from './CreateDecisionModal';
 
 const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
     1: { label: 'Đang lập', color: 'processing' },
@@ -26,10 +27,9 @@ const HoSoBoNhiemDetailPage = () => {
     const [decisonModalOpen, setDecisonModalOpen] = useState(false);
 
     const [uploading, setUploading] = useState(false);
-    // const []
+    
     const [completing, setCompleting] = useState(false);
     const [deletingId, setDeletingId] = useState<number | null>(null);
-
 
     const [form] = Form.useForm();
     const fileRef = useRef<File | null>(null);
@@ -176,7 +176,7 @@ const HoSoBoNhiemDetailPage = () => {
                     </Popconfirm>
                 )}
                 {isDone && data.trangThai !== 3 &&(
-                    <Button type="primary" icon={<CheckCircleOutlined/>}>Lập quyết định bổ nhiệm</Button>
+                    <Button type="primary" icon={<CheckCircleOutlined/>} onClick={() => setDecisonModalOpen(true)}>Lập quyết định bổ nhiệm</Button>
                 )}
             </div>
 
@@ -258,6 +258,25 @@ const HoSoBoNhiemDetailPage = () => {
                     </div>
                 </Form>
             </Modal>
+            <CreateDecisionModal 
+                isOpen={decisonModalOpen}
+                onCancel={() => setDecisonModalOpen(false)}
+                onSuccess={() => {
+                    setDecisonModalOpen(false);
+                    fetchData();
+                } } dossier={{
+                        id: data.id,
+                        hoVaTen: data.hoVaTen,
+                        maVienChuc: data.maVienChuc,
+                        tenChucDanh: data.tenChucDanh,
+                        loaiBoNhiem: data.loaiBoNhiem,
+                        soQuyetDinh: null,
+                        ngayQuyetDinh: null,
+                        ngayCoHieuLuc: null,
+                        thoiHan: null,
+                        chucVu: null,
+                    }}
+            />
         </div>
     );
 };
