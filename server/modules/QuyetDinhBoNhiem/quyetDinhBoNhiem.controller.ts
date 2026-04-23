@@ -1,20 +1,19 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import { CreateQDBN, getQDBoNhiemById } from "./quyetDinhBoNhiem.service";
-import { AuthRequest } from "../../middleware/auth.middleware";
 
-export const CreateQDBNController = async (req: AuthRequest, res: Response) => {
+export const CreateQDBNController = async (req: Request, res: Response) => {
     try {
         const hoSoId = Number(req.params.hoSoId);
-        const nguoiPheDuyet = req.user?.hoVaTen || "Không xác định";
-        const data = await CreateQDBN(req.body, hoSoId, nguoiPheDuyet);
+        const data = await CreateQDBN(req.body, hoSoId);
         return res.status(201).json({ success: true, data });
     } catch (error: any) {
+        console.error(error);
         res.status(500).json({ message: error.message || "Tạo quyết định thất bại" });
     }
 }
-export const getQDBoNhiemByIdController = async (req: AuthRequest, res: Response) => {
+export const getQDBoNhiemByIdController = async (req: Request, res: Response) => {
     try {
-        const id = Number(req.params.hoSoId);
+        const id = Number(req.params.id);
         const result = await getQDBoNhiemById(id);
         if (!result) return res.status(404).json({ message: "Không tìm thấy quyết định" });
         res.status(200).json(result);

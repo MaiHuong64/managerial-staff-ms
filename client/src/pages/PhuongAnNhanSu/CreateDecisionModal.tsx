@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Steps, Form, Input, DatePicker, Select, Row, Col, Avatar, Button, Tag, Descriptions, message,  Alert} from 'antd';
 import {  UserOutlined, FileDoneOutlined, CheckCircleOutlined, ArrowRightOutlined, IdcardOutlined, SafetyCertificateOutlined, CloseOutlined} from '@ant-design/icons';
 import { createQDBoNhiem } from '../../api/quyetDinhBoNhiem';
@@ -10,13 +10,22 @@ interface CreateDecisionModalProps {
     onSuccess : () => void;
     dossier: QuyetDinhBoNhiem;
 }
-
+import dayjs from 'dayjs';
 
 const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCancel, dossier, onSuccess }) => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [formValue, setFormValues] = useState()
+    
+    useEffect (() => {
+        if(isOpen && dossier) {
+            form.setFieldsValue({
+                loaiBoNhiem: dossier.loaiBoNhiem || "Bổ nhiệm",
+                thoiHan: dossier.thoiHan || 60
+            })
+        }
+    }, [isOpen, dossier, form])
     const next = async () => {
         try {
             await form.validateFields();
@@ -29,19 +38,20 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
 
     const prev = () => setCurrentStep(currentStep - 1);
 
-    const handleFinish = async () => {
-        setLoading(true);
-        try {
-            const values = form.getFieldsValue();
-            const payload = {
-                soQuyetDinh: values.soQuyetDinh,
-                ngayQuyetDinh: values.soQuyetDinh?.toISOString(),
-                ngayCoHieuLuc: values.ngayHieuLuc?.toISOString(),
-                thoiHan: Number(values.thoihan),
-                loaiBoNhiem: values.loaiBoNhiem,
-                nguoiKy: values.nguoiKy,
-            };
-              await createQDBoNhiem(dossier.id, payload);
+   const handleFinish = async () => {
+    setLoading(true);
+    try {
+        const values = form.getFieldsValue();
+        const payload = {
+            soQuyetDinh: values.soQuyetDinh,
+            ngayQuyetDinh: dayjs(values.ngayQuyetDinh),
+            ngayCoHieuLuc: dayjs(values.ngayCoHieuLuc),
+            thoiHan: Number(values.thoiHan), 
+            loaiBoNhiem: values.loaiBoNhiem, 
+            nguoiPheDuyet: values.nguoiKy,
+            chucVu: values.chucVu
+        };
+            await createQDBoNhiem(dossier.id, payload);
             message.success('Ban hành quyết định thành công!');
             onSuccess();
             setCurrentStep(0);
@@ -88,43 +98,31 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
                 <div className="h-px bg-slate-200 flex-1"></div>
                 </div>
                 
-                <Form.Item 
-                label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Số quyết định</span>}
-                name="so_quyet_dinh" 
-                rules={[{ required: true, message: 'Nhập số quyết định' }]}
-                >
-                <Input placeholder="VD: 123/QĐ-ĐHAG" size="large" className="rounded-xl border-slate-200 h-11 font-mono text-blue-700" />
+                <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Số quyết định</span>}name="soQuyetDinh" rules={[{ required: true, message: 'Nhập số quyết định' }]}>
+                    <Input placeholder="VD: 123/QĐ-ĐHAG" size="large" className="rounded-xl border-slate-200 h-11 font-mono text-blue-700" />
                 </Form.Item>
 
                 <Row gutter={20}>
                 <Col span={12}>
-                    <Form.Item 
-                    label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Ngày quyết định</span>}
-                    name="ngay_qd" 
-                    rules={[{ required: true }]}
-                    >
-                    <DatePicker className="w-full h-11 rounded-xl" format="DD/MM/YYYY" placeholder="Chọn ngày" />
+                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Ngày quyết định</span>}name="ngayQuyetDinh" rules={[{ required: true }]}>
+                        <DatePicker className="w-full h-11 rounded-xl" format="DD/MM/YYYY" placeholder="Chọn ngày" />
                     </Form.Item>
                 </Col>
                 <Col span={12}>
-                    <Form.Item 
-                    label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Ngày có hiệu lực</span>}
-                    name="ngay_hieu_luc" 
-                    rules={[{ required: true }]}
-                    >
-                    <DatePicker className="w-full h-11 rounded-xl border-blue-200 bg-blue-50/20" format="DD/MM/YYYY" placeholder="Ngày bắt đầu" />
+                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Ngày có hiệu lực</span>}name="ngayCoHieuLuc" rules={[{ required: true }]}>
+                        <DatePicker className="w-full h-11 rounded-xl border-blue-200 bg-blue-50/20" format="DD/MM/YYYY" placeholder="Ngày bắt đầu" />
                     </Form.Item>
                 </Col>
                 </Row>
 
                 <Row gutter={20}>
                 <Col span={12}>
-                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Thời hạn</span>} name="thoi_han">
-                    <Input type="number" suffix={<span className="text-[10px] font-bold text-slate-400 uppercase">Tháng</span>} className="rounded-xl h-11" />
+                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Thời hạn</span>} name="thoiHan">
+                        <Input type="number" suffix={<span className="text-[10px] font-bold text-slate-400 uppercase">Tháng</span>} className="rounded-xl h-11" />
                     </Form.Item>
                 </Col>
                 <Col span={12}>
-                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Loại bổ nhiệm</span>} name="loai_bn">
+                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Loại bổ nhiệm</span>} name="loaiBoNhiem">
                     <Select className="w-full h-11" options={[
                         { value: 'Bổ nhiệm', label: 'Bổ nhiệm' },
                         { value: 'Bổ nhiệm lại', label: 'Bổ nhiệm lại' },
@@ -137,18 +135,18 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
             <section>
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-5 flex items-center gap-3 pt-2">
                 <div className="h-px bg-slate-200 flex-1"></div>
-                Người ký ban hành
+                    Người ký ban hành
                 <div className="h-px bg-slate-200 flex-1"></div>
                 </div>
 
                 <Row gutter={20}>
                 <Col span={14}>
-                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Họ tên người ký</span>} name="nguoi_ky">
+                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Họ tên người ký</span>} name="nguoiKy">
                     <Input placeholder="Họ và tên..." className="rounded-xl h-11 font-semibold" />
                     </Form.Item>
                 </Col>
                 <Col span={10}>
-                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Chức vụ</span>} name="chuc_vu_nguoi_ky">
+                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Chức vụ</span>} name="chucVu">
                     <Input placeholder="Chức vụ..." className="rounded-xl h-11" />
                     </Form.Item>
                 </Col>
@@ -169,11 +167,11 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
                 <div className="text-[11px] text-blue-800 space-y-1 mt-1">
                 <p>Hệ thống sẽ thực hiện các thao tác tự động:</p>
                 <ul className="list-disc ml-4 font-semibold">
-                    <li>Kết thúc nhiệm kỳ cũ trước ngày {values.ngay_hieu_luc?.format('DD/MM/YYYY')}.</li>
-                    <li>Khởi tạo nhiệm kỳ mới ({values.thoiHan} tháng).</li>
-                    <li>Chuyển trạng thái hồ sơ sang "Đã quyết định".</li>
+                    <Descriptions.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">Ngày hiệu lực</span>}>
+                        <span className="font-bold text-slate-800">{values.ngayCoHieuLuc?.format('DD/MM/YYYY')}</span>
+                    </Descriptions.Item>
                 </ul>
-                </div>
+                </div>  
             }
             type="info"
             showIcon
@@ -188,10 +186,10 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
             </div>
             <Descriptions column={1} bordered size="small" className="custom-descriptions">
                 <Descriptions.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">Số Quyết định</span>}>
-                <span className="font-mono font-bold text-blue-700 text-base">{values.so_quyet_dinh}</span>
+                <span className="font-mono font-bold text-blue-700 text-base">{values.soQuyetDinh}</span>
                 </Descriptions.Item>
                 <Descriptions.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">Ngày hiệu lực</span>}>
-                <span className="font-bold text-slate-800">{values.ngay_hieu_luc?.format('DD/MM/YYYY')}</span>
+                <span className="font-bold text-slate-800">{values.ngayCoHieuLuc?.format('DD/MM/YYYY')}</span>
                 </Descriptions.Item>
                 <Descriptions.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">Đại diện ký</span>}>
                 <div className="flex flex-col">
