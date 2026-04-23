@@ -16,6 +16,7 @@ export interface HoSo {
     maVienChuc: string;
     tenChucDanh: string;
     tenDonVi: string;
+    loaiBoNhiem: string;
     taiLieu: TaiLieu[];
 }
 

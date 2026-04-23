@@ -3,12 +3,12 @@ import { mapArrayToCamel } from "../../utils/mapper";
 import { CreateQDBoNhiemDTO } from "./quyetDinhBoNhiem.dto";
 import { generateQDBNCode, getDetail, getInforFromHS, handleNhiemKy, insertNhiemKy, insertQuyetDinh, updateHoSoStatus } from "./quyetDinhBoNhiem.repository";
 
-export const CreateQDBN = async (payload: CreateQDBoNhiemDTO, hoSoId: number, nguoiPheDuyet: string) => {
+export const CreateQDBN = async (payload: CreateQDBoNhiemDTO, hoSoId: number) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
         const maBN = await generateQDBNCode(client);
-        const quyetDinh = await insertQuyetDinh(client, maBN, payload, hoSoId, nguoiPheDuyet);
+        const quyetDinh = await insertQuyetDinh(client, maBN, payload, hoSoId);
         const {vienChucId, chucDanhId} = await getInforFromHS(client, hoSoId);
 
         // Đóng nhiệm kỳ cũ (nếu có)
