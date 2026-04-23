@@ -61,7 +61,7 @@ const ProfilePage: React.FC = () => {
                     {/* Name */}
                     <div className="flex-1 text-center md:text-left z-10">
                         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
-                            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{profile.ho_va_ten}</h1>
+                            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{profile.hoVaTen}</h1>
                         </div>
                         <div className="flex flex-wrap justify-center md:justify-start gap-y-2 gap-x-5 text-sm">
                             <span className="text-indigo-600 font-bold flex items-center gap-2">

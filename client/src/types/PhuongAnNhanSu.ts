@@ -16,7 +16,7 @@ export interface ChucDanhWithVienChuc {
     chucDanhId: number;
     vienChucId: number;
 }
-// Types
+
 export interface ChiTietPA {
     chiTietPaId: number;
     maVienChuc: string;

@@ -84,19 +84,17 @@ export const PhieuChuTruongPage: React.FC = () => {
             title: 'Trạng thái', dataIndex: 'trangThai',
             render: (tt: number) => trangThaiTag(tt)
         },
-        {
-                   title: 'Thao tác', width: 200,
-                   render: (_: unknown, record: PhieuChuTruong) => (
-                       <div className="flex gap-2">
+        {title: 'Thao tác', width: 200,
+            render: (_: unknown, record: PhieuChuTruong) => (
+                <div className="flex gap-2">
                            {/* <Button size="small" onClick={() => setSelectedId(record.id)}>Xem</Button> */}
-                           {user?.vaiTro === 'BGH' && record.trangThai === 1 && (
-                               <>
-                                    <Popconfirm title="Phê duyệt phiếu này?" onConfirm={() => handleApprove(record.id)} okText="Duyệt" cancelText="Hủy">
-                                       <Button type="primary" size="small">Duyệt</Button>
-                                    </Popconfirm>
-                                    <Button danger size="small" onClick={() => {setSelectedId(record.id); setRejectModalOpen(true)}}>Từ chối</Button>
-                               </>
-                           )}
+                    {user?.vaiTro === 'BGH' && record.trangThai === 1 && 
+                    (<>
+                        <Popconfirm title="Phê duyệt phiếu này?" onConfirm={() => handleApprove(record.id)} okText="Duyệt" cancelText="Hủy">
+                            <Button type="primary" size="small">Duyệt</Button>
+                        </Popconfirm>
+                          <Button danger size="small" onClick={() => {setSelectedId(record.id); setRejectModalOpen(true)}}>Từ chối</Button>
+                    </>)}
                        </div>
                    )
                },

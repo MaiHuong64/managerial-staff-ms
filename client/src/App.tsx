@@ -13,7 +13,6 @@ import { AppointmentPage } from './pages/DotBoNhiem'
 import AppointmentDetailView from './pages/DotBoNhiem/AppointmentDetailView'
 import PersonnelProposalPage from './pages/PhuongAnNhanSu/index'
 import PersonnelPlanDetailPage from './pages/PhuongAnNhanSu/DetailPage'
-import ApprovePhuongAnPage from './pages/ApprovePhuongAn/index'
 import PhieuChuTruongPage from './pages/PhieuChuTruong'
 import PhieuDeXuatNhanSuPage from './pages/PhieuDeXuatNhanSu'
 import { NotificationPage } from './pages/NotificationPage'
@@ -62,7 +61,6 @@ function App() {
            <Route path='/phieu-de-xuat' element={<PhieuDeXuatNhanSuPage/>}></Route>
           <Route path='notification' element={<NotificationPage />} />
           <Route path='don-vi' element={<DepartmentPage />} />
-          <Route path='approvePlanning' element={<ApprovePhuongAnPage />} />
           <Route path='approveAppointment' element={<ComingSoonPage title="Duyệt bổ nhiệm" />} />
           <Route path='chuc-danh' element={<ComingSoonPage title="Quản lý chức danh" />} />
           <Route path="/ho-so-bo-nhiem/:id" element={<HoSoBoNhiemDetailPage />} />

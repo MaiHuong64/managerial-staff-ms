@@ -1,110 +1,78 @@
-import React from 'react';
-import { Card, Col, Row, Statistic, Table, Button, Tag, Progress } from 'antd';
-import { 
-  UserOutlined, 
-  TeamOutlined, 
-  FileTextOutlined, 
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  ExclamationCircleOutlined,
-  BarChartOutlined,
-  RightOutlined
-} from '@ant-design/icons';
+import React, { useEffect, useState } from 'react';
+import { Card, Col, Row, Statistic, Table, Button, Tag, Spin } from 'antd';
+import { TeamOutlined, FileTextOutlined,BarChartOutlined} from '@ant-design/icons';
 import { useAuth } from '../../hook/useAuth';
+import { getAllPhieuDeXuatNhanSu } from '../../api/phieuDeXuat.api'
+import { getPhuongAnList } from '../../api/phuongAnNhanSu.api';
+import type { PhieuDeXuatNhanSu } from '../../types/PhieuDeXuatNhanSu';
+import type { PhuongAnNhanSu } from '../../types/PhuongAnNhanSu';
+import { useNavigate } from 'react-router-dom';
+import type { PhieuChuTruong } from '../../types/PhieuChuTruong';
+import { getPhieuChuTruongList } from '../../api/phieuChuTruong.api';
+import dayjs from 'dayjs';
 
 export const VCQLDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [danhSachPDX, setDanhSachPDX] = useState<PhieuDeXuatNhanSu[]>([]);
+  const [danhSachPCT, setDanhSachPCT] = useState<PhieuChuTruong[]>([]);
+  const [phuongAnNhanSu, setPhuongAnNhanSu] = useState<PhuongAnNhanSu[]>([]);
+  
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      try {
+        const [resPDX, resPCT, resPA] = await Promise.all([getAllPhieuDeXuatNhanSu(), getPhieuChuTruongList(), getPhuongAnList()])
+        setDanhSachPDX(resPDX.data?.data || []);
+        setDanhSachPCT(resPCT.data?.data || []);
+        setPhuongAnNhanSu(resPA.data?.data || []);
 
-  // Dữ liệu giả lập cho danh sách viên chức đơn vị
-  const mockStaffData = [
-    { 
-      key: '1', 
-      ma_vc: 'VC001', 
-      ho_va_ten: 'Nguyễn Văn A', 
-      don_vi: 'Phòng Tổ chức',
-      chuc_danh: 'Chuyên viên chính',
-      trang_thai: 'Đang làm việc'
-    },
-    { 
-      key: '2', 
-      ma_vc: 'VC002', 
-      ho_va_ten: 'Trần Thị B', 
-      don_vi: 'Phòng Tổ chức',
-      chuc_danh: 'Chuyên viên',
-      trang_thai: 'Đang làm việc'
-    },
-    { 
-      key: '3', 
-      ma_vc: 'VC003', 
-      ho_va_ten: 'Lê Văn C', 
-      don_vi: 'Phòng Tổ chức',
-      chuc_danh: 'Chuyên viên tập sự',
-      trang_thai: 'Tạm nghỉ'
-    },
-  ];
+      } catch (error) {
+        console.error(error);
+      } finally{
+        setLoading(false);
+      }
+    }
+    fetchMasterData();
+  }, [])
 
-  // Dữ liệu giả lập cho tiến độ quy hoạch
-  const mockPlanningData = [
-    { 
-      key: '1', 
-      ten_dot_qh: 'Quy hoạch Q1/2024', 
-      so_luong: 15, 
-      da_phan_bo: 8,
-      trang_thai: 'Đang thực hiện'
-    },
-    { 
-      key: '2', 
-      ten_dot_qh: 'Quy hoạch Q4/2023', 
-      so_luong: 20, 
-      da_phan_bo: 20,
-      trang_thai: 'Hoàn thành'
-    },
-  ];
-
-  const staffColumns = [
-    { title: 'Mã VC', dataIndex: 'ma_vc', key: 'ma_vc' },
-    { title: 'Họ và tên', dataIndex: 'ho_va_ten', key: 'ho_va_ten' },
-    { title: 'Chức danh', dataIndex: 'chuc_danh', key: 'chuc_danh' },
-    { 
-      title: 'Trạng thái', 
-      dataIndex: 'trang_thai', 
-      key: 'trang_thai',
-      render: (status: string) => (
-        <Tag color={status === 'Đang làm việc' ? 'green' : 'orange'} className="rounded-full px-3">
-          {status}
-        </Tag>
-      )
-    },
-  ];
-
-  const planningColumns = [
-    { title: 'Tên đợt QH', dataIndex: 'ten_dot_qh', key: 'ten_dot_qh' },
-    { 
-      title: 'Tiến độ', 
-      key: 'tien_do',
-      render: (_: unknown, record: { da_phan_bo: number; so_luong: number; trang_thai: string }) => (
-        <div className="flex flex-col">
-          <span className="text-xs text-slate-500 mb-1">{record.da_phan_bo}/{record.so_luong} chỉ tiêu</span>
-          <Progress 
-            percent={Math.round((record.da_phan_bo / record.so_luong) * 100)} 
-            size="small"
-            status={record.trang_thai === 'Hoàn thành' ? 'success' : 'active'}
-          />
-        </div>
-      )
-    },
-    { 
-      title: 'Trạng thái', 
-      dataIndex: 'trang_thai', 
-      key: 'trang_thai',
-      render: (status: string) => (
-        <Tag color={status === 'Hoàn thành' ? 'green' : 'blue'}>
-          {status}
-        </Tag>
-      )
-    },
-  ];
-
+  const PDXColums = [
+    {title: "Mã Phiếu", dataIndex: "maPhieuDeXuat", key: "maPhieuDeXuat"},
+    {title: "tieuDe", dataIndex: "tieuDe", key: "tieuDe"},
+    {
+      title: "Trạng thái", dataIndex: 'trangThai', key: "trangThai",
+      render: (status: number) => {
+        const config = status === 1 ? {color: 'green', text: 'Đã duyệt'} : status === 2 ? {color: 'red', text: 'Từ chối'} : {color: 'blue', text: 'Chờ duyệt'}
+      return <Tag color={config.color} className="rounded-full px-3">{config.text}</Tag>;
+      }
+      
+    }
+  ]
+  const PCTColumns = [
+  { title: "Số tờ trình", dataIndex: 'soToTrinhChuTruong' },
+  { title: "Chức danh đề xuất", dataIndex: 'tenChucDanh' },
+  { title: "SL", dataIndex: 'soLuongDeXuat' },
+  { title: 'Ngày lập', dataIndex: 'ngayLap', render: (date: string) => dayjs(date).format("DD/MM/YYYY") },
+  {
+    title: 'Trạng thái', 
+    dataIndex: 'trangThai', 
+    key: 'trangThai',
+    render: (status: number) => {
+      const config = status === 2 
+        ? { color: 'green', text: 'Hoàn thành' } 
+        : status === 0 
+        ? { color: 'red', text: 'Từ chối' } 
+        : { color: 'blue', text: 'Đang thực hiện' };
+      return <Tag color={config.color}>{config.text}</Tag>;
+    }
+  },
+];
+  if (loading) return (
+    <div className="flex justify-center items-center h-screen">
+      <Spin tip="Đang tải dữ liệu..." size="large" />
+    </div>
+  );
   return (
     <div className="p-6 space-y-6 bg-[#F8FAFC] min-h-screen">
       {/* Header & Greeting */}
@@ -124,37 +92,28 @@ export const VCQLDashboard: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card className="shadow-sm rounded-xl border-none hover:shadow-md transition-shadow">
             <Statistic 
-              title={<span className="text-slate-500 font-medium">Tổng viên chức đơn vị</span>}
-              value={45} 
-              prefix={<UserOutlined className="p-2 bg-blue-50 text-blue-500 rounded-lg mr-2" />}
+              title="Phiếu chủ trương"
+              value={PCTColumns.length}
+              prefix={<BarChartOutlined className="p-2 bg-blue-50 text-blue-500 rounded-lg mr-2" />} 
+              />
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="shadow-sm rounded-xl border-none hover:shadow-md transition-shadow">
+            <Statistic 
+              title="Phiếu đề xuất" 
+              value={danhSachPDX.length} 
+              prefix={<FileTextOutlined className="p-2 bg-green-50 text-green-500 rounded-lg mr-2" />} 
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="shadow-sm rounded-xl border-none hover:shadow-md transition-shadow">
+          <Card className="shadow-sm rounded-xl border-none">
             <Statistic 
-              title={<span className="text-slate-500 font-medium">Đang làm việc</span>}
-              value={42} 
-              prefix={<CheckCircleOutlined className="p-2 bg-green-50 text-green-500 rounded-lg mr-2" />}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="shadow-sm rounded-xl border-none hover:shadow-md transition-shadow">
-            <Statistic 
-              title={<span className="text-slate-500 font-medium">Tạm nghỉ / Vắng mặt</span>}
-              value={3} 
-              prefix={<ClockCircleOutlined className="p-2 bg-amber-50 text-amber-500 rounded-lg mr-2" />}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="shadow-sm rounded-xl border-none hover:shadow-md transition-shadow">
-            <Statistic 
-              title={<span className="text-slate-500 font-medium">Hồ sơ cần xem xét</span>}
-              value={5} 
-              prefix={<ExclamationCircleOutlined className="p-2 bg-red-50 text-red-500 rounded-lg mr-2" />}
-              valueStyle={{ color: '#dc2626' }}
+              title="Phương án nhân sự" 
+              value={phuongAnNhanSu.length} 
+              prefix={<TeamOutlined className="p-2 bg-purple-50 text-purple-500 rounded-lg mr-2" />} 
             />
           </Card>
         </Col>
@@ -162,48 +121,40 @@ export const VCQLDashboard: React.FC = () => {
 
       {/* Hàng 3: Bảng quản lý chi tiết */}
       <Row gutter={[16, 16]}>
+        {/* Table 1: Danh sách phiếu đề xuất */}
         <Col lg={12} span={24}>
           <Card 
-            title={<span className="flex items-center gap-2"><TeamOutlined /> Danh sách viên chức</span>}
+            title={<span className="flex items-center gap-2"><FileTextOutlined /> Phiếu đề xuất gần đây</span>}
             className="shadow-sm rounded-xl border-none h-full"
-            extra={
-              <Button type="link" size="small" icon={<RightOutlined />}>
-                Xem tất cả
-              </Button>
-            }
+            extra={<Button type="link" size="small" onClick={()=> navigate('/phieu-de-xuat')}>Tất cả</Button>}
           >
             <Table
-              dataSource={mockStaffData}
-              columns={staffColumns}
+              dataSource={danhSachPDX.slice(0, 5)} // Chỉ hiện 5 cái mới nhất
+              columns={PDXColums}
               pagination={false}
-              size="middle"
-              className="mt-2"
+              rowKey="id"
             />
           </Card>
         </Col>
+
         <Col lg={12} span={24}>
           <Card 
-            title={<span className="flex items-center gap-2"><BarChartOutlined /> Quy hoạch đang thực hiện</span>}
+            title={<span className="flex items-center gap-2"><BarChartOutlined /> Danh sách phiếu chủ trương</span>}
             className="shadow-sm rounded-xl border-none h-full"
-            extra={
-              <Button type="primary" size="small">
-                Quản lý
-              </Button>
-            }
+            extra={<Button type="primary" size="small"onClick={() => navigate('/phieu-chu-truong')}>Quản lý</Button>}
           >
             <Table
-              dataSource={mockPlanningData}
-              columns={planningColumns}
+              dataSource={danhSachPCT.slice(0, 5)}
+              columns={PCTColumns}
               pagination={false}
-              size="middle"
-              className="mt-2"
+              rowKey="id"
             />
           </Card>
         </Col>
       </Row>
 
       {/* Hàng 4: Hành động nhanh */}
-      <Card 
+      {/* <Card 
         title={<span className="text-slate-700 font-bold">Hành động quản lý nhanh</span>} 
         className="shadow-sm rounded-xl border-none"
       >
@@ -233,7 +184,7 @@ export const VCQLDashboard: React.FC = () => {
             </Button>
           </Col>
         </Row>
-      </Card>
+      </Card> */}
     </div>
   );
 };

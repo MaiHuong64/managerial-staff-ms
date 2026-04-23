@@ -39,7 +39,6 @@ export interface ChiTietQuyHoach {
     trangThai: number;
 }
 
-// 1. Đổi từ QHCandidate -> UngVienQuyHoach
 export interface UngVienQuyHoach {
     chiTietQHId: number; 
     maVienChuc: string;
@@ -49,14 +48,12 @@ export interface UngVienQuyHoach {
     buocHienTai: number;
 }
 
-// 2. Đổi từ CandidateVoteInput -> DuLieuBauUngVien
 export interface DuLieuBauUngVien {
     chiTietQHId: number;
     soPhieuDongY: number;
     soPhieuKhongDongY: number;
 }
 
-// 3. Đổi từ VoteQHPayload -> DuLieuKetQuaHoiNghi
 export interface DuLieuKetQuaHoiNghi {
     dotQHId: number;
     buocHoiNghi: number;
@@ -65,5 +62,5 @@ export interface DuLieuKetQuaHoiNghi {
     soPhieuPhatRa: number;
     soPhieuThuVe: number;
     soPhieuHopLe: number;
-    ketQuaUngVien: DuLieuBauUngVien[]; // Đã cập nhật theo tên Interface mới
+    ketQuaUngVien: DuLieuBauUngVien[];
 }
