@@ -6,7 +6,6 @@ import {
     FileTextOutlined, TeamOutlined, UserOutlined,
     SendOutlined, PlusOutlined, FileSearchOutlined
 } from '@ant-design/icons';
-import axiosClient from '../../utils/AxiosClient';
 import { useAuth } from '../../hook/useAuth';
 import dayjs from 'dayjs';
 import { approvePhuongAn, getPhuongAnById, rejectPhuongAn, submitPhuongAn } from '../../api/phuongAnNhanSu.api';

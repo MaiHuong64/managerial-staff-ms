@@ -290,6 +290,7 @@
         ngay_co_hieu_luc DATE,
         thoi_han SMALLINT,
         loai_bo_nhiem VARCHAR(100),
+        nguoi_phe_duyet VARCHAR(255),
         ho_so_bn_id INT NOT NULL UNIQUE,
         CONSTRAINT fk_qd_hs FOREIGN KEY (ho_so_bn_id) REFERENCES ho_so_bo_nhiem(id)
     );

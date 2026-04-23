@@ -94,30 +94,30 @@ const ProfilePage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Section title="Thông tin cá nhân">
                         <div className="grid grid-cols-2 gap-2">
-                            <Field icon={<CalendarOutlined />} label="Ngày sinh" value={format(profile.ngay_sinh)} />
-                            <Field icon={<UserOutlined />} label="Giới tính" value={profile.gioi_tinh === 1 ? 'Nam' : 'Nữ'} />
-                            <Field icon={<IdcardOutlined />} label="Số CCCD" value={profile.so_cccd} />
-                            <Field icon={<PhoneOutlined />} label="Điện thoại" value={profile.so_dien_thoai} />
+                            <Field icon={<CalendarOutlined />} label="Ngày sinh" value={format(profile.ngaySinh)} />
+                            <Field icon={<UserOutlined />} label="Giới tính" value={profile.gioiTinh === 1 ? 'Nam' : 'Nữ'} />
+                            <Field icon={<IdcardOutlined />} label="Số CCCD" value={profile.soCccd} />
+                            <Field icon={<PhoneOutlined />} label="Điện thoại" value={profile.soDienThoai} />
                             <div className="col-span-2">
                                 <Field icon={<MailOutlined />} label="Email công vụ" value={profile.email} />
                             </div>
                             <Divider className="col-span-2 my-2 opacity-50" />
-                            <Field label="Ngày kết nạp ĐV" value={format(profile.ngay_ket_nap)} />
-                            <Field label="Ngày chính thức" value={format(profile.ngay_chinh_thuc)} />
+                            <Field label="Ngày kết nạp ĐV" value={format(profile.ngayKetNap)} />
+                            <Field label="Ngày chính thức" value={format(profile.ngayChinhThuc)} />
                         </div>
                     </Section>
 
                     <Section title="Trình độ & Chuyên môn">
                         <div className="grid grid-cols-2 gap-2">
                             <div className="col-span-2 bg-indigo-50/30 rounded-xl mb-2">
-                                <Field label="Chuyên môn cao nhất" value={profile.trinh_do_chuyen_mon} />
+                                <Field label="Chuyên môn cao nhất" value={profile.trinhDoChuyenMon} />
                             </div>
-                            <Field label="Chuyên ngành" value={profile.chuyen_nganh} />
-                            <Field label="Năm tốt nghiệp" value={profile.nam_tot_nghiep} />
-                            <Field label="Lý luận chính trị" value={profile.trinh_do_ly_luan_CT} />
-                            <Field label="Ngoại ngữ" value={profile.trinh_do_ngoai_ngu} />
+                            <Field label="Chuyên ngành" value={profile.chuyenNganh} />
+                            <Field label="Năm tốt nghiệp" value={profile.namTotNghiep} />
+                            <Field label="Lý luận chính trị" value={profile.trinhDoLyLuanCt} />
+                            <Field label="Ngoại ngữ" value={profile.trinhDoNgoaiNgu} />
                             <div className="col-span-2">
-                                <Field label="Trình độ Tin học" value={profile.trinh_do_tin_hoc} />
+                                <Field label="Trình độ Tin học" value={profile.trinhDoTinHoc} />
                             </div>
                         </div>
                     </Section>

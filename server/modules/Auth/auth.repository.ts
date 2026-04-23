@@ -4,12 +4,11 @@ import { mapToCamel } from "../../utils/mapper";
 export const AuthRepository = {
     findByUsername: async (username: string) => {
         const query = `
-            SELECT v.id, t.ten_dang_nhap, t.mat_khau, t.vai_tro,
-                   v.don_vi_id, v.ho_va_ten
+            SELECT t.id, t.ten_dang_nhap, t.mat_khau, t.vai_tro,  -- ← t.id thay vì v.id
+               v.don_vi_id, v.ho_va_ten
             FROM tai_khoan t
             JOIN vien_chuc v ON v.ma_vien_chuc = t.ten_dang_nhap
-            WHERE t.ten_dang_nhap = $1
-        `;
+            WHERE t.ten_dang_nhap = $1`;
         const result = await pool.query(query, [username]);
         return mapToCamel<any>(result.rows[0]);
     },

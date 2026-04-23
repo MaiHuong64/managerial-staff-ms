@@ -13,7 +13,6 @@ import {
     getVienChucByDonVi,
 } from "./vienChuc.repository";
 
-// Whitelist các field được phép cập nhật để tránh SQL injection
 const ALLOWED_UPDATE_FIELDS = new Set<string>([
     "ho_va_ten", "gioi_tinh", "ngay_sinh", "dan_toc",
     "so_dien_thoai", "email", "dia_chi",
@@ -34,7 +33,7 @@ export const getStaffById = async (id: number) => {
 
 export const getProfile = async (uid: number): Promise<StaffProfileResult> => {
     const data = await findProfileData(uid);
-    if (!data.profile) throw new Error("Không tìm thấy hồ sơ viên chức");
+    if (!data || !data.profile) throw new Error("Không tìm thấy hồ sơ viên chức");
     return data as StaffProfileResult;
 };
 
@@ -43,11 +42,11 @@ export const createStaff = async (data: CreateStaffDTO) => {
     try {
         await client.query("BEGIN");
 
-        const ma_vien_chuc = await getNextStaffCode(client);
-        const newStaff = await insertVienChuc(client, ma_vien_chuc, data);
+        const maVienChuc = await getNextStaffCode(client);
+        const newStaff = await insertVienChuc(client, maVienChuc, data);
 
         const mat_khau = await bcrypt.hash("123456", 10);
-        await insertTaiKhoan(client, ma_vien_chuc, mat_khau, newStaff.id);
+        await insertTaiKhoan(client, maVienChuc, mat_khau, newStaff.id);
 
         await client.query("COMMIT");
         return newStaff;
