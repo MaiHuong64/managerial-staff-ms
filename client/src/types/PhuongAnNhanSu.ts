@@ -5,6 +5,7 @@ export interface PhuongAnNhanSu {
     ngayToTrinh: string;
     ngayLap: string;
     ngayPheDuyet: string;
+    soUngVien: string;
     trangThai: number;
     ghiChu: string;
     yKienBGH: string;

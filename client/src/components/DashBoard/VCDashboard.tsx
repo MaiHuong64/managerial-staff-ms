@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Col, Row, Statistic, List, Avatar, Button } from 'antd';
 import {
   UserOutlined,
@@ -9,6 +9,8 @@ import {
   RightOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../hook/useAuth';
+import type { profile } from '../../types/profile';
+import { getProfile } from '../../api/vienChuc.api';
 
 // Định nghĩa Interface cho dữ liệu
 interface NotificationItem {
@@ -20,15 +22,25 @@ interface NotificationItem {
 
 export const VCDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [profile, setProfile] = useState<profile | null>(null);
 
+  useEffect(()=>{
+    getProfile().then(res => setProfile(res.data.data.profile)).catch(console.error);
+  }, []);
+
+  if(!profile) return (
+    <div className="flex justify-center items-center h-screen text-gray-400 italic font-light">
+      Đang tải dữ liệu hồ sơ...
+    </div>
+  )
   // Mock profile data (sẽ lấy từ API sau)
-  const userProfile = {
-    ma_vien_chuc: 'VC001',
-    don_vi: 'Phòng Tổ chức cán bộ',
-    chuc_danh: 'Chuyên viên chính',
-    trang_thai_hoc_ham: 'Cao học lý chính trị',
-    ngay_sinh: '15/02/1985',
-  };
+  // const userProfile = {
+  //   ma_vien_chuc: 'VC001',
+  //   don_vi: 'Phòng Tổ chức cán bộ',
+  //   chuc_danh: 'Chuyên viên chính',
+  //   trang_thai_hoc_ham: 'Cao học lý chính trị',
+  //   ngay_sinh: '15/02/1985',
+  // };
 
   const mockNotifications: NotificationItem[] = [
     { id: 1, title: 'Hồ sơ của bạn đã được cập nhật', time: '2 giờ trước', type: 'success' },
@@ -59,25 +71,25 @@ export const VCDashboard: React.FC = () => {
           <Col xs={24} md={6} className="text-center border-r border-slate-100">
             <Avatar size={100} icon={<UserOutlined />} className="mb-4 bg-blue-50 text-blue-500 shadow-inner" />
             <h3 className="text-lg font-bold text-slate-800 m-0">{user?.hoVaTen || 'Viên chức'}</h3>
-            <p className="text-slate-500 font-medium">{userProfile.ma_vien_chuc}</p>
+            <p className="text-slate-500 font-medium">{profile.maVienChuc}</p>
           </Col>
           <Col xs={24} md={18}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12 p-2">
               <div>
                 <p className="text-[12px] uppercase tracking-wider text-slate-400 font-bold mb-1">Đơn vị</p>
-                <p className="text-[15px] font-semibold text-slate-700">{userProfile.don_vi}</p>
+                <p className="text-[15px] font-semibold text-slate-700">{profile.tenDonVi}</p>
               </div>
               <div>
                 <p className="text-[12px] uppercase tracking-wider text-slate-400 font-bold mb-1">Chức danh</p>
-                <p className="text-[15px] font-semibold text-slate-700">{userProfile.chuc_danh}</p>
+                <p className="text-[15px] font-semibold text-slate-700">{profile.tenChucDanh}</p>
               </div>
               <div>
                 <p className="text-[12px] uppercase tracking-wider text-slate-400 font-bold mb-1">Trình độ</p>
-                <p className="text-[15px] font-semibold text-slate-700">{userProfile.trang_thai_hoc_ham}</p>
+                <p className="text-[15px] font-semibold text-slate-700">{profile.ngach}</p>
               </div>
               <div>
                 <p className="text-[12px] uppercase tracking-wider text-slate-400 font-bold mb-1">Ngày sinh</p>
-                <p className="text-[15px] font-semibold text-slate-700">{userProfile.ngay_sinh}</p>
+                <p className="text-[15px] font-semibold text-slate-700">{profile.ngaySinh}</p>
               </div>
             </div>
           </Col>
@@ -141,42 +153,12 @@ export const VCDashboard: React.FC = () => {
         <Col xs={24} lg={12}>
           <Card 
             title={<span className="text-slate-700 font-bold">Hành động nhanh</span>} 
-            className="shadow-sm rounded-xl border-none h-full min-h-100"
-          >
+            className="shadow-sm rounded-xl border-none h-full min-h-100">
             <div className="flex flex-col gap-4 py-2">
-              <Button 
-                type="primary" 
-                size="large" 
-                block 
-                className="h-14 rounded-xl font-bold shadow-blue-100 shadow-lg flex items-center justify-center"
-                icon={<UserOutlined />}
-              >
-                Xem hồ sơ cá nhân
-              </Button>
-              <Button 
-                size="large" 
-                block 
-                className="h-14 rounded-xl font-semibold border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center"
-                icon={<TrophyOutlined className="text-green-500" />}
-              >
-                Xem quy hoạch
-              </Button>
-              <Button 
-                size="large" 
-                block 
-                className="h-14 rounded-xl font-semibold border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center"
-                icon={<CalendarOutlined className="text-purple-500" />}
-              >
-                Xem lịch công tác
-              </Button>
-              <Button 
-                size="large" 
-                block 
-                className="h-14 rounded-xl font-semibold border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center"
-                icon={<FileTextOutlined className="text-orange-500" />}
-              >
-                Nộp hồ sơ mới
-              </Button>
+              <Button type="primary" size="large" block className="h-14 rounded-xl font-bold shadow-blue-100 shadow-lg flex items-center justify-center"icon={<UserOutlined />}>Xem hồ sơ cá nhân</Button>
+              <Button size="large" block className="h-14 rounded-xl font-semibold border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center"icon={<TrophyOutlined className="text-green-500" />}>Xem quy hoạch</Button>
+              <Button size="large" block className="h-14 rounded-xl font-semibold border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center"icon={<CalendarOutlined className="text-purple-500" />}>Xem lịch công tác</Button>
+              <Button size="large" block className="h-14 rounded-xl font-semibold border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center"icon={<FileTextOutlined className="text-orange-500" />}>Nộp hồ sơ mới</Button>
             </div>
           </Card>
         </Col>

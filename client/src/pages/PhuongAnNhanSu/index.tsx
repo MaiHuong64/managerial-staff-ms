@@ -60,7 +60,7 @@ const PersonnelProposalPage: React.FC = () => {
                 : '—',
         },
         {
-            title: 'Nhân sự', dataIndex: 'soNhanSu', key: 'soNhanSu', width: 100,
+            title: 'Nhân sự', dataIndex: 'soUngVien', key: 'soUngVien', width: 100,
             render: (n: number) => <Tag color="blue">{n ?? 0} người</Tag>,
         },
         {

@@ -28,7 +28,8 @@
                 tenDangNhap: user.tenDangNhap,
                 vaiTro: user.vaiTro,
                 donViId: user.donViId,
-                hoVaTen: user.hoVaTen
+                hoVaTen: user.hoVaTen,
+                vienChucId: user.vienChucId,
             };
             const token = jwt.sign(
                 userPayload,
