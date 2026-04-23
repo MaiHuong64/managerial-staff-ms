@@ -21,10 +21,16 @@ const HoSoBoNhiemDetailPage = () => {
 
     const [data, setData] = useState<HoSo | null>(null);
     const [loading, setLoading] = useState(true);
+    
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
+    const [decisonModalOpen, setDecisonModalOpen] = useState(false);
+
     const [uploading, setUploading] = useState(false);
+    // const []
     const [completing, setCompleting] = useState(false);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+
+
     const [form] = Form.useForm();
     const fileRef = useRef<File | null>(null);
 
@@ -98,6 +104,14 @@ const HoSoBoNhiemDetailPage = () => {
             setCompleting(false);
         }
     };
+    
+    // const handleDecision = async () => {
+    //     try {
+    //         await 
+    //     } catch (error) {
+            
+    //     }
+    // }
 
     if (loading) return <div className="flex justify-center items-center h-64"><Spin size="large" tip="Đang tải hồ sơ..." /></div>;
     if (!data) return <div className="text-center mt-10 text-red-500">Không tìm thấy hồ sơ!</div>;
@@ -160,6 +174,9 @@ const HoSoBoNhiemDetailPage = () => {
                             </Button>
                         </Tooltip>
                     </Popconfirm>
+                )}
+                {isDone && data.trangThai !== 3 &&(
+                    <Button type="primary" icon={<CheckCircleOutlined/>}>Lập quyết định bổ nhiệm</Button>
                 )}
             </div>
 
