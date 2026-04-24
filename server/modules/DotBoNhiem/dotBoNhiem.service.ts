@@ -41,6 +41,9 @@ export const createAppointmentBatch = async (payload: CreateAppointmentBatchDTO)
         for (const pctId of payload.phieuChuTruong) {
             const chiTiet = await insertAppointmentDetail(client, dotBoNhiem.id, pctId);
             const ungVien = await getCandidatesFromQH(pctId);
+            console.log(`phieuChuTruongId: ${pctId}`);
+             console.log(`ungVien found: ${ungVien.length}`, ungVien);
+    
             for (const uv of ungVien as UngVienQuyHoach[]) {
                 await insertCandidateFromQH(client, chiTiet.id, uv.id, uv.vienChucId);
             }

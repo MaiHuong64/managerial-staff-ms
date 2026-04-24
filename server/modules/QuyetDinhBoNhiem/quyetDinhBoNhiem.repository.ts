@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import pool from "../../config/db";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
 // Lưu ý: Đảm bảo CreateQDBoNhiemDTO đã có trường chucVu
@@ -54,19 +55,20 @@ export const handleNhiemKy = async (client: any, ngayKetThucCu: Date, lyDo: stri
     );
 }
 
-export const insertNhiemKy = async (client: any, vienChucId: number, chucDanhId: number, ngayHieuLuc: Date, qdBNId: number) => {
+export const insertNhiemKy = async (client: any, vienChucId: number, chucDanhId: number, ngayHieuLuc: Date, thoiHan: number, qdBNId: number) => {
+    const ngayKetThuc = dayjs(ngayHieuLuc).add(thoiHan, 'month').toDate();
     await client.query(
-        `INSERT INTO nhiem_ky_chuc_vu (vien_chuc_id, chuc_danh_id, ngay_bat_dau, trang_thai, qd_bo_nhiem_id)
-         VALUES ($1, $2, $3, 1, $4)`,
-        [vienChucId, chucDanhId, ngayHieuLuc, qdBNId]
+        `INSERT INTO nhiem_ky_chuc_vu (vien_chuc_id, chuc_danh_id, ngay_bat_dau, ngay_ket_thuc, trang_thai, qd_bo_nhiem_id)
+         VALUES ($1, $2, $3, $4, 1, $5)`,
+        [vienChucId, chucDanhId, ngayHieuLuc, ngayKetThuc, qdBNId]
     );
 }
 
 export const getDetail = async (id: number) => {
     const result = await pool.query(
-        `SELECT 
-            qd.id, qd.ma_bo_nhiem, qd.so_quyet_dinh, qd.ngay_quyet_dinh, 
-            qd.ngay_co_hieu_luc, qd.thoi_han, qd.loai_bo_nhiem, 
+        `SELECT
+            qd.id, qd.ma_bo_nhiem, qd.so_quyet_dinh, qd.ngay_quyet_dinh,
+            qd.ngay_co_hieu_luc, qd.thoi_han, qd.loai_bo_nhiem,
             qd.chuc_vu, qd.nguoi_phe_duyet,
             vc.id AS vien_chuc_id, vc.ho_va_ten, vc.ma_vien_chuc,
             cd.id AS chuc_danh_id, cd.ten_chuc_danh,
@@ -86,4 +88,25 @@ export const getDetail = async (id: number) => {
         WHERE qd.id = $1`, [id]
     );
     return mapArrayToCamel(result.rows);
+}
+
+export const getHoSoInfoForQD = async (hoSoId: number) => {
+    const result = await pool.query(
+        `SELECT
+            vc.id AS vien_chuc_id, vc.ho_va_ten, vc.ma_vien_chuc,
+            cd.id AS chuc_danh_id, cd.ten_chuc_danh, cd.thoi_han_giu_chuc_vu,
+            dv.ten_don_vi,
+            ctpa.loai_phuong_an
+        FROM ho_so_bo_nhiem hsbn
+        JOIN chi_tiet_phuong_an ctpa ON hsbn.chi_tiet_pa_id = ctpa.id
+        JOIN chi_tiet_bo_nhiem ctbn ON ctbn.id = ctpa.chi_tiet_bn_id
+        JOIN vien_chuc vc ON vc.id = ctbn.vien_chuc_id
+        JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
+        JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
+        JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+        JOIN don_vi dv ON dv.id = vc.don_vi_id
+        WHERE hsbn.id = $1`,
+        [hoSoId]
+    );
+    return mapToCamel(result.rows[0]);
 }
