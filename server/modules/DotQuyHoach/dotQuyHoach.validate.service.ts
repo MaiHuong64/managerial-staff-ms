@@ -82,7 +82,9 @@ const processStep5 = async (client: any, data: KetQuaHoiNghiQH) => {
         const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH.HoanThanh : 0
         await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
         
-        if(ketQua === KetQuaPhieuBauQH.KhongDat)
+        if(ketQua === KetQuaPhieuBauQH.Dat)
+            await updateStatusCandidate(client, uv.chiTietQHId, 1)
+        else
             await updateStatusCandidate(client, uv.chiTietQHId, 0);
     }
 };

@@ -1,6 +1,6 @@
 import pool from "../../config/db";
-import { AddPlanningBatchDetailDTO, CreatePlanningBatchDTO } from "./dotQuyHoach.dto";
-import { filterCandidates, getAllPlanning, getCandidatesByChucDanhId, getDetail, getPlanningById, insertPlanningBatch, insertPlanningDetail, copyChiTietFromDotGoc, getPlanningRoot } from "./dotQuyHoach.repository";
+import { AddPlanningBatchDetailDTO, ApprovalDecisionDTO, CreatePlanningBatchDTO } from "./dotQuyHoach.dto";
+import { filterCandidates, getAllPlanning, getCandidatesByChucDanhId, getDetail, getPlanningById, insertPlanningBatch, insertPlanningDetail, copyChiTietFromDotGoc, getPlanningRoot, updateApprovalDecision } from "./dotQuyHoach.repository";
 
 export const fetchAllPlanning = async () => {
     const data = await getAllPlanning();
@@ -57,5 +57,19 @@ export const fetchCandidatesForChucDanh  = async (chucDanhId: number) => {
 }
 export const filterPlanningCandidates = async (donViId: number, trinhDoChuyenMon: string, dotQuyHoachId: number) => {
     const result = await filterCandidates(donViId, trinhDoChuyenMon, dotQuyHoachId);
+    return result;
+}
+
+export const approvePlanningBatch = async (dotQuyHoachId: number, payload: ApprovalDecisionDTO) => {
+    const planning = await getPlanningById(dotQuyHoachId);
+    if (!planning) {
+        throw new Error(`Không tìm thấy đợt quy hoạch với id: ${dotQuyHoachId}`);
+    }
+    
+    if (planning.trangThai !== 1) {
+        throw new Error("Chỉ có thể phê duyệt đợt quy hoạch đã hoàn thành");
+    }
+
+    const result = await updateApprovalDecision(dotQuyHoachId, payload.soQdPheDuyet, payload.ngayQdPheDuyet);
     return result;
 }

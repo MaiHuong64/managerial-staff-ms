@@ -1,5 +1,5 @@
-import React from 'react';
-import { Table, Tabs, Tag, Progress } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Table, Tabs, Tag, Progress, Spin } from 'antd';
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
@@ -11,69 +11,67 @@ import {
   CheckSquareOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../hook/useAuth';
-
-// --- DỮ LIỆU MẪU ---
-const mockPendingApprovals = [
-  { key: '1', loai: 'Quy hoạch', ten: 'Quy hoạch cán bộ Q1/2024', nguoi_tao: 'Trần Thị B', ngay_tao: '15/03/2024', trang_thai: 'Chờ duyệt' },
-  { key: '2', loai: 'Bổ nhiệm', ten: 'Bổ nhiệm chuyên viên chính', nguoi_tao: 'Nguyễn Văn A', ngay_tao: '14/03/2024', trang_thai: 'Chờ duyệt' },
-  { key: '3', loai: 'Quy hoạch', ten: 'Quy hoạch luân chuyển', nguoi_tao: 'Lê Văn C', ngay_tao: '13/03/2024', trang_thai: 'Chờ duyệt' },
-];
-
-const mockStatistics = [
-  { key: '1', chi_tieu: 'Tổng quy hoạch', gia_tri: 15, da_duyet: 12, cho_duyet: 3 },
-  { key: '2', chi_tieu: 'Tổng bổ nhiệm', gia_tri: 8, da_duyet: 6, cho_duyet: 2 },
-  { key: '3', chi_tieu: 'Tổng luân chuyển', gia_tri: 5, da_duyet: 4, cho_duyet: 1 },
-];
+import { getBGHDashboard } from '../../api/dashboard.api';
 
 export const BGHDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+  const [statistics, setStatistics] = useState({
+    choDuyet: 0,
+    daDuyetHomNay: 0,
+    canXemXet: 0,
+    tyLeDuyet: 0
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getBGHDashboard();
+        setPendingApprovals(res.data.data.pendingApprovals);
+        setStatistics(res.data.data.statistics);
+      } catch (error) {
+        console.error('Lỗi tải dashboard:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // --- COLUMNS ---
   const approvalColumns = [
-    { title: 'Loại', dataIndex: 'loai', key: 'loai', className: 'font-medium text-slate-600' },
-    { title: 'Tên', dataIndex: 'ten', key: 'ten', className: 'font-semibold text-slate-800' },
-    { title: 'Người tạo', dataIndex: 'nguoi_tao', key: 'nguoi_tao' },
-    { title: 'Ngày tạo', dataIndex: 'ngay_tao', key: 'ngay_tao' },
+    { title: 'Mã phương án', dataIndex: 'maPhuongAn', key: 'maPhuongAn', className: 'font-semibold text-slate-800' },
+    { title: 'Số tờ trình', dataIndex: 'soToTrinh', key: 'soToTrinh' },
+    { title: 'Ngày lập', dataIndex: 'ngayTao', key: 'ngayTao', render: (date: string) => date ? new Date(date).toLocaleDateString('vi-VN') : '-' },
+    { title: 'Số ứng viên', dataIndex: 'soLuongUngVien', key: 'soLuongUngVien' },
     {
-      title: 'Trạng thái', dataIndex: 'trang_thai', key: 'trang_thai',
-      render: (status: string) => (
-        <Tag color="orange" className="rounded-md font-semibold">{status}</Tag>
+      title: 'Trạng thái', dataIndex: 'trangThai', key: 'trangThai',
+      render: (status: number) => (
+        <Tag color="orange" className="rounded-md font-semibold">
+          {status === 1 ? 'Chờ duyệt' : 'Đã duyệt'}
+        </Tag>
       )
     },
     {
       title: 'Thao tác', key: 'action',
-      render: () => (
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-[13px] font-medium transition-colors shadow-sm">
+      render: (_: any, record: any) => (
+        <button
+          onClick={() => window.location.href = `/phuong-an-nhan-su/${record.id}`}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-[13px] font-medium transition-colors shadow-sm">
           Duyệt ngay
         </button>
       )
     },
   ];
 
-  const statisticsColumns = [
-    { title: 'Chỉ tiêu', dataIndex: 'chi_tieu', key: 'chi_tieu', className: 'font-semibold text-slate-800' },
-    { title: 'Tổng', dataIndex: 'gia_tri', key: 'gia_tri', className: 'font-medium text-slate-600' },
-    {
-      title: 'Đã duyệt', dataIndex: 'da_duyet', key: 'da_duyet',
-      render: (val: number) => <span className="text-green-600 font-bold">{val}</span>
-    },
-    {
-      title: 'Chờ duyệt', dataIndex: 'cho_duyet', key: 'cho_duyet',
-      render: (val: number) => <span className="text-amber-600 font-bold">{val}</span>
-    },
-    {
-      title: 'Tiến độ', key: 'tien_do',
-      render: (_: unknown, record: { da_duyet: number; gia_tri: number }) => {
-        const percent = Math.round((record.da_duyet / record.gia_tri) * 100);
-        return (
-          <div className="flex items-center gap-3">
-            <Progress percent={percent} size="small" className="w-32 m-0" status="active" />
-            <span className="text-[13px] font-bold text-slate-600">{percent}%</span>
-          </div>
-        );
-      }
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" tip="Đang tải dashboard..." />
+      </div>
+    );
+  }
 
   const tabItems = [
     {
@@ -81,12 +79,12 @@ export const BGHDashboard: React.FC = () => {
       label: (
         <span>
           Chờ duyệt
-          <Tag color="red" className="ml-2 rounded-full text-[10px] px-1.5">6</Tag>
+          <Tag color="red" className="ml-2 rounded-full text-[10px] px-1.5">{statistics.choDuyet}</Tag>
         </span>
       ),
       children: (
         <div className="pb-4">
-          <Table dataSource={mockPendingApprovals} columns={approvalColumns} pagination={false} size="middle" />
+          <Table dataSource={pendingApprovals} columns={approvalColumns} pagination={false} size="middle" rowKey="id" />
         </div>
       ),
     },
@@ -95,7 +93,7 @@ export const BGHDashboard: React.FC = () => {
       label: 'Thống kê',
       children: (
         <div className="pb-4">
-          <Table dataSource={mockStatistics} columns={statisticsColumns} pagination={false} size="middle" />
+          <div className="text-center py-8 text-slate-500">Thống kê chi tiết đang được phát triển</div>
         </div>
       ),
     },
@@ -159,10 +157,10 @@ export const BGHDashboard: React.FC = () => {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-5">
         {[
-          { title: 'Chờ duyệt', value: 6, icon: <ClockCircleOutlined />, color: 'text-amber-500', bg: 'bg-amber-50', valueColor: 'text-amber-500' },
-          { title: 'Đã duyệt hôm nay', value: 8, icon: <CheckCircleOutlined />, color: 'text-green-600', bg: 'bg-green-50', valueColor: 'text-green-600' },
-          { title: 'Cần xem xét', value: 3, icon: <ExclamationCircleOutlined />, color: 'text-red-600', bg: 'bg-red-50', valueColor: 'text-red-600' },
-          { title: 'Tỷ lệ duyệt', value: '85%', icon: <BarChartOutlined />, color: 'text-blue-600', bg: 'bg-blue-50', valueColor: 'text-blue-600' },
+          { title: 'Chờ duyệt', value: statistics.choDuyet, icon: <ClockCircleOutlined />, color: 'text-amber-500', bg: 'bg-amber-50', valueColor: 'text-amber-500' },
+          { title: 'Đã duyệt hôm nay', value: statistics.daDuyetHomNay, icon: <CheckCircleOutlined />, color: 'text-green-600', bg: 'bg-green-50', valueColor: 'text-green-600' },
+          { title: 'Cần xem xét', value: statistics.canXemXet, icon: <ExclamationCircleOutlined />, color: 'text-red-600', bg: 'bg-red-50', valueColor: 'text-red-600' },
+          { title: 'Tỷ lệ duyệt', value: `${statistics.tyLeDuyet}%`, icon: <BarChartOutlined />, color: 'text-blue-600', bg: 'bg-blue-50', valueColor: 'text-blue-600' },
         ].map((item, index) => (
           <div key={index} className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-2 mb-3">

@@ -1,37 +1,47 @@
-import React from 'react';
-import { Table, Tabs, Tag, Progress } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Table, Tabs, Tag, Progress, Spin } from 'antd';
 import {
   TeamOutlined, FileTextOutlined,
   TagsOutlined, BuildOutlined,
   BarChartOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../hook/useAuth';
-
-// --- MOCK DATA ---
-const mockSystemStats = [
-  { key: '1', chi_tieu: 'Tổng viên chức', gia_tri: 1250, tang_truong: '+5.2%', chi_tieu_cong: 1188 },
-  { key: '2', chi_tieu: 'Tổng đơn vị', gia_tri: 25, tang_truong: '+2.1%', chi_tieu_cong: 24 },
-  { key: '3', chi_tieu: 'Tổng chức danh', gia_tri: 45, tang_truong: '+3.4%', chi_tieu_cong: 43 },
-];
+import { getPTCCTDashboard } from '../../api/dashboard.api';
 
 export const PTCCTDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [systemStats, setSystemStats] = useState({
+    tongVienChuc: 0,
+    tongDonVi: 0,
+    tongChucDanh: 0,
+    dotQuyHoachDangHoatDong: 0,
+    dotBoNhiemDangHoatDong: 0
+  });
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
 
-  // --- COLUMNS CHO BẢNG ---
-  const systemStatsColumns = [
-    { title: 'Chỉ tiêu', dataIndex: 'chi_tieu', key: 'chi_tieu', className: 'font-medium text-slate-800' },
-    { title: 'Giá trị', dataIndex: 'gia_tri', key: 'gia_tri', className: 'text-slate-800 font-medium' },
-    {
-      title: 'Tăng trưởng',
-      dataIndex: 'tang_truong',
-      key: 'tang_truong',
-      render: (value: string) => (
-        <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${value.startsWith('+') ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'}`}>
-          {value}
-        </span>
-      ),
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getPTCCTDashboard();
+        setSystemStats(res.data.data.systemStats);
+        setRecentActivities(res.data.data.recentActivities);
+      } catch (error) {
+        console.error('Lỗi tải dashboard:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" tip="Đang tải dashboard..." />
+      </div>
+    );
+  }
 
   const activityColumns = [
     { title: 'Thời gian', dataIndex: 'thoi_gian', key: 'thoi_gian', className: 'text-slate-500' },
@@ -78,7 +88,7 @@ export const PTCCTDashboard: React.FC = () => {
       label: 'Tổng quan hệ thống',
       children: (
         <div className="pb-4">
-          <Table dataSource={mockSystemStats} columns={systemStatsColumns} pagination={false} size="middle" />
+          <div className="text-center py-8 text-slate-500">Thống kê chi tiết đang được phát triển</div>
         </div>
       ),
     },
@@ -87,7 +97,7 @@ export const PTCCTDashboard: React.FC = () => {
       label: 'Hoạt động gần đây',
       children: (
         <div className="pb-4">
-          <Table dataSource={[]} columns={activityColumns} pagination={false} size="middle" />
+          <Table dataSource={recentActivities} columns={activityColumns} pagination={false} size="middle" rowKey={(record, index) => `${record.loai}-${index}`} />
         </div>
       ),
     },
@@ -168,10 +178,10 @@ export const PTCCTDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
         {[
-          { title: 'Tổng viên chức', value: '1,250', icon: <TeamOutlined />, color: 'text-blue-600', bg: 'bg-blue-50', change: '+5.2%', changeLabel: 'So với tháng trước' },
-          { title: 'Tổng đơn vị', value: '25', icon: <BuildOutlined />, color: 'text-indigo-600', bg: 'bg-indigo-50', change: '+2.1%', changeLabel: 'Phòng ban & Khoa' },
-          { title: 'Tổng chức danh', value: '45', icon: <TagsOutlined />, color: 'text-amber-600', bg: 'bg-amber-50', change: '+3.4%', changeLabel: 'Đang áp dụng' },
-          { title: 'Hoạt động hôm nay', value: '47', icon: <BarChartOutlined />, color: 'text-emerald-600', bg: 'bg-emerald-50', change: null, changeLabel: '12 chờ duyệt • 35 đã xử lý' },
+          { title: 'Tổng viên chức', value: systemStats.tongVienChuc.toLocaleString(), icon: <TeamOutlined />, color: 'text-blue-600', bg: 'bg-blue-50', change: '', changeLabel: 'Viên chức quản lý' },
+          { title: 'Tổng đơn vị', value: systemStats.tongDonVi.toString(), icon: <BuildOutlined />, color: 'text-indigo-600', bg: 'bg-indigo-50', change: '', changeLabel: 'Phòng ban & Khoa' },
+          { title: 'Tổng chức danh', value: systemStats.tongChucDanh.toString(), icon: <TagsOutlined />, color: 'text-amber-600', bg: 'bg-amber-50', change: '', changeLabel: 'Đang áp dụng' },
+          { title: 'Đợt đang hoạt động', value: (systemStats.dotQuyHoachDangHoatDong + systemStats.dotBoNhiemDangHoatDong).toString(), icon: <BarChartOutlined />, color: 'text-emerald-600', bg: 'bg-emerald-50', change: null, changeLabel: `${systemStats.dotQuyHoachDangHoatDong} quy hoạch • ${systemStats.dotBoNhiemDangHoatDong} bổ nhiệm` },
         ].map((item, index) => (
           <div key={index} className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 transition-shadow hover:shadow-md">
             <div className="flex justify-between items-start">

@@ -14,7 +14,7 @@ export const getPlanningById = async (id: number) => {
     const result = await pool.query(
         `SELECT * FROM dot_quy_hoach WHERE id = $1`, [id]
     );
-    return mapToCamel(result.rows[0]);
+    return mapToCamel<PlanningBatch>(result.rows[0]);
 }
 export const getAllPlanning = async () => {
     const result = await pool.query(
@@ -69,7 +69,7 @@ export const copyChiTietFromDotGoc = async (client: any, dotRaSoatId: number, do
         `INSERT INTO chi_tiet_quy_hoach
              (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id,
               ngay_vao_qh, loai_nguon, buoc_hien_tai, trang_thai)
-         SELECT $1, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, 2, 2, 1
+         SELECT $1, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, 2, 6, 1
          FROM chi_tiet_quy_hoach
          WHERE dot_quy_hoach_id = $2 AND trang_thai = 1 AND buoc_hien_tai = 6
          ON CONFLICT (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id) DO NOTHING`,
@@ -110,9 +110,20 @@ export const filterCandidates = async (donViId: number,  trinhDoChuyenMon: strin
     const result = await pool.query(
         `select id, ma_vien_chuc, ho_va_ten, trinh_do_chuyen_mon
         from vien_chuc
-        where trinh_do_chuyen_mon = $1 and don_vi_id = $2 and id not in 
+        where trinh_do_chuyen_mon = $1 and don_vi_id = $2 and id not in
         (select vien_chuc_id from chi_tiet_quy_hoach where dot_quy_hoach_id = $3 and trang_thai = $4)
         `, [trinhDoChuyenMon, donViId, dotQuyHoachId, 1]
     )
     return result.rows.map(toCamel);
+}
+
+export const updateApprovalDecision = async (dotQuyHoachId: number, soQdPheDuyet: string, ngayQdPheDuyet: Date) => {
+    const result = await pool.query(
+        `UPDATE dot_quy_hoach
+         SET so_qd_phe_duyet = $1, ngay_qd_phe_duyet = $2, trang_thai = 2
+         WHERE id = $3
+         RETURNING *`,
+        [soQdPheDuyet, ngayQdPheDuyet, dotQuyHoachId]
+    );
+    return mapToCamel<PlanningBatch>(result.rows[0]);
 }
