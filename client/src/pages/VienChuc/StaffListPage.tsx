@@ -1,15 +1,23 @@
 import React, { useEffect, useState } from "react";
 import type { VienChuc } from "../../types/VienChuc";
-import { SearchOutlined, UserAddOutlined } from '@ant-design/icons';
-import { Button, Input, Table } from "antd";
+import { SearchOutlined, UserAddOutlined, HistoryOutlined } from '@ant-design/icons';
+import { Button, Input, Table, message } from "antd";
 import { getVienChucList, getVienChucTheoDonVi } from "../../api/vienChuc.api";
+import { getNhiemKyByStaffId } from "../../api/nhiemKyChucVu";
 import { useAuth } from "../../hook/useAuth";
+import { TermHistoryView, type TermUIModel } from "./LichSuNhiemKy";
 
 export const StaffPage: React.FC = () => {
     const  {user} = useAuth()
     const [staffList, setStaffList] = useState<VienChuc[]>([]);
     const [searchText, setSearchText] = useState('');
-    // const [setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true);
+    const [loadingTerm, setLoadingTerm] = useState(false);
+    const [selectedStaff, setSelectedStaff] = useState<VienChuc | null>(null);
+    const [termData, setTermData] = useState<{ currentTerm: TermUIModel | null; historyTerms: TermUIModel[] }>({
+        currentTerm: null,
+        historyTerms: []
+    });
     
     useEffect(() => {
         if(user?.vaiTro === "VCQL"){
@@ -23,33 +31,92 @@ export const StaffPage: React.FC = () => {
             .catch(console.error);
         }
     }, [])
+
+    const handleViewHistory = async (staff: VienChuc) => {
+        setSelectedStaff(staff);
+        setLoadingTerm(true);
+
+        try {
+            const res = await getNhiemKyByStaffId(staff.id);
+            const { nhiemKyHienTai, lichSuNhiemKy } = res.data.data;
+
+            // Map backend data to UI model
+            const mapToUIModel = (nk: any): TermUIModel => ({
+                id: nk.id,
+                role: nk.tenChucDanh,
+                startDate: nk.ngayBatDau,
+                endDate: nk.ngayKetThuc,
+                decisionNumber: nk.soQuyetDinh || 'N/A',
+                decisionDate: nk.ngayQuyetDinh,
+                signer: nk.nguoiPheDuyet || 'N/A',
+                signerTitle: '',
+                type: nk.loaiBoNhiem || 'Bổ nhiệm',
+                status: nk.trangThai === 1 ? 'Đang nhiệm kỳ' : 'Đã kết thúc',
+                reasonForEnding: nk.lyDoKetThuc
+            });
+
+            setTermData({
+                currentTerm: nhiemKyHienTai ? mapToUIModel(nhiemKyHienTai) : null,
+                historyTerms: [
+                    ...(nhiemKyHienTai ? [mapToUIModel(nhiemKyHienTai)] : []),
+                    ...lichSuNhiemKy.map(mapToUIModel)
+                ]
+            });
+        } catch (error) {
+            console.error(error);
+            message.error('Không thể tải lịch sử nhiệm kỳ');
+        } finally {
+            setLoadingTerm(false);
+        }
+    };
+    
+        // Hàm đóng màn hình chi tiết
+        const handleCloseHistory = () => {
+            setSelectedStaff(null);
+            setTermData({ currentTerm: null, historyTerms: [] });
+        };
+    
     if(!staffList) return(
         <div className="flex justify-center items-center h-screen text-gray-400 italic font-light">
             Đang tải dữ liệu viên chức...
         </div>
     )
+
+    // Nếu đang xem chi tiết nhiệm kỳ, hiển thị TermHistoryView
+    if (selectedStaff) {
+        return (
+            <TermHistoryView
+                onBack={handleCloseHistory}
+                staffName={selectedStaff.hoVaTen}
+                currentTerm={termData.currentTerm}
+                historyTerms={termData.historyTerms}
+                loading={loadingTerm}
+            />
+        );
+    }
+
     const filteredStaff = staffList.filter(s =>
-        s.ho_va_ten.toLowerCase().includes(searchText.toLowerCase())
+        s.hoVaTen.toLowerCase().includes(searchText.toLowerCase())
     );
 
     const cols = [
         {
             title: 'Mã viên chức',
-            dataIndex: 'ma_vien_chuc',
-            key: 'ma_vien_chuc',
+            dataIndex: 'maVienChuc',
+            key: 'maVienChuc',
         },
         {
             title: 'Họ và tên',
-            dataIndex: 'ho_va_ten',
-            key: 'ho_va_ten',
+            dataIndex: 'hoVaTen',
+            key: 'hoVaTen',
         },
          {
             title: 'Đơn vị',
-            dataIndex: 'ten_don_vi',
-            key: 'ten_don_vi',
+            dataIndex: 'tenDonVi',
+            key: 'tenDonVi',
         }, {
             title: 'Chức vụ hiện tại',
-            dataIndex: 'chuc_vu_hien_tai',
+            dataIndex: 'chucVuHienTai',
             render: (val: string) => val || <span className="text-gray-300 italic">null</span>
         },
         {
@@ -57,6 +124,20 @@ export const StaffPage: React.FC = () => {
             dataIndex: 'ngach',
             key: 'ngach',
         },
+        {
+            title: 'Thao tác',
+            key: 'action',
+            render: (_: any, record: VienChuc) => (
+                <Button
+                    type="link"
+                    icon={<HistoryOutlined />}
+                    onClick={() => handleViewHistory(record)}
+                    className="text-indigo-600"
+                >
+                    Xem lịch sử
+                </Button>
+            )
+        }
     ]
     return (
         <div className="min-h-screen bg-gray-50 p-6">
@@ -78,7 +159,7 @@ export const StaffPage: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-2xl border-slate-500 overflow-hidden">
-               <Table dataSource={filteredStaff} columns={cols}></Table>
+               <Table dataSource={filteredStaff} columns={cols} rowKey="id"></Table>
             </div>
 
         </div>

@@ -3,8 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, Table, Tag, Spin, Steps } from "antd";
 import type { ChiTietQuyHoach, DotQuyHoach } from "../../types/QuyHoach";
 import type { ColumnsType } from "antd/es/table";
-import { ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined, UserOutlined, HomeOutlined, FormOutlined} from "@ant-design/icons";
+import { ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined, UserOutlined, HomeOutlined, FormOutlined, SafetyOutlined} from "@ant-design/icons";
 import VoteQuyHoachModal from "./VoteQuyHoachModal";
+import { ApproveQuyHoachModal } from "./ApproveQuyHoachModal";
 import { getDotQuyHoachDetailById } from "../../api/dotQuyHoach.api";
 import { StatCard } from "../../components/common/StatCard";
 
@@ -19,6 +20,7 @@ export const PlanningDetailPage: React.FC = () => {
     const [planning, setPlanning] = useState<DotQuyHoach | null>(null);
     const [loading, setLoading] = useState(true);
     const [voteModalOpen, setVoteModalOpen] = useState(false);
+    const [approveModalOpen, setApproveModalOpen] = useState(false);
 
     const fetchData = async () => {
         setLoading(true);
@@ -152,6 +154,16 @@ export const PlanningDetailPage: React.FC = () => {
                                 Ghi nhận kết quả HN
                             </Button>
                         )}
+                        {planning?.trangThai === 1 && !planning?.soQdPheDuyet && (
+                            <Button
+                                type="primary"
+                                icon={<SafetyOutlined />}
+                                onClick={() => setApproveModalOpen(true)}
+                                className="bg-green-600 hover:bg-green-700"
+                            >
+                                Phê duyệt quy hoạch
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -225,7 +237,17 @@ export const PlanningDetailPage: React.FC = () => {
                         buocHienTai: s.buocHienTai,
                     }))}
                     currentStep={currentStep}
-                    
+
+                />
+            )}
+
+            {approveModalOpen && planning && (
+                <ApproveQuyHoachModal
+                    visible={approveModalOpen}
+                    onCancel={() => setApproveModalOpen(false)}
+                    onSuccess={() => { setApproveModalOpen(false); fetchData(); }}
+                    dotQuyHoachId={Number(id)}
+                    tenQuyHoach={planning.tenQuyHoach}
                 />
             )}
         </div>

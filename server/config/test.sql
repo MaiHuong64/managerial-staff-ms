@@ -97,7 +97,7 @@
         nhiem_ky VARCHAR(20),
         so_qd_phe_duyet VARCHAR(20),
         ngay_qd_phe_duyet DATE,
-        trang_thai SMALLINT,
+        trang_thai SMALLINT, --0: Đang xử lý, 1: Hoàn thành bỏ phiếu (Chờ phê duyệt), 2: Đã phê duyệt
         dot_goc_id SMALLINT, 
         CONSTRAINT fk_dqh FOREIGN KEY (dot_goc_id) REFERENCES dot_quy_hoach(id),
     );
@@ -110,7 +110,7 @@
         so_qd_ra_khoi_quy_hoach VARCHAR(50),
         ngay_qd_ra_khoi_quy_hoach DATE,
         ly_do_ra_khoi_quy_hoach TEXT,
-        trang_thai SMALLINT,
+        trang_thai SMALLINT, --0: Bị loại, 1: Đạt, 2: Đã bổ nhiệm thành công
         dot_quy_hoach_id INT NOT NULL,
         vien_chuc_id INT NOT NULL,
         chuc_danh_id INT NOT NULL,
@@ -144,8 +144,7 @@
         id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         ma_ho_so VARCHAR(10) UNIQUE NOT NULL,
         ngay_lap DATE DEFAULT CURRENT_DATE,
-        trang_thai SMALLINT DEFAULT 0,
-        -- 0: chưa đủ, 1: đầy đủ, 2: cần bổ sung
+        trang_thai SMALLINT DEFAULT 0,-- 0: chưa đủ, 1: đầy đủ, 2: cần bổ sung
         ghi_chu TEXT,
         chi_tiet_qh_id INT NOT NULL UNIQUE,
         CONSTRAINT fk_hsqh_ctqh FOREIGN KEY (chi_tiet_qh_id) REFERENCES chi_tiet_quy_hoach(id)

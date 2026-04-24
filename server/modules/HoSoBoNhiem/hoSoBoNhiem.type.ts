@@ -1,5 +1,5 @@
 export interface CreateHoSoDTO {
-    chiTietPA: number,
+    chiTietPAId: number,
     ghiChu?: string
 }
 export interface UploadFileDTO{

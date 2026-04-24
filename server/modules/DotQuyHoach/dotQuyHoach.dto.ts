@@ -5,7 +5,7 @@ export interface CreatePlanningBatchDTO {
     nhiemKy?: string;
     soQdPheDuyet?: string;
     ngayQdPheDuyet?: Date;
-    dotGocId?: number;   // chỉ dùng khi loaiQuyHoach = 2
+    dotGocId?: number; 
 }
 export interface ChucDanhItem {
     vienChucId: number[];
@@ -23,4 +23,11 @@ export interface PlanningBatch {
     id: number;
     maQuyHoach: string;
     tenQuyHoach: string;
+    trangThai: number; //0: Đang xử lý, 1: Hoàn thành bỏ phiếu (chờ phê duyệt), 2: Đã phê duyệt
+}
+
+export interface ApprovalDecisionDTO {
+    soQdPheDuyet: string;
+    ngayQdPheDuyet: Date;
+    // trangThai: number;
 }

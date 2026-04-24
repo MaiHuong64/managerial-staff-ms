@@ -1,6 +1,6 @@
 import {Request, Response } from "express";
-import { addPlanningCandidates, createPlanningBatch, fetchAllPlanning, findPlanningBatchById, fetchCandidatesForChucDanh, filterPlanningCandidates, fetchRoot } from "./dotQuyHoach.service";
-import { AddPlanningBatchDetailDTO } from "./dotQuyHoach.dto";
+import { addPlanningCandidates, approvePlanningBatch, createPlanningBatch, fetchAllPlanning, findPlanningBatchById, fetchCandidatesForChucDanh, filterPlanningCandidates, fetchRoot } from "./dotQuyHoach.service";
+import { AddPlanningBatchDetailDTO, ApprovalDecisionDTO } from "./dotQuyHoach.dto";
 import { submitVoteResult } from "./dotQuyHoach.validate.service";
 
 export const create = async (req: Request, res: Response) => {
@@ -98,6 +98,25 @@ export const submitVoteQuyHoach = async (req: Request, res: Response) => {
         await submitVoteResult(req.body)
          return res.status(200).json({ success: true, message: "Ghi nhận kết quả thành công!" });
     } catch (error: any) {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+}
+
+export const approveQuyHoach = async (req: Request, res: Response) => {
+    try {
+        const dotQuyHoachId = Number(req.params.id);
+        const payload: ApprovalDecisionDTO = {
+            soQdPheDuyet: req.body.soQdPheDuyet,
+            ngayQdPheDuyet: req.body.ngayQdPheDuyet
+        };
+        const data = await approvePlanningBatch(dotQuyHoachId, payload);
+        return res.status(200).json({
+            success: true,
+            message: "Phê duyệt quy hoạch thành công",
+            data
+        });
+    } catch (error: any) {
+        console.error("Approve planning error:", error);
         return res.status(400).json({ success: false, message: error.message });
     }
 }
