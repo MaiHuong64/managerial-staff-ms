@@ -73,7 +73,7 @@ export const getCandidatesFromQH = async (phieuChuTruongId: number): Promise<Ung
         FROM chi_tiet_quy_hoach ctqh
         JOIN phieu_chu_truong pct ON pct.don_vi_id = ctqh.don_vi_id AND pct.chuc_danh_id = ctqh.chuc_danh_id
         JOIN dot_quy_hoach dqh ON dqh.id = ctqh.dot_quy_hoach_id
-        WHERE pct.id = $1 AND ctqh.buoc_hien_tai = 6 AND ctqh.trang_thai = 1 AND dqh.trang_thai = 1
+        WHERE pct.id = $1 AND ctqh.buoc_hien_tai = 6 AND ctqh.trang_thai = 1 AND dqh.trang_thai = 2
         `, [phieuChuTruongId]
     )
     return mapArrayToCamel<UngVienQuyHoach>(result.rows);

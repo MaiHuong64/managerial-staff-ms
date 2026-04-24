@@ -1,7 +1,7 @@
 import pool from "../../config/db";
 import { mapArrayToCamel } from "../../utils/mapper";
 import { CreateQDBoNhiemDTO } from "./quyetDinhBoNhiem.dto";
-import { generateQDBNCode, getDetail, getInforFromHS, handleNhiemKy, insertNhiemKy, insertQuyetDinh, updateHoSoStatus } from "./quyetDinhBoNhiem.repository";
+import { generateQDBNCode, getDetail, getHoSoInfoForQD, getInforFromHS, handleNhiemKy, insertNhiemKy, insertQuyetDinh, updateHoSoStatus } from "./quyetDinhBoNhiem.repository";
 
 export const CreateQDBN = async (payload: CreateQDBoNhiemDTO, hoSoId: number) => {
     const client = await pool.connect();
@@ -17,7 +17,7 @@ export const CreateQDBN = async (payload: CreateQDBoNhiemDTO, hoSoId: number) =>
         await handleNhiemKy(client, ngayKetThucCu, "Bổ nhiệm chức danh mới", vienChucId);
 
         // Tạo nhiệm kỳ mới
-        await insertNhiemKy(client, vienChucId, chucDanhId, payload.ngayCoHieuLuc, quyetDinh.id);
+        await insertNhiemKy(client, vienChucId, chucDanhId, payload.ngayCoHieuLuc, payload.thoiHan, quyetDinh.id);
 
         // Cập nhật trạng thái hồ sơ
         await updateHoSoStatus(client, hoSoId);
@@ -35,4 +35,9 @@ export const CreateQDBN = async (payload: CreateQDBoNhiemDTO, hoSoId: number) =>
 export const getQDBoNhiemById = async (id: number) => {
     const result = await getDetail(id);
     return mapArrayToCamel(result);
+}
+
+export const getHoSoInfo = async (hoSoId: number) => {
+    const result = await getHoSoInfoForQD(hoSoId);
+    return result;
 }

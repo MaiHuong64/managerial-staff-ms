@@ -80,7 +80,7 @@ export const getCandidates = async () => {
         JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
         JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
         JOIN don_vi dv ON dv.id = vc.don_vi_id
-        WHERE ctbn.id NOT IN (SELECT chi_tiet_bn_id FROM chi_tiet_phuong_an)
+        WHERE ctbn.id NOT IN (SELECT chi_tiet_bn_id FROM chi_tiet_phuong_an) AND ctbn.trang_thai = 3 
         ORDER BY vc.ho_va_ten`
     );
     return mapArrayToCamel(result.rows); 

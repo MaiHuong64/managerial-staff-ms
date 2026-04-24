@@ -29,10 +29,10 @@ export const createHoSo = async (payload: CreateHoSoDTO) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        const exist = await checkHoSoExistsByChiTietPAId(client, payload.chiTietPA);
+        const exist = await checkHoSoExistsByChiTietPAId(client, payload.chiTietPAId);
         if (exist) throw new Error("Hồ sơ này đã tồn tại");
         const maHoSo = await getNextCode(client);
-        const hoSo = await insertHoSoBoNhiem(client, maHoSo, payload.chiTietPA, payload.ghiChu ?? null);
+        const hoSo = await insertHoSoBoNhiem(client, maHoSo, payload.chiTietPAId, payload.ghiChu ?? null);
         await client.query("COMMIT");
         return hoSo;
     } catch (error) {

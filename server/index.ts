@@ -13,7 +13,8 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api", routes);
-app.use("/uploads", express.static(path.join(__dirname, "upload")))
+app.use("/uploads", express.static(path.join(__dirname, "uploads")))
+console.log('Static path:', path.join(__dirname, "uploads"));
 pool.query("SELECT NOW()")
     .then(res => console.log("Database connected:", res.rows[0]))
     .catch(err => console.error("Database connection error:", err));

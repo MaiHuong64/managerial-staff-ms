@@ -14,6 +14,7 @@ import CreateDecisionModal from './CreateDecisionModal';
 const TRANG_THAI_MAP: Record<number, { label: string; color: string }> = {
     1: { label: 'Đang lập', color: 'processing' },
     2: { label: 'Hoàn thiện', color: 'success' },
+    3: { label: 'Đã ban hành QĐ', color: 'default' },
 };
 
 const HoSoBoNhiemDetailPage = () => {
@@ -117,7 +118,7 @@ const HoSoBoNhiemDetailPage = () => {
     if (!data) return <div className="text-center mt-10 text-red-500">Không tìm thấy hồ sơ!</div>;
 
     const trangThaiInfo = TRANG_THAI_MAP[data.trangThai] ?? { label: '?', color: 'default' };
-    const isDone = data.trangThai === 2;
+    const isDone = data.trangThai === 2 || data.trangThai === 3;
 
     const taiLieuCols = [
         {
@@ -140,7 +141,7 @@ const HoSoBoNhiemDetailPage = () => {
         {
             title: 'File', dataIndex: 'fileDinhKem', key: 'fileDinhKem', width: 100,
             render: (url: string) => url ? (
-                <a href={`http://localhost:3000${url}`} target="_blank" rel="noreferrer">
+                <a href={`http://localhost:8080${url}`} target="_blank" rel="noreferrer">
                     <Button size="small" type="link">Xem file</Button>
                 </a>
             ) : '—',
