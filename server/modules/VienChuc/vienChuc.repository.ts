@@ -124,14 +124,14 @@ export const insertVienChuc = async (
 
 export const insertTaiKhoan = async (
     client: PoolClient,
-    ma_vien_chuc: string,
-    mat_khau: string,
-    vien_chuc_id: number
+    maVienChuc: string,
+    matKhau: string,
+    vienChucId: number
 ) => {
     await client.query(
         `INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai, vien_chuc_id)
          VALUES ($1, $2, $3, $4, $5)`,
-        [ma_vien_chuc, mat_khau, "VC", 1, vien_chuc_id]
+        [maVienChuc, matKhau, "VC", 1, vienChucId]
     );
 };
 
@@ -155,7 +155,19 @@ export const softDeleteById = async (id: number) => {
 };
 export const getVienChucByDonVi = async (donViId: number) => {
     const res = await pool.query(
-        `SELECT * FROM vien_chuc WHERE don_vi_id = $1`, [donViId]
+        `SELECT
+            vc.id, vc.ma_vien_chuc, vc.ho_va_ten, vc.ngay_sinh, vc.ngach, vc.trinh_do_chuyen_mon,
+            dv.ten_don_vi,
+            nk.ten_chuc_vu AS chuc_vu_hien_tai
+        FROM vien_chuc vc
+        JOIN don_vi dv ON vc.don_vi_id = dv.id
+        LEFT JOIN (
+            SELECT nkcv.vien_chuc_id, cd.ten_chuc_danh AS ten_chuc_vu
+            FROM nhiem_ky_chuc_vu nkcv
+            JOIN chuc_danh_quan_ly cd ON nkcv.chuc_danh_id = cd.id
+            WHERE nkcv.trang_thai = 1
+        ) nk ON nk.vien_chuc_id = vc.id
+        WHERE vc.don_vi_id = $1`, [donViId]
     )
-    return res.rows;
+    return mapArrayToCamel(res.rows);
 }

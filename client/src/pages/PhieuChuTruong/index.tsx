@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../hook/useAuth"
 import type { PhieuChuTruong } from "../../types/PhieuChuTruong";
-import { Button, Card, Col, Input, message, Modal, Popconfirm, Row, Statistic, Table, Tag } from "antd";
+import { Button, Card, Col, Input, message, Row, Statistic, Table, Tag } from "antd";
 import dayjs from "dayjs";
-import Search from "antd/es/transfer/search";
 import { PlusOutlined } from "@ant-design/icons";
-import { CreatePhieuChuTruongModal } from "./Modals/CreatePhieuChuTruongModal";
-import { approvePhieuChuTruong, getPhieuChuTruongList, rejectPhieuChuTruong } from "../../api/phieuChuTruong.api";
+import { CreatePhieuChuTruongModal } from "./CreatePhieuChuTruongModal";
+import { getPhieuChuTruongList } from "../../api/phieuChuTruong.api";
+import { DetailPhieuChuTruongModal } from "./DetailPhieuChuTruongModal";
 
 export const PhieuChuTruongPage: React.FC = () => {
     const { user } = useAuth();
@@ -14,10 +14,7 @@ export const PhieuChuTruongPage: React.FC = () => {
     const [phieuChuTruong, setPhieuChuTruong] = useState<PhieuChuTruong[]>([]);
     const [searchText, setSearchText] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [lyDoTuChoi, setLyDoTuChoi] = useState("");
-    const [selectedId, setSelectedId] = useState<number | null>(null);
-    const [rejectModalOpen, setRejectModalOpen] = useState(false);
-
+    const [detailId, setDetailId] = useState<number | null>(null);
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -31,26 +28,6 @@ export const PhieuChuTruongPage: React.FC = () => {
     };
 
     useEffect(() => { fetchData(); }, []);
-
-    const handleApprove = async (id: number) => {
-        try {
-            await approvePhieuChuTruong(id);
-            message.success("Duyệt phiếu thành công");
-            fetchData();
-        } catch {
-            message.error("Thao tác thất bại");
-        }
-    };
-    const handleReject = async (id: number, lyDoTuChoi: string) => {
-        try {
-            await rejectPhieuChuTruong(id, lyDoTuChoi);
-            message.success("Đã từ chối!");
-            fetchData();
-        } catch {
-            message.error("Thao tác thất bại");
-        }
-    };
-
     const status = useMemo(() => ({
         choDuyet: phieuChuTruong.filter(item => item.trangThai === 1).length,
         daDuyet: phieuChuTruong.filter(item => item.trangThai === 2).length,
@@ -87,17 +64,10 @@ export const PhieuChuTruongPage: React.FC = () => {
         {title: 'Thao tác', width: 200,
             render: (_: unknown, record: PhieuChuTruong) => (
                 <div className="flex gap-2">
-                           {/* <Button size="small" onClick={() => setSelectedId(record.id)}>Xem</Button> */}
-                    {user?.vaiTro === 'BGH' && record.trangThai === 1 && 
-                    (<>
-                        <Popconfirm title="Phê duyệt phiếu này?" onConfirm={() => handleApprove(record.id)} okText="Duyệt" cancelText="Hủy">
-                            <Button type="primary" size="small">Duyệt</Button>
-                        </Popconfirm>
-                          <Button danger size="small" onClick={() => {setSelectedId(record.id); setRejectModalOpen(true)}}>Từ chối</Button>
-                    </>)}
-                       </div>
-                   )
-               },
+                    <Button size="small" onClick={() => setDetailId(record.id)}>Xem</Button>
+                </div>
+            )
+        },
     ];
 
     return (
@@ -131,9 +101,10 @@ export const PhieuChuTruongPage: React.FC = () => {
 
             <Card className="shadow-sm">
                 <div className="flex justify-between mb-4">
-                    <Search
+                    <Input.Search
                         placeholder="🔍 Tìm theo số tờ trình, chức danh..."
                         onChange={(e) => setSearchText(e.target.value)}
+                        style={{ width: 320 }}
                     />
                     {user?.vaiTro === 'VCQL' && (
                         <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
@@ -150,34 +121,16 @@ export const PhieuChuTruongPage: React.FC = () => {
                     pagination={{ pageSize: 10, showTotal: (total) => `Tổng số ${total} tờ trình` }}
                 />
             </Card>
-
+            <DetailPhieuChuTruongModal
+                id={detailId}
+                onClose={() => setDetailId(null)}
+                onSuccess={() => { setDetailId(null); fetchData(); }}
+            />
             <CreatePhieuChuTruongModal
                 isVisible={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
                 onSuccess={() => { setIsModalOpen(false); fetchData(); }}
             />
-            <Modal
-                title="Nhập lý do từ chối"
-                open={rejectModalOpen}
-                onOk={async () => {
-                    if (!selectedId || !lyDoTuChoi.trim()) {
-                    message.warning("Vui lòng nhập lý do");
-                    return;
-                    }
-                    await handleReject(selectedId, lyDoTuChoi);
-                    setRejectModalOpen(false);
-                    setLyDoTuChoi("");
-                    setSelectedId(null);
-                }}
-                onCancel={() => setRejectModalOpen(false)}
-                >
-                <Input.TextArea
-                    rows={4}
-                    placeholder="Nhập lý do từ chối..."
-                    value={lyDoTuChoi}
-                    onChange={(e) => setLyDoTuChoi(e.target.value)}
-                />
-                </Modal>
         </div>
     );
 }
