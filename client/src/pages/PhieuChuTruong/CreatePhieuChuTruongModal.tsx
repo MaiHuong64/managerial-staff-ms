@@ -1,7 +1,7 @@
 import { Form, Input, InputNumber, message, Modal, Select } from "antd";
 import { useEffect, useState } from "react";
-import { createPhieuChuTruong } from "../../../api/phieuChuTruong.api";
-import { getChucDanhList } from "../../../api/chucDanh.api";
+import { createPhieuChuTruong } from "../../api/phieuChuTruong.api";
+import { getChucDanhList } from "../../api/chucDanh.api";
 
 interface Props {
     isVisible: boolean;
@@ -12,7 +12,7 @@ interface Props {
 export const CreatePhieuChuTruongModal: React.FC<Props> = ({ isVisible, onCancel, onSuccess }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [chucDanhList, setChucDanhList] = useState<{ id: number; ten_chuc_danh: string }[]>([]);
+    const [chucDanhList, setChucDanhList] = useState<{ id: number; tenChucDanh: string }[]>([]);
 
     useEffect(() => {
         if (!isVisible) return;
@@ -59,7 +59,7 @@ export const CreatePhieuChuTruongModal: React.FC<Props> = ({ isVisible, onCancel
                     <Form.Item label="Chức danh đề xuất" name="chucDanhId"
                         rules={[{ required: true, message: "Chọn chức danh!" }]}>
                         <Select placeholder="Chọn chức danh" showSearch optionFilterProp="label"
-                            options={chucDanhList.map(cd => ({ value: cd.id, label: cd.ten_chuc_danh }))} />
+                            options={chucDanhList.map(cd => ({ value: cd.id, label: cd.tenChucDanh }))} />
                     </Form.Item>
 
                     <Form.Item label="Số lượng đề xuất" name="soLuongDeXuat"
