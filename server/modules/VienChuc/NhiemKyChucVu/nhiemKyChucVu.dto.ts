@@ -3,7 +3,7 @@ export interface nhiemKyChucVuDTO {
     ngayBatDau: Date;
     ngayKetThuc: Date | null;
     lyDoKetThuc: string | null;
-    trangThai: number; // 1: Đang hoạt động, 0/khác: Đã kết thúc
+    trangThai: number; // 1: Đang hoạt động, 0: Đã kết thúc
     soQuyetDinh: string | null;
     ngayQuyetDinh: Date | null;
     nguoiPheDuyet: string | null;

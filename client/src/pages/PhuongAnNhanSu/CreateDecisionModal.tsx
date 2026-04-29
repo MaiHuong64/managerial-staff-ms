@@ -38,8 +38,7 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
                     const info = res.data.data;
                     setHoSoInfo(info);
 
-                    // Auto-fill form với data từ backend
-                    const loaiBoNhiem = info.loaiPhuongA;
+                    const loaiBoNhiem = info.loaiPhuongAn;
 
                     form.setFieldsValue({
                         loaiBoNhiem: loaiBoNhiem,
