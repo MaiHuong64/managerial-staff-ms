@@ -58,9 +58,9 @@ export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, 
     }; 
 
     const columns = [
-        { title: "Họ và tên", dataIndex: "ho_va_ten" },
+        { title: "Họ và tên", dataIndex: "hoVaTen" },
         { title: "Ngạch", dataIndex: "ngach" },
-        { title: "Trình độ CM", dataIndex: "trinh_do_chuyen_mon" },
+        { title: "Trình độ CM", dataIndex: "trinhDoChuyenMon" },
     ];
 
     return (
@@ -95,7 +95,7 @@ export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, 
                             showSearch
                             placeholder="Tìm và chọn chức danh"
                             optionFilterProp="label"
-                            options={chucDanhList.map(cd => ({ value: cd.id, label: cd.ten_chuc_danh }))}
+                            options={chucDanhList.map(cd => ({ value: cd.id, label: cd.tenChucDanh }))}
                         />
                     </Form.Item>
 

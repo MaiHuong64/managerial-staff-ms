@@ -1,6 +1,6 @@
-import React from "react"; 
+import React from "react";
 // import type { NavItem } from "./NavItem";
-import {DashboardOutlined, TeamOutlined,  FileTextOutlined, ApartmentOutlined, TagsOutlined, CheckOutlined, BarChartOutlined, PlusOutlined
+import {DashboardOutlined, TeamOutlined,  FileTextOutlined, ApartmentOutlined, TagsOutlined, CheckOutlined, BarChartOutlined, PlusOutlined, StarOutlined
 } from "@ant-design/icons";
 
 interface NavItem {
@@ -15,6 +15,9 @@ export const NAV_ITEMS: NavItem[] = [
     { section: 'Tổng quan' },
     { icon: <DashboardOutlined />, label: 'Dashboard',              path: '/dashboard',           roles: ['VC','VCQL','BGH','PTCCT'] },
     { icon: <TeamOutlined />,      label: 'Danh sách viên chức',   path: '/vien-chuc',           roles: ['VCQL','BGH','PTCCT'] },
+
+    { section: 'Đánh giá', roles: ['PTCCT', 'VCQL'] },
+    { icon: <StarOutlined />,      label: 'Xếp loại hằng năm',     path: '/xep-loai',            roles: ['PTCCT', 'VCQL'] },
 
     { section: 'Quy hoạch', roles: ['VCQL','PTCCT'] },
     { icon: <FileTextOutlined />,  label: 'Phiếu Đề Xuất',         path: '/phieu-de-xuat',       roles: ['VCQL','PTCCT'] },

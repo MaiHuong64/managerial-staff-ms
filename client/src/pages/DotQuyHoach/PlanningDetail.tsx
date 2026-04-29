@@ -124,7 +124,7 @@ export const PlanningDetailPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#f8fafc]">
             {/* ── Sticky header ─────────────────────────── */}
-            <div className="bg-white border-b border-slate-100 px-6 py-4 sticky top-14 z-30 shadow-sm">
+            <div className="bg-white border-b border-slate-100 px-6 py-4 sticky top-0 z-50 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3 min-w-0">
                         <Button

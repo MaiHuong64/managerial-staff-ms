@@ -12,7 +12,7 @@ import phuongAnNhanSuRouter from "../modules/PhuongAnNhanSu/phuongAnNhanSu.route
 import hoSoBoNhiemRouter from "../modules/HoSoBoNhiem/hoSoBoNhiem.route"
 import quyetDinhBoNhiemRouter from "../modules/QuyetDinhBoNhiem/quyetDinhBoNhiem.route"
 import dashboardRouter from "../modules/Dashboard/dashboard.route"
-
+import xepLoaiRouter from "../modules/XepLoai/xepLoai.route";
 const router = Router();
 
 router.use("/auth", authRouter);
@@ -26,6 +26,7 @@ router.use("/phieu-chu-truong", phieuChuTruongRouter)
 router.use("/phuong-an-nhan-su", phuongAnNhanSuRouter);
 router.use("/ho-so-bo-nhiem", hoSoBoNhiemRouter)
 router.use ("/quyet-dinh-bo-nhiem", quyetDinhBoNhiemRouter)
+router.use("/xep-loai", xepLoaiRouter);
 router.use("/dashboard", dashboardRouter)
 
 export default router;

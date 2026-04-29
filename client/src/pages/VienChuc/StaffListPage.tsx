@@ -5,7 +5,8 @@ import { Button, Input, Table, message } from "antd";
 import { getVienChucList, getVienChucTheoDonVi } from "../../api/vienChuc.api";
 import { getNhiemKyByStaffId } from "../../api/nhiemKyChucVu";
 import { useAuth } from "../../hook/useAuth";
-import { TermHistoryView, type TermUIModel } from "./LichSuNhiemKy";
+import type { NhiemKy, NhiemKyHienTai } from "../../types/NhiemKyChucVu";
+import { TermHistoryView } from "./LichSuNhiemKy";
 
 export const StaffPage: React.FC = () => {
     const  {user} = useAuth()
@@ -14,9 +15,9 @@ export const StaffPage: React.FC = () => {
     // const [loading, setLoading] = useState(true);
     const [loadingTerm, setLoadingTerm] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState<VienChuc | null>(null);
-    const [termData, setTermData] = useState<{ currentTerm: TermUIModel | null; historyTerms: TermUIModel[] }>({
-        currentTerm: null,
-        historyTerms: []
+    const [termData, setTermData] = useState<{ nhiemKyHienTai: NhiemKy | null; lichSuNhiemKy: NhiemKy[] }>({
+        nhiemKyHienTai: null,
+        lichSuNhiemKy: []
     });
     
     useEffect(() => {
@@ -26,11 +27,11 @@ export const StaffPage: React.FC = () => {
             .catch(console.error);
         }
         else{
-             getVienChucList()
+            getVienChucList()
             .then(res => setStaffList(res.data.data))
             .catch(console.error);
         }
-    }, [])
+    }, [user?.vaiTro])
 
     const handleViewHistory = async (staff: VienChuc) => {
         setSelectedStaff(staff);
@@ -40,24 +41,23 @@ export const StaffPage: React.FC = () => {
             const res = await getNhiemKyByStaffId(staff.id);
             const { nhiemKyHienTai, lichSuNhiemKy } = res.data.data;
 
-            // Map backend data to UI model
-            const mapToUIModel = (nk: any): TermUIModel => ({
+            const mapToUIModel = (nk: NhiemKyHienTai): NhiemKy => ({
                 id: nk.id,
-                role: nk.tenChucDanh,
-                startDate: nk.ngayBatDau,
-                endDate: nk.ngayKetThuc,
-                decisionNumber: nk.soQuyetDinh || 'N/A',
-                decisionDate: nk.ngayQuyetDinh,
-                signer: nk.nguoiPheDuyet || 'N/A',
-                signerTitle: '',
-                type: nk.loaiBoNhiem || 'Bổ nhiệm',
-                status: nk.trangThai === 1 ? 'Đang nhiệm kỳ' : 'Đã kết thúc',
-                reasonForEnding: nk.lyDoKetThuc
+                chucDanh: nk.chucDanh,
+                ngayBatDau: nk.ngayBatDau,
+                ngayKetThuc: nk.ngayKetThuc,
+                soQuyetDinh: nk.soQuyetDinh || 'N/A',
+                ngayQuyetDinh: nk.ngayQuyetDinh,
+                nguoiKy: nk.nguoiKy || 'N/A',
+                chucVuNguoiKy: '',
+                loaiBoNhiem: nk.loaiBoNhiem || 'Bổ nhiệm',
+                trangThai: nk.trangThai === 1 ? 'Đang nhiệm kỳ' : 'Đã kết thúc',
+                lyDoKetThuc: nk.lyDoKetThuc
             });
 
             setTermData({
-                currentTerm: nhiemKyHienTai ? mapToUIModel(nhiemKyHienTai) : null,
-                historyTerms: [
+                nhiemKyHienTai: nhiemKyHienTai ? mapToUIModel(nhiemKyHienTai) : null,
+                lichSuNhiemKy: [
                     ...(nhiemKyHienTai ? [mapToUIModel(nhiemKyHienTai)] : []),
                     ...lichSuNhiemKy.map(mapToUIModel)
                 ]
@@ -73,7 +73,7 @@ export const StaffPage: React.FC = () => {
         // Hàm đóng màn hình chi tiết
         const handleCloseHistory = () => {
             setSelectedStaff(null);
-            setTermData({ currentTerm: null, historyTerms: [] });
+            setTermData({ nhiemKyHienTai: null, lichSuNhiemKy: [] });
         };
     
     if(!staffList) return(
@@ -87,16 +87,16 @@ export const StaffPage: React.FC = () => {
         return (
             <TermHistoryView
                 onBack={handleCloseHistory}
-                staffName={selectedStaff.hoVaTen}
-                currentTerm={termData.currentTerm}
-                historyTerms={termData.historyTerms}
+                tenVienChuc={selectedStaff.hoVaTen}
+                nhiemKyHienTai={termData.nhiemKyHienTai}
+                lichSuNhiemKy={termData.lichSuNhiemKy}
                 loading={loadingTerm}
             />
         );
     }
 
     const filteredStaff = staffList.filter(s =>
-        s.hoVaTen.toLowerCase().includes(searchText.toLowerCase())
+        s.hoVaTen?.toLowerCase().includes(searchText.toLowerCase())
     );
 
     const cols = [
@@ -127,7 +127,7 @@ export const StaffPage: React.FC = () => {
         {
             title: 'Thao tác',
             key: 'action',
-            render: (_: any, record: VienChuc) => (
+            render: (_: unknown, record: VienChuc) => (
                 <Button
                     type="link"
                     icon={<HistoryOutlined />}

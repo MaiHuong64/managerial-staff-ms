@@ -67,7 +67,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
         ketQuaUngVien: activeCandidates.map(c => ({
           chiTietQHId: c.chiTietQHId,
           soPhieuDongY: currentStep === 2 ? 0 : (formValues[`dongY_${c.chiTietQHId}`] || 0),
-          soPhieuKhongDongY: currentStep === 2 ? 0 : (formValues[`khongDongY_${c.chiTietQHId}`] || 0),
+          soPhieuKhongDongY: currentStep === 2 ? 0 : (soPhieuHopLe - (formValues[`dongY_${c.chiTietQHId}`] || 0))
         })),
       };
 
@@ -135,11 +135,15 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
       title: 'Không đồng ý',
       key: 'khongDongY',
       width: 150,
-      render: (_: unknown, record: UngVienQuyHoach) => (
-        <Form.Item name={`khongDongY_${record.chiTietQHId}`} noStyle rules={[{ required: true, message: '' }]}>
-          <InputNumber min={0} max={soPhieuHopLe} className="w-full" placeholder="Số phiếu" />
-        </Form.Item>
-      ),
+      render: (_: unknown, record: UngVienQuyHoach) => {
+        const dy  = values?.[`dongY_${record.chiTietQHId}`] || 0;
+        const kdy = soPhieuHopLe - dy;
+        return (
+          <Text strong className={kdy < 0 ? 'text-red-500' : 'text-slate-700'}>
+            {kdy < 0 ? '⚠ Vượt quá' : kdy}
+          </Text>
+      );
+  },
     },
     {
       title: 'Kiểm tra',
@@ -147,13 +151,13 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
       width: 120,
       render: (_: unknown, record: UngVienQuyHoach) => {
         const dy = values?.[`dongY_${record.chiTietQHId}`] || 0;
-        const kdy = values?.[`khongDongY_${record.chiTietQHId}`] || 0;
+        const kdy = soPhieuHopLe - dy
         const total = dy + kdy;
-        const isMatch = soPhieuHopLe > 0 && total === soPhieuHopLe;
+        const isMatch = soPhieuHopLe > 0 && total === soPhieuHopLe ;
 
         return (
           <Tag color={isMatch ? 'success' : 'error'} icon={isMatch ? <CheckCircleOutlined /> : <CloseCircleOutlined />}>
-            {total}/{soPhieuHopLe}
+            {dy}/{soPhieuHopLe}
           </Tag>
         );
       },
