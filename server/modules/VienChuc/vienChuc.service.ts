@@ -11,6 +11,7 @@ import {
     softDeleteById,
     updateById,
     getVienChucByDonVi,
+    findHoSoVienChuc,
 } from "./vienChuc.repository";
 
 const ALLOWED_UPDATE_FIELDS = new Set<string>([
@@ -78,6 +79,13 @@ export const updateStaff = async (id: number, fields: Record<string, any>) => {
 export const deleteStaff = async (id: number) => {
     await softDeleteById(id);
 };
-  export const getStaffbyDepartment = async (donViId: number) => {
+
+export const getStaffbyDepartment = async (donViId: number) => {
       return getVienChucByDonVi(donViId);
-  }
+}
+
+export const getHoSoVienChuc = async (vienChucId: number) => {
+    const data = await findHoSoVienChuc(vienChucId);
+    if (!data || !data.profile) throw new Error("Không tìm thấy hồ sơ viên chức");
+    return data as StaffProfileResult;
+}
