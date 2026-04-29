@@ -1,12 +1,13 @@
 import { Button, Descriptions, Form, Input, message, Modal, Select, Space, Table, Tag } from "antd";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hook/useAuth";
-import { approvePhieuDeXuatNhanSu, auditPhieuDeXuatCandidate, getPhieuDeXuatNhanSuById, guiPhieuDeXuatNhanSu, rejectPhieuDeXuatNhanSu} from "../../api/phieuDeXuat.api";
+import { approvePhieuDeXuatNhanSu, getPhieuDeXuatNhanSuById, guiPhieuDeXuatNhanSu, rejectPhieuDeXuatNhanSu} from "../../api/phieuDeXuat.api";
 import { DU_DIEU_KIEN, TRANG_THAI_PHIEU_DE_XUAT, type ChiTietPhieuDeXuat, type PhieuDeXuatNhanSuChiTiet } from "../../types/PhieuDeXuatNhanSu";
 import dayjs from "dayjs";
 import { getDotQuyHoachList } from "../../api/dotQuyHoach.api";
 import type { DotQuyHoach } from "../../types/QuyHoach";
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import { EyeOutlined } from "@ant-design/icons";
+import XemHoSoNhanSu from "./XemHoSoNhanSu";
 
 interface Props {
     id: number | null;
@@ -27,10 +28,13 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
     const [rejectModalVisible, setRejectModalVisible] = useState(false);
     const [rejectForm] = Form.useForm();
 
-    const [auditModalVisible, setAuditModalVisible] = useState(false);
-    const [auditCandidate, setAuditCandidate] = useState<ChiTietPhieuDeXuat | null>(null);
-    const [auditForm] = Form.useForm();
-    const [auditing, setAuditing] = useState(false);
+    const [openHoSoVienChuc, setOpenHoSoVienChuc] = useState<number | null>(null);
+     const [selectedUngVien, setSelectedUngVien] = useState<ChiTietPhieuDeXuat | null>(null);
+
+    // const [auditModalVisible, setAuditModalVisible] = useState(false);
+    // const [auditCandidate, setAuditCandidate] = useState<ChiTietPhieuDeXuat | null>(null);
+    // const [auditForm] = Form.useForm();
+    // const [auditing, setAuditing] = useState(false);
 
     const fetchDetail = () => {
         if (!id) return;
@@ -107,30 +111,30 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
         }
     };
 
-    const handleOpenAudit = (ungVien: ChiTietPhieuDeXuat, duDieuKien: number) => {
-        setAuditCandidate(ungVien);
-        auditForm.setFieldsValue({
-            duDieuKien, lyDoKhongDu: ungVien.lyDoKhongDu || ""
-        })
-        setAuditModalVisible(true);
-    }
-    const hanleAudit = async () => {
-        if(!id || !auditCandidate) return;
-        try {
-            const values = await auditForm.validateFields();
-            setAuditing(true);
-            await auditPhieuDeXuatCandidate(auditCandidate.id, {duDieuKien: values.duDieuKien, lyDo: values.lyDoKhongDu ?? ""});
-            message.success("Đã cập nhật xét duyệt");
-            setAuditCandidate(null);
-            setAuditModalVisible(false);
-            fetchDetail();
-        }  catch (error: any) {
-            if (error.errorFields) return;
-            message.error(error?.response?.data?.message || "Xét duyệt thất bại");
-        } finally {
-            setAuditing(false);
-        }
-    }
+    // const handleOpenAudit = (ungVien: ChiTietPhieuDeXuat, duDieuKien: number) => {
+    //     setAuditCandidate(ungVien);
+    //     auditForm.setFieldsValue({
+    //         duDieuKien, lyDoKhongDu: ungVien.lyDoKhongDu || ""
+    //     })
+    //     setAuditModalVisible(true);
+    // }
+    // const hanleAudit = async () => {
+    //     if(!id || !auditCandidate) return;
+    //     try {
+    //         const values = await auditForm.validateFields();
+    //         setAuditing(true);
+    //         await auditPhieuDeXuatCandidate(auditCandidate.id, {duDieuKien: values.duDieuKien, lyDo: values.lyDoKhongDu ?? ""});
+    //         message.success("Đã cập nhật xét duyệt");
+    //         setAuditCandidate(null);
+    //         setAuditModalVisible(false);
+    //         fetchDetail();
+    //     }  catch (error: any) {
+    //         if (error.errorFields) return;
+    //         message.error(error?.response?.data?.message || "Xét duyệt thất bại");
+    //     } finally {
+    //         setAuditing(false);
+    //     }
+    // }
     const trangThai = data ? TRANG_THAI_PHIEU_DE_XUAT[data.trangThai] : null;
     const guiPhieu = data?.trangThai === -1 && user?.vaiTro === 'VCQL';
     const duyetPhieu = data?.trangThai === 0 && user?.vaiTro === 'PTCCT';
@@ -150,11 +154,17 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
             title: "Hành động",
             key: "action",
             render: (_: unknown, record: ChiTietPhieuDeXuat) => (
-                <Space>
-                    <Button size="small" type="primary" icon={<CheckCircleOutlined/>} onClick={() => handleOpenAudit(record, 1)}>Đủ điều kiện</Button>
-                    <Button size="small" type="primary" icon={<CloseCircleOutlined/>} onClick={() => handleOpenAudit(record, 2)}>Không điều kiện</Button>
-                    
-                </Space>
+                <Button
+                    size="small"
+                    type="primary"
+                    icon={<EyeOutlined/>}
+                    onClick={() => {
+                        setSelectedUngVien(record);
+                        setOpenHoSoVienChuc(record.vienChucId);
+                    }}
+                >
+                    Xem hồ sơ
+                </Button>
             ),
         }, ]: [])
     ];
@@ -276,7 +286,7 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
                 </Form>
             </Modal>
 
-            <Modal
+            {/* <Modal
                 title={`Xét duyệt: ${auditCandidate?.hoVaTen ?? ""}`}
                 open={auditModalVisible}
                 onCancel={() => setAuditModalVisible(false)}
@@ -285,16 +295,31 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
                 cancelText ="Hủy"
                 confirmLoading={auditing}
                 width={400}
-            >
-                <Form form={auditForm} layout="vertical">
+            > */}
+                {/* <Form form={auditForm} layout="vertical">
                     <Form.Item name="duDieuKien" label="Kết quả" rules={[{required: true, message: "Vui lòng chọn kết quả"}]}>
                         <Select options={[{value: 1, label: "Đủ điều kiện"}, {value: 0, label:"Không đủ điều kiện"}]}></Select>
                     </Form.Item>
                     <Form.Item name="ghiChu" label="Ghi chú (Không bắt buộc)">
                         <Input.TextArea rows={3} placeholder="Nhập ghi chú"/>
                     </Form.Item>
-                </Form>
-            </Modal>
+                </Form> */}
+
+            {/* </Modal> */}
+            <XemHoSoNhanSu
+                vienChucId={openHoSoVienChuc}
+                chiTietPhieuId={selectedUngVien?.id ?? 0}
+                hoVaTen={selectedUngVien?.hoVaTen ?? ""}
+                onClose={() => {
+                    setOpenHoSoVienChuc(null);
+                    setSelectedUngVien(null);
+                }}
+                onSuccess={() => {
+                    setOpenHoSoVienChuc(null);
+                    setSelectedUngVien(null);
+                    fetchDetail();
+                }}
+            />
         </>
     );
 };

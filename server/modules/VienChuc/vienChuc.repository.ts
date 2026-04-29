@@ -171,3 +171,54 @@ export const getVienChucByDonVi = async (donViId: number) => {
     )
     return mapArrayToCamel(res.rows);
 }
+
+
+export const findHoSoVienChuc = async (vienChucId: number) => {
+    const [profile, history, staffEval, partyEval] = await Promise.all([
+        pool.query(`
+            SELECT vc.*, dv.ten_don_vi, cd.ten_chuc_danh,
+                   nk.ngay_bat_dau, nk.ngay_ket_thuc,
+                   qd.so_quyet_dinh
+            FROM vien_chuc vc
+            LEFT JOIN don_vi dv ON vc.don_vi_id = dv.id
+            LEFT JOIN nhiem_ky_chuc_vu nk ON vc.id = nk.vien_chuc_id AND nk.trang_thai = 1
+            LEFT JOIN chuc_danh_quan_ly cd ON cd.id = nk.chuc_danh_id
+            LEFT JOIN qd_bo_nhiem qd ON qd.id = nk.qd_bo_nhiem_id
+            LEFT JOIN tai_khoan tk ON tk.ten_dang_nhap = vc.ma_vien_chuc
+            WHERE vc.id = $1
+        `, [vienChucId]),
+
+        pool.query(`
+            SELECT vc.*, dv.ten_don_vi, cd.ten_chuc_danh,
+                   nk.ngay_bat_dau, nk.ngay_ket_thuc, qd.so_quyet_dinh
+            FROM vien_chuc vc
+            LEFT JOIN don_vi dv ON vc.don_vi_id = dv.id
+            LEFT JOIN nhiem_ky_chuc_vu nk ON vc.id = nk.vien_chuc_id
+            LEFT JOIN chuc_danh_quan_ly cd ON cd.id = nk.chuc_danh_id
+            LEFT JOIN qd_bo_nhiem qd ON qd.id = nk.qd_bo_nhiem_id
+            WHERE vc.id = $1
+            ORDER BY nk.ngay_bat_dau DESC
+        `, [vienChucId]),
+
+        pool.query(`
+            SELECT nam_danh_gia, danh_gia, nhan_xet
+            FROM xep_loai_vc
+            WHERE vien_chuc_id = $1
+            ORDER BY nam_danh_gia DESC
+        `, [vienChucId]),
+
+        pool.query(`
+            SELECT nam_danh_gia, danh_gia, nhan_xet
+            FROM xep_loai_dang_vien
+            WHERE vien_chuc_id = $1
+            ORDER BY nam_danh_gia DESC
+        `, [vienChucId]),
+    ]);
+
+    return {
+        profile: mapToCamel(profile.rows[0] ?? null),
+        lichSuChucVu: mapArrayToCamel(history.rows),
+        xepLoaiVc: mapArrayToCamel(staffEval.rows),
+        xepLoaiDangVien: mapArrayToCamel(partyEval.rows),
+    };
+};
