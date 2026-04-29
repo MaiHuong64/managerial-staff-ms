@@ -18,5 +18,8 @@ export const updateVienChuc = (id: number, data: unknown) =>
 export const deleteVienChuc = (id: number) =>
     axiosClient.delete(`/vien-chuc/${id}`);
 
-export const getVienChucTheoDonVi = () => 
+export const getVienChucTheoDonVi = () =>
     axiosClient.get("/vien-chuc/don-vi")
+
+export const getFullProfileById = (id: number) =>
+    axiosClient.get(`/vien-chuc/${id}/ho-so-day-du`)

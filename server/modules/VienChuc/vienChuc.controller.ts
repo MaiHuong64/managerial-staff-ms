@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request ,Response } from "express";
 import { AuthRequest } from "../../middleware/auth.middleware";
 import {
     getAllStaff,
@@ -8,6 +8,7 @@ import {
     updateStaff,
     deleteStaff,
     getStaffbyDepartment,
+    getHoSoVienChuc,
 } from "./vienChuc.service";
 
 export const getAll = async (req: AuthRequest, res: Response) => {
@@ -93,3 +94,12 @@ export const getByDonVi = async (req: AuthRequest, res: Response) => {
          return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 }
+export const getHoSoVC = async (req:Request, res: Response) => {
+    try {
+        const vienChucId = Number(req.params.id);
+        const data = await getHoSoVienChuc(vienChucId);
+        return res.status(200).json({ success: true, data });
+    } catch (error: any) {
+        return res.status(404).json({ success: false, message: error.message });
+    }
+};
