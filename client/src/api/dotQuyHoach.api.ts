@@ -22,3 +22,9 @@ export const submitVoteQuyHoach = (data: unknown) =>
 
 export const approveQuyHoach = (dotQuyHoachId: number, data: { soQdPheDuyet: string; ngayQdPheDuyet: Date }) =>
     axiosClient.patch(`/quy-hoach/${dotQuyHoachId}/phe-duyet`, data);
+
+export const filterCandidatesHandler = (donViId: number, dotQuyHoachId: number) => {
+    return axiosClient.get(`/quy-hoach/filter/`, {params: {donViId, dotQuyHoachId}});
+}
+export const addNewCandidate170 = (id: number, data: unknown) => 
+    axiosClient.post(`/quy-hoach/${id}/chi-tiet/170`, data)

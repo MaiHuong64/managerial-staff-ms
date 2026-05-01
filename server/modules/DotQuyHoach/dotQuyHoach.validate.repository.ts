@@ -38,7 +38,7 @@ export const getBuocHienTaiByDot = async (client: any, dotQhId: number) => {
 // Lấy danh sách ứng viên đang ở bước hiện tại
 export const getUngVienByDotAndBuoc = async (client: any, dotQhId: number, buoc: number) => {
     const result = await client.query(
-        `SELECT id, vien_chuc_id, chuc_danh_id, don_vi_id, buoc_hien_tai
+        `SELECT id, vien_chuc_id, chuc_danh_id, don_vi_id, buoc_hien_tai, loai_nguon
          FROM chi_tiet_quy_hoach
          WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai = $2`,
         [dotQhId, buoc]
@@ -55,17 +55,19 @@ export const updateBuocHienTaiById = async (client: any, buoc: number, chiTietQh
 }
 //Kiểm tra tất cả các ứng viên đã vote xong chưa
 export const checkBatchDone = async (client: any, dotQuyHoachId: number ) => {
-    const result = await client.query (
-        `SELECT COUNT(*) AS con_active
-         FROM chi_tiet_quy_hoach
-         WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai > 0 AND buoc_hien_tai != 6`,
-        [dotQuyHoachId]
-    )
-    console.log(result.rows);
-    
-    const count = await client.query( 
+    const count = await client.query(
         `SELECT COUNT(*) AS con_active FROM chi_tiet_quy_hoach
          WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai > 0 AND buoc_hien_tai != 6`,
+        [dotQuyHoachId]
+    );
+    return Number(count.rows[0].con_active) === 0;
+}
+
+// Kiểm tra ứng viên mới (loai_nguon = 1) đã vote xong chưa - dùng cho QT170
+export const checkBatchDone_QT170 = async (client: any, dotQuyHoachId: number) => {
+    const count = await client.query(
+        `SELECT COUNT(*) AS con_active FROM chi_tiet_quy_hoach
+         WHERE dot_quy_hoach_id = $1 AND loai_nguon = 1 AND buoc_hien_tai > 0 AND buoc_hien_tai != 6`,
         [dotQuyHoachId]
     );
     return Number(count.rows[0].con_active) === 0;

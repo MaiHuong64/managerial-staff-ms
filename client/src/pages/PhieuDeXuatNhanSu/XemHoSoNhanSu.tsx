@@ -98,12 +98,7 @@ const XemHoSoNhanSu: React.FC<Props> = ({ vienChucId, chiTietPhieuId, hoVaTen, o
 
     return (
         <Drawer
-            title={`Hồ sơ nhân sự: ${hoVaTen}`}
-            open={!!vienChucId}
-            onClose={onClose}
-            placement="right"
-            width="85%"
-            loading={loading}
+            title={`Hồ sơ nhân sự: ${hoVaTen}`} open={!!vienChucId} onClose={onClose} placement="right" width="85%" loading={loading}
             extra={
                 <Space>
                     <Button onClick={onClose}>Đóng</Button>
@@ -116,7 +111,7 @@ const XemHoSoNhanSu: React.FC<Props> = ({ vienChucId, chiTietPhieuId, hoVaTen, o
             {profile && (
                 <>
                     {/* Header Card */}
-                    <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-6 mb-6">
+                    <div className="bg-linear-to-r from-indigo-50 to-blue-50 rounded-2xl p-6 mb-6">
                         <div className="flex items-center gap-6">
                             <div className="w-20 h-20 rounded-full bg-indigo-500 text-white flex items-center justify-center text-3xl font-bold">
                                 {hoVaTen.charAt(0)}
@@ -184,7 +179,7 @@ const XemHoSoNhanSu: React.FC<Props> = ({ vienChucId, chiTietPhieuId, hoVaTen, o
                         <Card title="Xếp loại & Lịch sử" size="small">
                             <div className="mb-4">
                                 <div className="text-xs font-semibold text-gray-500 mb-2">Xếp loại VC (3 năm)</div>
-                                <Timeline size="small">
+                                <Timeline>
                                     {profile.xepLoaiVc.slice(0, 3).map(xl => (
                                         <Timeline.Item
                                             key={xl.namDanhGia}
@@ -201,7 +196,7 @@ const XemHoSoNhanSu: React.FC<Props> = ({ vienChucId, chiTietPhieuId, hoVaTen, o
                             {profile.xepLoaiDangVien.length > 0 && (
                                 <div className="mb-4">
                                     <div className="text-xs font-semibold text-gray-500 mb-2">Xếp loại ĐV (3 năm)</div>
-                                    <Timeline size="small">
+                                    <Timeline>
                                         {profile.xepLoaiDangVien.slice(0, 3).map(xl => (
                                             <Timeline.Item key={xl.namDanhGia} color="red">
                                                 <div className="text-xs">
