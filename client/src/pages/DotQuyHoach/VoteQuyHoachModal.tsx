@@ -50,6 +50,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
   const soNguoiTrieuTap = values?.soNguoiTrieuTap || 0;
   const soNguoiCoMat = values?.soNguoiCoMat || 0;
   const soPhieuHopLe = values?.soPhieuHopLe || 0;
+  const isNoVote = currentStep === 2 && loaiQuyHoach === 1;
 
   const handleSubmit = async () => {
     try {
@@ -59,16 +60,16 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
       const payload: DuLieuKetQuaHoiNghi = {
         dotQHId: dotQuyHoachId,
         buocHoiNghi: currentStep,
+        // loaiQuyHoach: loaiQuyHoach || 1,
         soNguoiTrieuTap: formValues.soNguoiTrieuTap,
         soNguoiCoMat: formValues.soNguoiCoMat,
-        soPhieuPhatRa: 
-        currentStep === 2 ? 0 : formValues.soPhieuPhatRa,
-        soPhieuThuVe: currentStep === 2 ? 0 : formValues.soPhieuThuVe,
-        soPhieuHopLe: currentStep === 2 ? 0 : formValues.soPhieuHopLe,
+        soPhieuPhatRa: isNoVote ? 0 : formValues.soPhieuPhatRa,
+        soPhieuThuVe: isNoVote ? 0 : formValues.soPhieuThuVe,
+        soPhieuHopLe: isNoVote ? 0 : formValues.soPhieuHopLe,
         ketQuaUngVien: activeCandidates.map(c => ({
           chiTietQHId: c.chiTietQHId,
-          soPhieuDongY: currentStep === 2 ? 0 : (formValues[`dongY_${c.chiTietQHId}`] || 0),
-          soPhieuKhongDongY: currentStep === 2 ? 0 : (soPhieuHopLe - (formValues[`dongY_${c.chiTietQHId}`] || 0))
+          soPhieuDongY: isNoVote ? 0 : (formValues[`dongY_${c.chiTietQHId}`] || 0),
+          soPhieuKhongDongY: isNoVote ? 0 : (soPhieuHopLe - (formValues[`dongY_${c.chiTietQHId}`] || 0))
         })),
       };
 
@@ -223,7 +224,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
                 <InputNumber min={0} max={soNguoiTrieuTap} className="w-full" />
               </Form.Item>
               
-              {currentStep !== 2 && (
+              {(loaiQuyHoach === 2 || currentStep !== 2) && (
                 <>
                   <Form.Item name="soPhieuPhatRa" label="Số phiếu phát ra" rules={[{ required: true }]}>
                     <InputNumber min={0} className="w-full" />
@@ -239,7 +240,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
             </div>
           </Card>
 
-          {currentStep !== 2 && (
+          {(loaiQuyHoach === 2 || currentStep !== 2) && (
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
                 <Text strong className="text-lg">Danh sách ứng viên lấy phiếu</Text>
@@ -248,7 +249,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
               <Table
                 dataSource={activeCandidates}
                 columns={columns}
-                rowKey="chi_tiet_qh_id"
+                rowKey="chiTietQHId"
                 pagination={false}
                 bordered
                 size="middle"
