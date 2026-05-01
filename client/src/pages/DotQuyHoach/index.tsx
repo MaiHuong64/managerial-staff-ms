@@ -89,10 +89,12 @@ export const PlanningPage: React.FC = () => {
             dataIndex: "trangThai",
             key: "trangThai",
             width: 130,
-            render: (val: number) =>
-                val === 1
-                    ? <Tag color="green"  className="rounded-full px-3 text-xs border-0">Hoàn thành</Tag>
-                    : <Tag color="orange" className="rounded-full px-3 text-xs border-0">Đang xử lý</Tag>,
+            render: (val: number) =>{
+                if (val === 0) return <Tag color="default">Chờ duyệt</Tag>;
+                if (val === 1) return <Tag color="processing">Đang thực hiện</Tag>;
+                if (val === 2) return <Tag color="success">Đã phê duyệt</Tag>; 
+                return <Tag color="error">Không xác định</Tag>;
+            }
         },
         {
             title: "",
