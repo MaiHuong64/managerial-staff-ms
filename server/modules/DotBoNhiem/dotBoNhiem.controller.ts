@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { fetchAllAppointmentBatch,  findAppointmentBatchById, createAppointmentBatch, fetchCandidates} from "./dotBoNhiem.service";
-import { submitVoteResult } from "./dotBoNhiem.validate.service";
+import {  resolveVoteTieService, submitVoteResult } from "./dotBoNhiem.validate.service";
 
 export const getAll = async (req: Request, res: Response) => {
     try {
@@ -38,9 +38,22 @@ export const create = async (req: Request, res: Response) => {
 
 export const submitVoteBoNhiem = async (req: Request, res: Response) => {
     try {
-        await submitVoteResult(req.body);
+        const result = await submitVoteResult(req.body);
+
+        // Nếu có hòa phiếu, trả về thông tin để frontend xử lý
+        if (result && result.isTie) {
+            console.log("Tie detected! Result:", JSON.stringify(result, null, 2));
+            return res.status(200).json({
+                success: true,
+                hoa: true,
+                tieCandidates: result.danhSachHoa,
+                message: "Phát hiện hòa phiếu, vui lòng chọn ứng viên được đi tiếp"
+            });
+        }
+
         return res.status(200).json({ success: true, message: "Ghi nhận kết quả thành công!" });
     } catch (error: any) {
+        console.error("Error in submitVoteBoNhiem:", error);
         return res.status(400).json({ success: false, message: error.message });
     }
 }
@@ -57,18 +70,12 @@ export const getCandidates = async (req: Request, res: Response) => {
     }
 }
 
-// export const startVoting = async (req: Request, res: Response) => {
-//     try {
-//         const id = Number(req.params.id);
-//         await startVotingProcess(id);
-//         return res.status(200).json({ 
-//             success: true, 
-//             message: "Đã bắt đầu quy trình bổ nhiệm!" 
-//         });
-//     } catch (error: any) {
-//         return res.status(500).json({ 
-//             success: false, 
-//             message: error.message || "Lỗi khi bắt đầu quy trình" 
-//         });
-//     }
-// }
+export const resolveVoteTie = async (req: Request, res: Response) => {
+    try {
+        const { chiTietBnId, tieCandidates } = req.body;
+        await resolveVoteTieService(chiTietBnId, tieCandidates);
+        return res.status(200).json({ success: true, message: "Đã cập nhật kết quả ứng viên hòa!" });
+    } catch (error: any) {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+}
