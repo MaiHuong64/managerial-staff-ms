@@ -57,6 +57,7 @@ export interface DuLieuBauUngVien {
 export interface DuLieuKetQuaHoiNghi {
     dotQHId: number;
     buocHoiNghi: number;
+    // loaiQuyHoach: number;   
     soNguoiTrieuTap: number;
     soNguoiCoMat: number;
     soPhieuPhatRa: number;
