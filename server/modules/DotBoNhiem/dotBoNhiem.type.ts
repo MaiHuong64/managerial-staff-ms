@@ -23,5 +23,6 @@ export enum KetQuaPhieuBau {
 export enum TrangThaiDoBoNhiem {
     ChuanBi = 0,
     DangBau = 1,
-    HoanThanh = 2 
+    HoanThanh = 2,
+    HoaPhieu = 3,
 }
