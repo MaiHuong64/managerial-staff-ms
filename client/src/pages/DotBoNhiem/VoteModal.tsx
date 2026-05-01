@@ -1,8 +1,9 @@
 import type React from "react";
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { Modal, Form, InputNumber, Button, Card, Table, Tag, Alert, message } from "antd";
-import { submitVote } from "../../api/dotBoNhiem.api";
+import { Modal, Form, InputNumber, Button, Card, Table, Tag, Alert, message, Radio } from "antd";
+import { resolveVoteTie, submitVote } from "../../api/dotBoNhiem.api";
+import type { UngVien } from "../../types/ChiTietBoNhiem";
 
 interface VoteFormValues {
     soNguoiTrieuTap: number;
@@ -14,7 +15,7 @@ interface VoteFormValues {
 interface CandidateVoteInput {
     chiTietBnId: number;
     soPhieuDongY: number | null;
-    soPhieuKhongDongY: number | null;
+    // soPhieuKhongDongY: number | null;
 }
 interface VotePayload {
     chiTietDotBoNhiemId: number;
@@ -38,6 +39,12 @@ interface Candidate {
     trangThai: number;
 }
 
+interface UngVien {
+    chiTietBnId: number;
+    hoVaTen: string;
+    soPhieuDongY: number;
+}
+
 interface VoteModalProps {
     visible: boolean;
     onCancel: () => void;
@@ -59,51 +66,42 @@ const STEPS_REQUIRE_TWO_THIRDS = [3, 5];
 // Bước cần nhập phiếu từng ứng viên
 const STEPS_REQUIRE_VOTES = [3, 4, 5];
 
-export const VoteModal: React.FC<VoteModalProps> = ({
-    visible, onCancel, onSuccess,
-    chiTietDotBoNhiemId, candidates, currentStep,
-}) => {
+export const VoteModal: React.FC<VoteModalProps> = ({visible, onCancel, onSuccess, chiTietDotBoNhiemId, candidates, currentStep }) => {
     const [form] = Form.useForm<VoteFormValues>();
     const [loading, setLoading] = useState(false);
     const [candidateVotes, setCandidateVotes] = useState<CandidateVoteInput[]>([]);
-    const [validBallots, setValidBallots] = useState<number | null>(null);
+    const [tieCandidates, setTieCandidates] = useState<number[]>([]);
+    const [selectedWinner, setSelectedWinner] = useState<number | null>(null);
+    const [tieMode, setTieMode] = useState(false);
+    const activeCandidates = useMemo(() => candidates.filter(c => c.trangThai === 1),[candidates]);
 
-    const activeCandidates = useMemo(
-        () => candidates.filter(c => c.trangThai === 1),
-        [candidates]
-    );
+    const values = Form.useWatch([], form);
+    const soPhieuHopLe = values?.soPhieuHopLe ?? 0;
 
     // Reset form khi mở modal
     useEffect(() => {
         if (!visible) return;
         form.resetFields();
-        setValidBallots(null);
         setCandidateVotes(
             activeCandidates.map(c => ({
                 chiTietBnId: c.chiTietBnId,
                 soPhieuDongY: null,
-                soPhieuKhongDongY: null,
+                // soPhieuKhongDongY: null,
             }))
         );
     }, [visible, activeCandidates, form]);
 
-    const handleCandidateVoteChange = (
-        id: number,
-        field: "soPhieuDongY" | "soPhieuKhongDongY",
-        value: number | null
-    ) => {
+    const handleCandidateVoteChange = ( id: number, soPhieuDongY: number | null) => {
         setCandidateVotes(prev =>
-            prev.map(v => v.chiTietBnId === id ? { ...v, [field]: value } : v)
+            prev.map(v => v.chiTietBnId === id ? { ...v, soPhieuDongY } : v)
         );
     };
 
     const handleSubmit = async (values: VoteFormValues) => {
         // Validate bước cần nhập phiếu ứng viên
         if (currentStep && STEPS_REQUIRE_VOTES.includes(currentStep)) {
-            const incomplete = candidateVotes.filter(
-                v => v.soPhieuDongY === null || v.soPhieuKhongDongY === null
-            );
-            if (incomplete.length > 0) {
+           const isComplete = candidateVotes.filter(v => v.soPhieuDongY != null);
+            if (isComplete.length !== candidateVotes.length) {
                 message.error("Vui lòng nhập đầy đủ số phiếu cho tất cả ứng viên");
                 return;
             }
@@ -122,11 +120,21 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                 ketQuaUngVien: candidateVotes.map(v => ({
                     chiTietBnId: v.chiTietBnId,
                     soPhieuDongY: v.soPhieuDongY ?? 0,
-                    soPhieuKhongDongY: v.soPhieuKhongDongY ?? 0,
+                    soPhieuKhongDongY: values.soPhieuHopLe - (v.soPhieuDongY ?? 0),
                 })),
             };
 
             const res = await submitVote(payload);
+            console.log("Backend response:", res.data);
+
+            if(res.data.hoa){
+                console.log("Tie detected! Setting tieMode to true");
+                console.log("Tied candidates:", res.data.tieCandidates);
+                setTieMode(true);
+                message.warning("Có ứng viên hòa, vui lòng chọn ứng viên được đi tiếp!");
+                setTieCandidates(res.data.tieCandidates.map((c: UngVien) => c.chiTietBnId));
+                return;
+            }
             message.success(res.data.message ?? "Ghi nhận kết quả thành công!");
             onSuccess();
             handleCancel();
@@ -144,9 +152,32 @@ export const VoteModal: React.FC<VoteModalProps> = ({
     const handleCancel = () => {
         form.resetFields();
         setCandidateVotes([]);
-        setValidBallots(null);
+        setTieMode(false);
+        setTieCandidates([]);
+        setSelectedWinner(null);
         onCancel();
     };
+
+    const handleTieBreak = async () => {
+        if(!selectedWinner){
+            message.error("Vui lòng chọn ứng viên được đi tiếp!");
+            return;
+        }
+        setLoading(true);
+        try {
+            await resolveVoteTie(chiTietDotBoNhiemId, selectedWinner, tieCandidates);
+            message.success("Đã cập nhật kết quả ứng viên hòa!");
+            setTieMode(false);
+            setSelectedWinner(null);
+            setTieCandidates([]);
+            onSuccess();
+            handleCancel();
+        } catch (error: any) {
+           message.error(error?.response?.data?.message ?? "Lỗi khi xác nhận");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const candidateColumns = [
         { title: "Mã VC", dataIndex: "maVienChuc", width: 100 },
@@ -156,44 +187,62 @@ export const VoteModal: React.FC<VoteModalProps> = ({
             render: (_: unknown, record: Candidate) => (
                 <InputNumber
                     min={0} style={{ width: "100%" }}
+                    disabled={tieMode}
                     value={candidateVotes.find(v => v.chiTietBnId === record.chiTietBnId)?.soPhieuDongY ?? undefined}
-                    onChange={val => handleCandidateVoteChange(record.chiTietBnId, "soPhieuDongY", val)}
+                    onChange={val => handleCandidateVoteChange(record.chiTietBnId, val)}
                 />
             ),
         },
         {
             title: "Phiếu không đồng ý", key: "khong_dong_y", width: 160,
-            render: (_: unknown, record: Candidate) => (
-                <InputNumber
-                    min={0} style={{ width: "100%" }}
-                    value={candidateVotes.find(v => v.chiTietBnId === record.chiTietBnId)?.soPhieuKhongDongY ?? undefined}
-                    onChange={val => handleCandidateVoteChange(record.chiTietBnId, "soPhieuKhongDongY", val)}
-                />
-            ),
+            render: (_: unknown, record: Candidate) => {
+                const vote = candidateVotes.find(v => v.chiTietBnId === record.chiTietBnId);
+                const kdy = vote?.soPhieuDongY != null ? soPhieuHopLe - vote.soPhieuDongY : null;
+                return (
+                    <span className={kdy !== null && kdy < 0 ? "text-red-500 font-medium" : "text-slate-700"}>
+                        {kdy ?? 0   }
+                    </span>
+                );
+            },
         },
         {
             title: "Kiểm tra", key: "check", width: 110,
             render: (_: unknown, record: Candidate) => {
                 const v = candidateVotes.find(x => x.chiTietBnId === record.chiTietBnId);
-                if (v?.soPhieuDongY == null || v?.soPhieuKhongDongY == null)
-                    return <Tag>—</Tag>;
-                const total = v.soPhieuDongY + v.soPhieuKhongDongY;
-                const matched = validBallots !== null && total === validBallots;
-                return <Tag color={matched ? "success" : "error"}>{total} / {validBallots ?? "?"}</Tag>;
+                const dy = v?.soPhieuDongY;
+                const kdy = dy != null && soPhieuHopLe - dy >= 0 ? soPhieuHopLe - dy : null;
+                const isMatch = soPhieuHopLe > 0 && dy != null && kdy != null && dy + kdy === soPhieuHopLe;
+                return <Tag color={isMatch ? "success" : "error"}>{dy} / {soPhieuHopLe}</Tag>
             },
         },
         {
             title: "Tỉ lệ", key: "tiLe", width: 140,
             render: (_: unknown, record: Candidate) => {
                 const v = candidateVotes.find(x => x.chiTietBnId === record.chiTietBnId);
-                if (v?.soPhieuDongY == null || !validBallots)
-                    return <Tag>—</Tag>;
-                const ratio = v.soPhieuDongY / validBallots;
+                if (v?.soPhieuDongY == null || soPhieuHopLe === 0) return <Tag> 0 </Tag>;
+                const ratio = v.soPhieuDongY / soPhieuHopLe;;
                 const passed = ratio > 0.5;
                 return (
                     <Tag color={passed ? "success" : "error"}>
                         {Math.round(ratio * 100)}% — {passed ? "Đạt" : "Không đạt"}
                     </Tag>
+                );
+            },
+        },
+        {
+            title: tieMode ? "Chọn ứng viên" : "",
+            key: "tieBreak",
+            width: 120,
+            render: (_: unknown, record: Candidate) => {
+                console.log("Rendering tieBreak column:", { tieMode, tieCandidates, recordId: record.chiTietBnId });
+                if (!tieMode || !tieCandidates.includes(record.chiTietBnId)) {
+                    return null;
+                }
+                return (
+                    <Radio
+                        checked={selectedWinner === record.chiTietBnId}
+                        onChange={() => setSelectedWinner(record.chiTietBnId)}
+                    />
                 );
             },
         },
@@ -240,6 +289,14 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                     />
                 )}
 
+                {/* Cảnh báo hòa phiếu */}
+                {tieMode && (
+                    <Alert type="warning" showIcon className="mb-4"
+                        message="Phát hiện hòa phiếu"
+                        description="Vui lòng chọn ứng viên được đi tiếp bước tiếp theo bằng cách click vào Radio ở cột cuối bảng."
+                    />
+                )}
+
                 {/* Thông tin hội nghị — bước 2 chỉ nhập số người, không cần phiếu */}
                 <Card
                     title={`Thông tin hội nghị${currentStep ? ` — ${STEP_NAMES[currentStep]}` : ""}`}
@@ -260,23 +317,17 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                         </div>
                     ) : (
                         // Bước 3-5: cần đầy đủ thông tin phiếu
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-5 gap-4 content-center">
                             {([
                                 ["soNguoiTrieuTap", "Số người triệu tập"],
-                                ["soNguoiCoMat",    "Số người có mặt"   ],
-                                ["soPhieuPhatRa",   "Số phiếu phát ra"  ],
-                                ["soPhieuThuVe",    "Số phiếu thu về"   ],
-                                ["soPhieuHopLe",    "Số phiếu hợp lệ"  ],
+                                ["soNguoiCoMat", "Số người có mặt"   ],
+                                ["soPhieuPhatRa", "Số phiếu phát ra"  ],
+                                ["soPhieuThuVe", "Số phiếu thu về"   ],
+                                ["soPhieuHopLe", "Số phiếu hợp lệ"  ],
                             ] as [string, string][]).map(([name, label]) => (
                                 <Form.Item key={name} label={label} name={name}
                                     rules={[{ required: true, message: `Vui lòng nhập ${label.toLowerCase()}` }]}>
-                                    <InputNumber
-                                        min={0} style={{ width: "100%" }}
-                                        onChange={name === "soPhieuHopLe"
-                                            ? val => setValidBallots(val as number | null)
-                                            : undefined
-                                        }
-                                    />
+                                    <InputNumber min={0} style={{ width: "100%" }}/>
                                 </Form.Item>
                             ))}
                         </div>
@@ -294,11 +345,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                 {/* Bước 3-5: nhập phiếu từng ứng viên */}
                 {needsVotes && (
                     <Card title="Kết quả từng ứng viên" className="mb-4">
-                        {validBallots !== null && (
-                            <Alert type="info" showIcon className="mb-3"
-                                message={`Tổng phiếu đồng ý + không đồng ý của mỗi ứng viên phải = ${validBallots}`}
-                            />
-                        )}
+            
                         <Table
                             rowKey="chiTietBnId"
                             columns={candidateColumns}
@@ -306,18 +353,37 @@ export const VoteModal: React.FC<VoteModalProps> = ({
                             pagination={false}
                             size="small"
                             bordered
+                            rowClassName={(record) => tieCandidates?.includes(record.chiTietBnId) ?
+                                (selectedWinner === record.chiTietBnId ? "bg-green-50" : "bg-red-50") : ""
+                            }
                         />
                     </Card>
                 )}
 
                 <div className="flex justify-end gap-2">
                     <Button onClick={handleCancel}>Hủy</Button>
-                    <Button type="primary" htmlType="submit"
-                        loading={loading} disabled={!currentStep}>
-                        Ghi nhận kết quả
-                    </Button>
+                    {tieMode ? (
+                        <Button type="primary" onClick={handleTieBreak} loading={loading}>
+                            Xác nhận quyết định
+                        </Button>
+                    ) : (
+                        <Button type="primary" htmlType="submit" loading={loading} disabled={!currentStep}>
+                            Ghi nhận kết quả
+                        </Button>
+                    )}
                 </div>
-
+                {/* {tieMode && tieCandidates && (
+                    <Radio.Group onChange={e => setSelectedWinner(e.target.value)} value={selectedWinner} className="mt-4">
+                        <div className="flex flex-col gap-2">
+                            <span className="font-medium">Có ứng viên hòa, vui lòng chọn ứng viên được đi tiếp:</span>  
+                            {activeCandidates.filter(c => tieCandidates.includes(c.chiTietBnId)).map(c => (
+                                <Radio key={c.chiTietBnId} value={c.chiTietBnId}>
+                                    {c.hoVaTen} ({c.maVienChuc})    
+                                </Radio>
+                            ))}
+                        </div>
+                    </Radio.Group>
+                )} */}
             </Form>
         </Modal>
     );

@@ -21,3 +21,8 @@ export const addCandidateToChiTietDot = (chiTietDotId: number, data: unknown) =>
 export const startVotingProcess = (id: number) =>
     axiosClient.post(`/bo-nhiem/${id}/start-voting`);
 
+export const resolveVoteTie = (chiTietDotId: number, chiTietBnId: number, tieCandidates: number[]) =>
+    axiosClient.post(`/bo-nhiem/detail/${chiTietDotId}/candidates/resolve-tie`, { 
+        chiTietBnId,    // người thắng
+        tieCandidates   // danh sách hòa
+    });
