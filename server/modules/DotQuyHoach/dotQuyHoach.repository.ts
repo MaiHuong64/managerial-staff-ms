@@ -1,7 +1,8 @@
 import { toCamel } from "snake-camel";
 import pool from "../../config/db";
-import { AddPlanningBatchDetailDTO, CreatePlanningBatchDTO, PlanningBatch } from "./dotQuyHoach.dto";
+import { AddNewCandidate, AddPlanningBatchDetailDTO, CreatePlanningBatchDTO, PlanningBatch } from "./dotQuyHoach.dto";
 import { mapToCamel } from "../../utils/mapper";
+import { PoolClient } from "pg";
 
 export const getNextBatchCode = async (client: any) => {
     const result = await client.query(
@@ -69,7 +70,7 @@ export const copyChiTietFromDotGoc = async (client: any, dotRaSoatId: number, do
         `INSERT INTO chi_tiet_quy_hoach
              (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id,
               ngay_vao_qh, loai_nguon, buoc_hien_tai, trang_thai)
-         SELECT $1, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, 2, 6, 1
+         SELECT $1, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, 2, 1, 1
          FROM chi_tiet_quy_hoach
          WHERE dot_quy_hoach_id = $2 AND trang_thai = 1 AND buoc_hien_tai = 6
          ON CONFLICT (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id) DO NOTHING`,
@@ -83,7 +84,7 @@ export const insertPlanningDetail = async (client: any, payload: AddPlanningBatc
         [payload.dotQuyHoachId]
     );
     const loaiQH = dotQH.rows[0]?.loai_quy_hoach;
-    const buocBatDau = loaiQH === 2 ? 2 : 1; // Loại 2 (rà soát) bắt đầu từ bước 2, loại 1 từ bước 1
+    const buocBatDau = loaiQH === 2 ? 1 : 2; // Loại 2 (rà soát) bắt đầu từ bước 2, loại 1 từ bước 1
 
     for(const vc of payload.vienChucId) {
         await client.query(
@@ -106,13 +107,14 @@ export const getCandidatesByChucDanhId = async (chucDanhId: number) => {
     return result.rows.map(toCamel);
 }
 
-export const filterCandidates = async (donViId: number,  trinhDoChuyenMon: string, dotQuyHoachId: number) => {
+export const filterCandidates = async (donViId: number, dotQuyHoachId: number) => {
     const result = await pool.query(
-        `select id, ma_vien_chuc, ho_va_ten, trinh_do_chuyen_mon
-        from vien_chuc
-        where trinh_do_chuyen_mon = $1 and don_vi_id = $2 and id not in
-        (select vien_chuc_id from chi_tiet_quy_hoach where dot_quy_hoach_id = $3 and trang_thai = $4)
-        `, [trinhDoChuyenMon, donViId, dotQuyHoachId, 1]
+        `SELECT * 
+        FROM vien_chuc
+        WHERE don_vi_id = $1 AND id NOT IN ( SELECT vien_chuc_id
+									FROM chi_tiet_quy_hoach 
+									WHERE dot_quy_hoach_id = $2 AND trang_thai = 1)
+        `, [donViId, dotQuyHoachId]
     )
     return result.rows.map(toCamel);
 }
@@ -126,4 +128,15 @@ export const updateApprovalDecision = async (dotQuyHoachId: number, soQdPheDuyet
         [soQdPheDuyet, ngayQdPheDuyet, dotQuyHoachId]
     );
     return mapToCamel<PlanningBatch>(result.rows[0]);
+}
+
+export const insertNewCandidates = async (client: PoolClient, payload: AddNewCandidate)=> {
+    const result = await client.query(
+        `INSERT INTO chi_tiet_quy_hoach
+        (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id,
+        ngay_vao_qh, loai_nguon, buoc_hien_tai, trang_thai) VALUES ($1, $2, $3, $4, $5, 1, 2, 1)
+        ON CONFLICT  (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id) DO NOTHING
+        RETURNING id`, [payload.dotQuyHoachId, payload.vienChucId, payload.chucDanhId, payload.donViId, payload.ngayVaoQH]
+    )
+    return mapToCamel<AddNewCandidate>(result.rows[0]);
 }
