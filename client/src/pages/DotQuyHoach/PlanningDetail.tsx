@@ -3,11 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, Table, Tag, Spin, Steps } from "antd";
 import type { ChiTietQuyHoach, DotQuyHoach } from "../../types/QuyHoach";
 import type { ColumnsType } from "antd/es/table";
-import { ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined, UserOutlined, HomeOutlined, FormOutlined, SafetyOutlined} from "@ant-design/icons";
+import { ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined, UserOutlined, HomeOutlined, FormOutlined, SafetyOutlined, UserAddOutlined} from "@ant-design/icons";
 import VoteQuyHoachModal from "./VoteQuyHoachModal";
 import { ApproveQuyHoachModal } from "./ApproveQuyHoachModal";
 import { getDotQuyHoachDetailById } from "../../api/dotQuyHoach.api";
 import { StatCard } from "../../components/common/StatCard";
+import { AddCandidateQT170 } from "./AddNewCandidateModal";
+
 
 const formatDate = (date: string) =>
     date ? new Date(date).toLocaleDateString("vi-VN") : "—";
@@ -19,8 +21,11 @@ export const PlanningDetailPage: React.FC = () => {
     const [staffList, setStaffList] = useState<ChiTietQuyHoach[]>([]);
     const [planning, setPlanning] = useState<DotQuyHoach | null>(null);
     const [loading, setLoading] = useState(true);
+    
     const [voteModalOpen, setVoteModalOpen] = useState(false);
     const [approveModalOpen, setApproveModalOpen] = useState(false);
+    const [addNewCandidateModal, setAddNewCandidateModal] = useState(false);
+
 
     const fetchData = async () => {
         setLoading(true);
@@ -43,11 +48,17 @@ export const PlanningDetailPage: React.FC = () => {
     const currentStep = useMemo(() => {
         const [minStep, maxStep] = planning?.loaiQuyHoach === 1 ? [2,5] : [1,4]
         const activeCandidates = staffList.filter(s => s.buocHienTai >= minStep && s.buocHienTai <= maxStep);
+        // const checkVote = planning?.loaiQuyHoach === 1 && currentStep === 2;
         if (activeCandidates.length === 0) return null;
         return Math.min(...activeCandidates.map(s => s.buocHienTai));
+        
     }, [staffList, planning]);
 
     const canVote = currentStep !== null && (planning?.loaiQuyHoach === 1 ? [2, 3, 4, 5].includes(currentStep) : [1, 2, 3, 4].includes(currentStep));
+
+    // Với QT170: cho phép thêm ứng viên mới sau bước 1 (khi không còn ứng viên nào ở bước 1)
+    const canAddCandidate = planning?.loaiQuyHoach === 2 && planning.trangThai === 0 &&
+        !staffList.some(s => s.buocHienTai === 1);
 
     const stats = useMemo(() => ({
         total: staffList.length,
@@ -88,6 +99,7 @@ export const PlanningDetailPage: React.FC = () => {
             width: 180,
             render: (step: number) => {
                 const config: Record<number, { color: string; label: string; icon?: React.ReactNode }> = {
+                    1: { color: 'red', label: 'Rà soát đưa ra'},
                     2: { color: 'blue', label: 'HN lãnh đạo 1' },
                     3: { color: 'purple', label: 'HN CB chủ chốt' },
                     4: { color: 'orange', label: 'HN mở rộng' },
@@ -154,7 +166,12 @@ export const PlanningDetailPage: React.FC = () => {
                                 Ghi nhận kết quả HN
                             </Button>
                         )}
-                        {planning?.trangThai === 1 && !planning?.soQdPheDuyet && (
+                        {canAddCandidate && (
+                            <Button type="primary" icon={<UserAddOutlined />} onClick={() => setAddNewCandidateModal(true)}>
+                                Thêm ứng viên
+                            </Button>
+                        )}
+                        {planning?.trangThai === 1 && !planning?.soQuyetDinhPheDuyet && (
                             <Button
                                 type="primary"
                                 icon={<SafetyOutlined />}
@@ -193,7 +210,6 @@ export const PlanningDetailPage: React.FC = () => {
                     </div>
                 )}
 
-                {/* ── Stat cards ──────────────────────────── */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <StatCard title="Tổng ứng viên" value={stats.total} icon={<TeamOutlined />} color="indigo" />
                     {/* <StatCard title="Đang trong quy trình" value={stats.active} icon={<SyncOutlined />} color="sky" /> */}
@@ -250,6 +266,13 @@ export const PlanningDetailPage: React.FC = () => {
                     tenQuyHoach={planning.tenQuyHoach}
                 />
             )}
+            {addNewCandidateModal && (
+                <AddCandidateQT170
+                visible={addNewCandidateModal}
+                onCancel={() => setAddNewCandidateModal(false)}
+                onSuccess={() => {setAddNewCandidateModal(false); fetchData()}}
+                dotQuyHoachId={Number(id)}
+            />)}
         </div>
     );
 };

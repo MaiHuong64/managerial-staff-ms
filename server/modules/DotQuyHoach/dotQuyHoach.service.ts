@@ -1,6 +1,6 @@
 import pool from "../../config/db";
-import { AddPlanningBatchDetailDTO, ApprovalDecisionDTO, CreatePlanningBatchDTO } from "./dotQuyHoach.dto";
-import { filterCandidates, getAllPlanning, getCandidatesByChucDanhId, getDetail, getPlanningById, insertPlanningBatch, insertPlanningDetail, copyChiTietFromDotGoc, getPlanningRoot, updateApprovalDecision } from "./dotQuyHoach.repository";
+import { AddNewCandidate, AddPlanningBatchDetailDTO, ApprovalDecisionDTO, CreatePlanningBatchDTO } from "./dotQuyHoach.dto";
+import { filterCandidates, getAllPlanning, getCandidatesByChucDanhId, getDetail, getPlanningById, insertPlanningBatch, insertPlanningDetail, copyChiTietFromDotGoc, getPlanningRoot, updateApprovalDecision, insertNewCandidates } from "./dotQuyHoach.repository";
 
 export const fetchAllPlanning = async () => {
     const data = await getAllPlanning();
@@ -55,8 +55,8 @@ export const addPlanningCandidates = async(payload: AddPlanningBatchDetailDTO) =
 export const fetchCandidatesForChucDanh  = async (chucDanhId: number) => {
     return await getCandidatesByChucDanhId(chucDanhId);
 }
-export const filterPlanningCandidates = async (donViId: number, trinhDoChuyenMon: string, dotQuyHoachId: number) => {
-    const result = await filterCandidates(donViId, trinhDoChuyenMon, dotQuyHoachId);
+export const filterPlanningCandidates = async (donViId: number, dotQuyHoachId: number) => {
+    const result = await filterCandidates(donViId, dotQuyHoachId);
     return result;
 }
 
@@ -72,4 +72,19 @@ export const approvePlanningBatch = async (dotQuyHoachId: number, payload: Appro
 
     const result = await updateApprovalDecision(dotQuyHoachId, payload.soQdPheDuyet, payload.ngayQdPheDuyet);
     return result;
+}
+
+export const addNewCandidateService = async (payload: AddNewCandidate) => {
+    const client = await pool.connect();
+    try {
+       await client.query("BEGIN");
+       const result =  await insertNewCandidates(client, payload);
+       await client.query("COMMIT");
+       return result;
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
+        client.release();
+    }
 }

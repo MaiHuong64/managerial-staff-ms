@@ -31,3 +31,11 @@ export interface ApprovalDecisionDTO {
     ngayQdPheDuyet: Date;
     // trangThai: number;
 }
+export interface AddNewCandidate {
+    dotQuyHoachId: number;
+    vienChucId: number;
+    chucDanhId: number;
+    donViId: number;
+    ngayVaoQH: Date;
+    // loaiNguon: number; // 1: ứng viên mới, 2: copy từ đợt gốc
+}
