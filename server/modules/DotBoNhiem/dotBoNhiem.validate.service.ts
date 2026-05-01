@@ -1,6 +1,6 @@
 import pool from "../../config/db";
 import { KetQuaHoiNghi } from "./dotBoNhiem.dto";
-import { BuocHoiNghi, KetQuaPhieuBau } from "./dotBoNhiem.type";
+import { BuocHoiNghi, KetQuaPhieuBau, TrangThaiDoBoNhiem } from "./dotBoNhiem.type";
 import { insertKetQuaBoNhiem, upsertKetQuaBuoc2, getChiTietDotBoNhiem, checkAllDone, updateStepForCandidate, updateStatusChiTietDot, updateStatusBatch, getBuocHienTai, updateStatusCandidate } from "./dotBoNhiem.validate.repository";
 
 export const validateVoteInput = (data: KetQuaHoiNghi) => {
@@ -32,21 +32,52 @@ export const processStep3 = async (client: any, data: KetQuaHoiNghi) => {
         return {...uv, tiLe}
     });
     const maxPhieu = Math.max(...results.map(r => r.soPhieuDongY));
-    const winner = results.filter(r => r.soPhieuDongY === maxPhieu && r.tiLe > 0.5)
-    if(winner.length === 0)
-        throw new Error("Không có ứng viên nào đạt ngưỡng > 50%");
-    if (winner.length > 1)
-        throw new Error("Hòa phiếu. Người đứng đầu cần quyết định");
+    // Lấy những ứng viên có số phiếu đồng ý cao nhất và tỷ lệ > 50%
+    const qualified = results.filter(r => r.soPhieuDongY === maxPhieu && r.tiLe > 0.5)
+    const isTie = qualified.length > 1;
 
     for(const r of results){
-        const ketQua = r.chiTietBnId === winner[0].chiTietBnId ? KetQuaPhieuBau.Dat : KetQuaPhieuBau.KhongDat;
+        const isWinner = qualified.some(w => w.chiTietBnId === r.chiTietBnId);
+        const ketQua = isTie ? null : (isWinner ? KetQuaPhieuBau.Dat : KetQuaPhieuBau.KhongDat);
         await insertKetQuaBoNhiem(client, [r.chiTietBnId, data.buocHoiNghi, data.soNguoiTrieuTap,
             data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
             data.soPhieuHopLe, r.soPhieuDongY, r.soPhieuKhongDongY, ketQua]);
-        await updateStepForCandidate(client, ketQua === KetQuaPhieuBau.Dat ? BuocHoiNghi.HoiNghiCanBoChuChot  : 0, r.chiTietBnId);
-        if(ketQua === KetQuaPhieuBau.KhongDat)
-            await updateStatusCandidate(client, r.chiTietBnId, 0);
-    } 
+        if(!isTie){
+            await updateStepForCandidate(client, isWinner ? BuocHoiNghi.HoiNghiCanBoChuChot : 0, r.chiTietBnId)
+            if(!isWinner){
+                await updateStatusCandidate(client, r.chiTietBnId, KetQuaPhieuBau.KhongDat);
+            }
+        }
+    }
+
+    // Nếu có hòa, query thêm thông tin viên chức
+    if (isTie) {
+        const chiTietBnIds = qualified.map(q => q.chiTietBnId);
+        const candidateInfo = await client.query(
+            `SELECT ctbn.id as chi_tiet_bn_id, vc.ho_va_ten
+             FROM chi_tiet_bo_nhiem ctbn
+             JOIN vien_chuc vc ON ctbn.vien_chuc_id = vc.id
+             WHERE ctbn.id = ANY($1)`,
+            [chiTietBnIds]
+        );
+
+        console.log("Candidate info from DB:", candidateInfo.rows);
+        console.log("Qualified candidates:", qualified);
+
+        const danhSachHoa = qualified.map(q => {
+            const info = candidateInfo.rows.find((c: any) => c.chi_tiet_bn_id === q.chiTietBnId);
+            return {
+                chiTietBnId: q.chiTietBnId,
+                hoVaTen: info?.ho_va_ten || '',
+                soPhieuDongY: q.soPhieuDongY
+            };
+        });
+
+        console.log("Final danhSachHoa:", JSON.stringify(danhSachHoa, null, 2));
+        return { isTie: true, danhSachHoa };
+    }
+
+    return { isTie: false, danhSachHoa: [] };
 }
 // Bước 4: 1 ứng viên — lấy phiếu tín nhiệm, không công bố, lên bước 5
 const processStep4  = async (client: any, data: KetQuaHoiNghi) => {
@@ -94,28 +125,52 @@ export const submitVoteResult = async (data: KetQuaHoiNghi) => {
         await client.query('BEGIN');
 
         const chiTiet = await getChiTietDotBoNhiem(client, data.chiTietDotBoNhiemId);
-        
+
         const currentStep = await getBuocHienTai(client, data.chiTietDotBoNhiemId)
         if(currentStep !== data.buocHoiNghi)
             throw new Error(`Bước hiện tại đang ở ${currentStep}`);
 
+        let result = null;
         switch (data.buocHoiNghi) {
-            case BuocHoiNghi.HoiNghiLanhDaoVong1: 
+            case BuocHoiNghi.HoiNghiLanhDaoVong1:
                 await processStep2(client, data); break;
             case BuocHoiNghi.HoiNghiLanhDaoVong2:
-                await processStep3 (client, data); break;
+                result = await processStep3(client, data); break;
             case BuocHoiNghi.HoiNghiCanBoChuChot:
                 await processStep4(client, data); break;
             case BuocHoiNghi.HoiNghiLanhDaoVongCuoi:
-                await processStep5 (client, data, data.chiTietDotBoNhiemId, chiTiet.dot_bo_nhiem_id); break;
-            default: throw new Error("Bước không hợp lệ");  
-        } 
-        
+                await processStep5(client, data, data.chiTietDotBoNhiemId, chiTiet.dot_bo_nhiem_id); break;
+            default: throw new Error("Bước không hợp lệ");
+        }
+
         await client.query("COMMIT");
+        return result;
     } catch (error) {
         await client.query("ROLLBACK");
         throw error
     } finally{
+        client.release();
+    }
+}
+export const resolveVoteTieService = async (chiTietBnId: number, tieCandidates: number[]) => {
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+        for (const id of tieCandidates) {
+            if(id === chiTietBnId){
+                await updateStatusCandidate(client, id, KetQuaPhieuBau.Dat);
+                await updateStepForCandidate(client, BuocHoiNghi.HoiNghiCanBoChuChot, id);
+            } else {
+                await updateStatusCandidate(client, id, KetQuaPhieuBau.KhongDat);
+                await updateStepForCandidate(client, 0, id);
+            }
+           
+        }
+      
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
         client.release();
     }
 }

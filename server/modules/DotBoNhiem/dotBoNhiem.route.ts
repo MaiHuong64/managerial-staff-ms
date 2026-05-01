@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyToken } from "../../middleware/auth.middleware";
-import { create, getAll, submitVoteBoNhiem, getById, getCandidates } from "./dotBoNhiem.controller"
+import { create, getAll, submitVoteBoNhiem, getById, getCandidates, resolveVoteTie } from "./dotBoNhiem.controller"
 
 const router = Router();
 
@@ -9,6 +9,7 @@ router.get('/', getAll)
 router.post('/', create)
 router.post('/submit', submitVoteBoNhiem)
 router.get('/detail/:chiTietDotId/candidates', getCandidates)
+router.post('/detail/:chiTietDotId/candidates/resolve-tie', resolveVoteTie)
 // router.post('/detail/:chiTietDotId/candidates', addCandidate) 
 // router.post('/:id/start-voting', startVoting)
 router.get('/:id', getById)
