@@ -18,8 +18,9 @@ export const validateVoteInput = (data: KetQuaHoiNghi) => {
 export const processStep2 = async (client: any, data: KetQuaHoiNghi) => {
     for(const uv of data.ketQuaUngVien){
         await upsertKetQuaBuoc2(client, [uv.chiTietBnId, data.buocHoiNghi,
-             data.soNguoiTrieuTap, data.soNguoiCoMat])
+            data.soNguoiTrieuTap, data.soNguoiCoMat])
         await updateStepForCandidate(client, BuocHoiNghi.HoiNghiLanhDaoVong2, uv.chiTietBnId);
+        await updateStatusBatch(client, data.chiTietDotBoNhiemId, 2);
     }
 }
 // Bước 3: 1 ứng viên — công bố kết quả, lên bước 4

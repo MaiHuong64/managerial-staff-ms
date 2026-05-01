@@ -54,6 +54,9 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
     const handleAddPct = async () => {
         const pct = pctList.find(p => p.id === selectedPctId);
         if (!pct) return;
+        if(chucDanhList.some(cd => cd.pctId === pct.id)) {
+            return message.warning("Chức danh này đã được thêm vào danh sách bổ nhiệm!");
+        }
 
         setAddingPct(true);
         try {

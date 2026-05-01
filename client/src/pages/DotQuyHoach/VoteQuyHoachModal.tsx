@@ -50,7 +50,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
   const soNguoiTrieuTap = values?.soNguoiTrieuTap || 0;
   const soNguoiCoMat = values?.soNguoiCoMat || 0;
   const soPhieuHopLe = values?.soPhieuHopLe || 0;
-  const isNoVote = currentStep === 2 && loaiQuyHoach === 1;
+  const isNoVote = currentStep === 2 && loaiQuyHoach !== 2;
 
   const handleSubmit = async () => {
     try {
@@ -224,7 +224,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
                 <InputNumber min={0} max={soNguoiTrieuTap} className="w-full" />
               </Form.Item>
               
-              {(loaiQuyHoach === 2 || currentStep !== 2) && (
+              { !isNoVote && (
                 <>
                   <Form.Item name="soPhieuPhatRa" label="Số phiếu phát ra" rules={[{ required: true }]}>
                     <InputNumber min={0} className="w-full" />
@@ -240,7 +240,7 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
             </div>
           </Card>
 
-          {(loaiQuyHoach === 2 || currentStep !== 2) && (
+          { !isNoVote && (
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
                 <Text strong className="text-lg">Danh sách ứng viên lấy phiếu</Text>

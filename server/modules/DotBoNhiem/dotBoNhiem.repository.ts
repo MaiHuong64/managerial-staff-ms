@@ -1,4 +1,3 @@
-import { toCamel } from "snake-camel";
 import pool from "../../config/db";
 import { AppointmentBatch, AppointmentDetail, CreateAppointmentBatchDTO, UngVienQuyHoach } from "./dotBoNhiem.dto";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
