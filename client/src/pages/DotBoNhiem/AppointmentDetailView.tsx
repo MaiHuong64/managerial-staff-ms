@@ -13,11 +13,8 @@ import { getDotBoNhiemById, getCandidatesByChiTietDot } from "../../api/dotBoNhi
 
 const STATE_MAP: Record<number, { label: string; color: string; badgeStatus: "default" | "warning" | "processing" | "success" | "error" }> = {
     0: { label: "Đã dừng", color: "error", badgeStatus: "error" },
-    1: { label: "Đang soạn thảo", color: "default",    badgeStatus: "default"    },
-    2: { label: "Hội nghị lãnh đạo (vòng 1)", color: "processing", badgeStatus: "processing" },
-    3: { label: "Hội nghị lãnh đạo (vòng 2)", color: "processing", badgeStatus: "processing" },
-    4: { label: "Hội nghị cán bộ chủ chốt", color: "processing", badgeStatus: "processing" },
-    5: { label: "Hội nghị lãnh đạo (cuối)", color: "processing", badgeStatus: "processing" },
+    1: { label: "Đang soạn thảo", color: "default", badgeStatus: "default"    },
+    2: { label: "Đang diễn ra", color: "processing", badgeStatus: "processing"  },
     6: { label: "Hoàn thành", color: "success", badgeStatus: "success"    },
 };
 

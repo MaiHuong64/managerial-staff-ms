@@ -1,5 +1,4 @@
 import pool from "../../config/db";
-import { KetQuaHoiNghi } from "../DotBoNhiem/dotBoNhiem.dto";
 import { getBuocHienTaiByDot } from "./dotQuyHoach.validate.repository";
 import { KetQuaHoiNghiQH } from "./dotQuyHoach.validate.type";
 import { submitVoteResult_QT169 } from "./dotQuyHoach_169.validate.service";
