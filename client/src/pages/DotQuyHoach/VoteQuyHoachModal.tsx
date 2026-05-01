@@ -61,7 +61,8 @@ const VoteQuyHoachModal: React.FC<VoteQuyHoachModalProps> = ({ visible, onCancel
         buocHoiNghi: currentStep,
         soNguoiTrieuTap: formValues.soNguoiTrieuTap,
         soNguoiCoMat: formValues.soNguoiCoMat,
-        soPhieuPhatRa: currentStep === 2 ? 0 : formValues.soPhieuPhatRa,
+        soPhieuPhatRa: 
+        currentStep === 2 ? 0 : formValues.soPhieuPhatRa,
         soPhieuThuVe: currentStep === 2 ? 0 : formValues.soPhieuThuVe,
         soPhieuHopLe: currentStep === 2 ? 0 : formValues.soPhieuHopLe,
         ketQuaUngVien: activeCandidates.map(c => ({

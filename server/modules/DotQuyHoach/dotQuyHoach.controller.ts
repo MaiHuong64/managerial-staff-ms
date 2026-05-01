@@ -1,7 +1,7 @@
 import {Request, Response } from "express";
-import { addPlanningCandidates, approvePlanningBatch, createPlanningBatch, fetchAllPlanning, findPlanningBatchById, fetchCandidatesForChucDanh, filterPlanningCandidates, fetchRoot } from "./dotQuyHoach.service";
-import { AddPlanningBatchDetailDTO, ApprovalDecisionDTO } from "./dotQuyHoach.dto";
-import { submitVoteResult } from "./dotQuyHoach.validate.service";
+import { addPlanningCandidates, approvePlanningBatch, createPlanningBatch, fetchAllPlanning, findPlanningBatchById, fetchCandidatesForChucDanh, filterPlanningCandidates, fetchRoot, addNewCandidateService } from "./dotQuyHoach.service";
+import { AddNewCandidate, AddPlanningBatchDetailDTO, ApprovalDecisionDTO } from "./dotQuyHoach.dto";
+import { submitVoteService } from "./dotQuyHoach.validate.service";
 
 export const create = async (req: Request, res: Response) => {
     try {
@@ -83,9 +83,8 @@ export const getCandidatesHandler  = async (req: Request, res: Response) => {
 export const filterCandidatesHandler = async (req: Request, res: Response) => {
     try {        
         const donViId = Number(req.query.donViId);
-        const trinhDoChuyenMon = String(req.query.trinhDoChuyenMon);
         const dotQuyHoachId = Number(req.query.dotQuyHoachId);
-        const data = await filterPlanningCandidates(donViId, trinhDoChuyenMon, dotQuyHoachId);
+        const data = await filterPlanningCandidates(donViId, dotQuyHoachId);
         return res.status(200).json({success: true, data});
     } catch (error) {
         console.error("ERROR:", error);
@@ -95,8 +94,8 @@ export const filterCandidatesHandler = async (req: Request, res: Response) => {
 
 export const submitVoteQuyHoach = async (req: Request, res: Response) => {
     try {
-        await submitVoteResult(req.body)
-         return res.status(200).json({ success: true, message: "Ghi nhận kết quả thành công!" });
+        await submitVoteService(req.body);
+        return res.status(200).json({ success: true, message: "Ghi nhận kết quả thành công!" });
     } catch (error: any) {
         return res.status(400).json({ success: false, message: error.message });
     }
@@ -118,5 +117,21 @@ export const approveQuyHoach = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.error("Approve planning error:", error);
         return res.status(400).json({ success: false, message: error.message });
+    }
+}
+export const addNewCandidateController = async (req:Request, res: Response) => {
+    try {
+        const payload: AddNewCandidate = {
+            dotQuyHoachId: Number(req.params.id),
+            vienChucId: Number(req.body.vienChucId),
+            chucDanhId: Number(req.body.chucDanhId),
+            donViId: Number(req.body.donViId),
+            ngayVaoQH: new Date(req.body.ngayVaoQH)
+        }
+        const data = await addNewCandidateService(payload);
+        return res.status(201).json({message: "Thêm ứng viên thành công", data: data, });
+    } catch (error: any) {
+        console.log(error)
+        return res.status(400).json({ message: error.message || "Thêm ứng viên thất bại" });
     }
 }
