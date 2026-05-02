@@ -22,8 +22,8 @@ export interface NhiemKy {
     ngayKetThuc: string;
     soQuyetDinh: string;
     ngayQuyetDinh: string;
-    nguoiKy: string;
-    chucVuNguoiKy: string;
+    nguoiPheDuyet: string;
+    chucVu: string;
     loaiBoNhiem: string;
     trangThai: 'Đang nhiệm kỳ' | 'Đã kết thúc';
     lyDoKetThuc?: string;
@@ -67,7 +67,7 @@ export const TermHistoryView: React.FC<TermHistoryViewProps> = ({
                         
                         <div className="flex flex-col gap-1 text-sm text-gray-600">
                             <Space><FileTextOutlined className="text-gray-400"/><span>QĐ: {nhiemKy.soQuyetDinh} ({dayjs(nhiemKy.ngayQuyetDinh).format('DD/MM/YYYY')})</span></Space>
-                            <Space><UserOutlined className="text-gray-400"/><span>Người ký: {nhiemKy.nguoiKy} {nhiemKy.chucVuNguoiKy}</span></Space>
+                            <Space><UserOutlined className="text-gray-400"/><span>Người ký: {nhiemKy.nguoiPheDuyet} - {nhiemKy.chucVu}</span></Space>
                         </div>
 
                         <div className="mt-2 border-t border-gray-100 pt-3 text-sm grid grid-cols-2 gap-y-2">
