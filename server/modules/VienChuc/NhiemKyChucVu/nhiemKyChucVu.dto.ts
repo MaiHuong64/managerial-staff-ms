@@ -7,6 +7,7 @@ export interface nhiemKyChucVuDTO {
     soQuyetDinh: string | null;
     ngayQuyetDinh: Date | null;
     nguoiPheDuyet: string | null;
+    chucVu: string | null;
     loaiBoNhiem: string | null;
     thoiHan: number | null;
     tenChucDanh: string;

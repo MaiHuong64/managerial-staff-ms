@@ -1,12 +1,15 @@
 import { Router } from "express";
 import { verifyToken } from "../../middleware/auth.middleware";
-import { getAll, getById } from "./donVi.controller";
+import { createDonViController, deleteDonViController, getAllDonViController, getDonViByIdController, updateDonViController } from "./donVi.controller";
 
 const router = Router();
 
-router.use(verifyToken);
+// router.use(verifyToken);
 
-router.get("/", getAll);
-router.get("/:id", getById);
-
+router.get("/", getAllDonViController);
+router.get("/:id", getDonViByIdController);
+router.post("/", createDonViController);
+router.put("/:id", updateDonViController);
+router.delete("/:id", deleteDonViController);
+    
 export default router;

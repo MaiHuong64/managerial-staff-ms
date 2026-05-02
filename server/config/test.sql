@@ -4,7 +4,12 @@ CREATE TABLE don_vi (
     ten_don_vi VARCHAR(100),
     loai_don_vi VARCHAR(50),
     don_vi_cha INT,
-    CONSTRAINT fk_dv_cha FOREIGN KEY (don_vi_cha_id) REFERENCES don_vi(id);
+    dia_chi TEXT,
+    so_dien_thoai VARCHAR(15),
+    email VARCHAR(100),
+    trang_thai SMALLINT DEFAULT 1, -- 1: hoạt động, 0: giải thể
+    ngay_thanh_lap DATE,
+    CONSTRAINT fk_dv_cha FOREIGN KEY (don_vi_cha) REFERENCES don_vi(id)
 );
 
 CREATE TABLE vien_chuc (
