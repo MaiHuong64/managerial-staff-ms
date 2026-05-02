@@ -1,15 +1,6 @@
 import { Request ,Response } from "express";
 import { AuthRequest } from "../../middleware/auth.middleware";
-import {
-    getAllStaff,
-    getStaffById,
-    getProfile,
-    createStaff,
-    updateStaff,
-    deleteStaff,
-    getStaffbyDepartment,
-    getHoSoVienChuc,
-} from "./vienChuc.service";
+import { getAllStaff, getStaffById,  getProfile,  createStaff, updateStaff, deleteStaff, getStaffbyDepartment, getHoSoVienChuc,} from "./vienChuc.service";
 
 export const getAll = async (req: AuthRequest, res: Response) => {
     try {

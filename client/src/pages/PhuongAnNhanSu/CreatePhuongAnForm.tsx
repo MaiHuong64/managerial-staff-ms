@@ -43,7 +43,7 @@ export const CreatePhuongAnForm: React.FC<CreatePhuongAnFormProps> = ({ selected
                 soToTrinh: values.soToTrinh,
                 ngayTrinh: values.ngayToTrinh ? dayjs(values.ngayToTrinh).format('YYYY-MM-DD') : null,
                 ngayLap: dayjs().format('YYYY-MM-DD'),
-                ghiChu: values.ghi_chu,
+                ghiChu: values.ghiChu,
                 chiTiet: chiTiet.map(item => ({
                     chiTietBnId: item.chiTietBnId,
                     loaiPhuongAn: item.loaiPhuongAn,
@@ -63,6 +63,7 @@ export const CreatePhuongAnForm: React.FC<CreatePhuongAnFormProps> = ({ selected
         }
     };
 
+    
     const cols = [
         {
             title: 'Họ và tên', dataIndex: 'hoVaTen', key: 'hoVaTen', width: 180,
@@ -107,7 +108,7 @@ export const CreatePhuongAnForm: React.FC<CreatePhuongAnFormProps> = ({ selected
             <Card size="small" className="mb-4"
                 title={<span><FileTextOutlined className="mr-2 text-blue-500" />Thông tin chung phương án</span>}>
                 <div className="grid grid-cols-2 gap-4">
-                    <Form.Item label="Số tờ trình" name="so_to_trinh">
+                    <Form.Item label="Số tờ trình" name="soToTrinh">
                         <Input placeholder="VD: 18/TTr-ĐHAG" />
                     </Form.Item>
                     <Form.Item label="Ngày lập tờ trình" name="ngayToTrinh">

@@ -88,24 +88,16 @@ const PersonnelProposalPage: React.FC = () => {
         <div className="p-6 bg-gray-50 min-h-screen space-y-5">
             <Row gutter={16}>
                 <Col span={6}>
-                    <Card>
-                        <Statistic title="Tổng phương án" value={listPA.length} valueStyle={{ color: '#1890ff' }} prefix={<FileTextOutlined />} />
-                    </Card>
+                    <Card><Statistic title="Tổng phương án" value={listPA.length} valueStyle={{ color: '#1890ff' }} prefix={<FileTextOutlined />} /></Card>
                 </Col>
                 <Col span={6}>
-                    <Card>
-                        <Statistic title="Đang soạn thảo" value={draftCount} valueStyle={{ color: '#888' }} prefix={<ClockCircleOutlined />} />
-                    </Card>
+                    <Card><Statistic title="Đang soạn thảo" value={draftCount} valueStyle={{ color: '#888' }} prefix={<ClockCircleOutlined />} /></Card>
                 </Col>
                 <Col span={6}>
-                    <Card>
-                        <Statistic title="Chờ phê duyệt" value={pendingCount} valueStyle={{ color: '#1890ff' }} prefix={<ClockCircleOutlined />} />
-                    </Card>
+                    <Card><Statistic title="Chờ phê duyệt" value={pendingCount} valueStyle={{ color: '#1890ff' }} prefix={<ClockCircleOutlined />} /></Card>
                 </Col>
                 <Col span={6}>
-                    <Card>
-                        <Statistic title="Đã phê duyệt" value={approvedCount} valueStyle={{ color: '#52c41a' }} prefix={<CheckCircleOutlined />} />
-                    </Card>
+                    <Card><Statistic title="Đã phê duyệt" value={approvedCount} valueStyle={{ color: '#52c41a' }} prefix={<CheckCircleOutlined />} /></Card>
                 </Col>
             </Row>
 
