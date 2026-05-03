@@ -6,7 +6,7 @@ export const getDonViList = () =>
 
 export const getDonViById = (id: number) =>
     axiosClient.get(`/don-vi/${id}`);
- export const createDonVi = (payload: CreateDonVi) =>
+export const createDonVi = (payload: CreateDonVi) =>
     axiosClient.post("/don-vi", payload);
 export const updateDonVi = (id: number, payload: DonVi) =>
     axiosClient.put(`/don-vi/${id}`, payload);
