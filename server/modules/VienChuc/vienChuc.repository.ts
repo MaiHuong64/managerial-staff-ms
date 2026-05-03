@@ -1,7 +1,7 @@
 import { PoolClient } from "pg";
 import pool from "../../config/db";
 import { CreateStaffDTO, UpdateStaffDTO } from "./vienChuc.dto";
-import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
+import { mapArrayToCamel, mapToCamel, mapToSnake } from "../../utils/mapper";
 
 export const findAll = async () => {
     const result = await pool.query(`
@@ -19,6 +19,7 @@ export const findAll = async () => {
             JOIN chuc_danh_quan_ly cd ON nkcv.chuc_danh_id = cd.id
             WHERE nkcv.trang_thai = 1
         ) nk ON nk.vien_chuc_id = vc.id
+        WHERE vc.trang_thai = 1
     `);
     return mapArrayToCamel(result.rows);
 };
@@ -49,8 +50,7 @@ export const findProfileData = async (uid: number) => {
             LEFT JOIN chuc_danh_quan_ly cd ON cd.id = nk.chuc_danh_id
             LEFT JOIN qd_bo_nhiem qd ON qd.id = nk.qd_bo_nhiem_id
             LEFT JOIN tai_khoan tk ON tk.ten_dang_nhap = vc.ma_vien_chuc
-            WHERE vc.id = $1
-        `, [vcId]),
+            WHERE vc.id = $1 AND vc.trang_thai = 1`, [vcId]),
 
         pool.query(`
             SELECT vc.*, dv.ten_don_vi, cd.ten_chuc_danh,
@@ -60,7 +60,7 @@ export const findProfileData = async (uid: number) => {
             LEFT JOIN nhiem_ky_chuc_vu nk ON vc.id = nk.vien_chuc_id
             LEFT JOIN chuc_danh_quan_ly cd ON cd.id = nk.chuc_danh_id
             LEFT JOIN qd_bo_nhiem qd ON qd.id = nk.qd_bo_nhiem_id
-            WHERE vc.id = $1
+            WHERE vc.id = $1 AND vc.trang_thai = 1
             ORDER BY nk.ngay_bat_dau DESC
         `, [vcId]),
 
@@ -98,9 +98,9 @@ export const getNextStaffCode = async (client: PoolClient): Promise<string> => {
 
 export const insertVienChuc = async (
     client: PoolClient,
-    ma_vien_chuc: string,
+    maVienChuc: string,
     data: CreateStaffDTO
-) => {
+): Promise<{ id: number; maVienChuc: string; hoVaTen: string }> => {
     const result = await client.query(
         `INSERT INTO vien_chuc (
             ma_vien_chuc, ho_va_ten, gioi_tinh, ngay_sinh, dan_toc,
@@ -111,15 +111,15 @@ export const insertVienChuc = async (
         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
         RETURNING id, ma_vien_chuc, ho_va_ten`,
         [
-            ma_vien_chuc, data.hoVaTen, data.gioiTinh, data.ngaySinh,
+            maVienChuc, data.hoVaTen, data.gioiTinh, data.ngaySinh,
             data.danToc, data.soCccd, data.soDienThoai, data.email,
             data.diaChi, data.trinhDoChuyenMon, data.chuyenNganh,
-            data.ngach, data.namTotNghiep, data.trinhDoLyLuanCT,
+            data.ngach, data.namTotNghiep, data.trinhDoLyLuanCt,
             data.trinhDoNgoaiNgu, data.trinhDoTinHoc,
             data.ngayKetNap, data.ngayChinhThuc, data.donViId,
         ]
     );
-    return result.rows[0];
+    return mapToCamel(result.rows[0]);
 };
 
 export const insertTaiKhoan = async (
@@ -135,16 +135,23 @@ export const insertTaiKhoan = async (
     );
 };
 
-export const updateById = async (id: number, fields: UpdateStaffDTO) => {
-    const keys = Object.keys(fields);
-    const values = Object.values(fields);
-    const setClauses = keys.map((key, i) => `${key} = $${i + 1}`).join(", ");
+export const updateById = async (id: number, payload: UpdateStaffDTO) => {
     const result = await pool.query(
-        `UPDATE vien_chuc SET ${setClauses} WHERE id = $${values.length + 1}
-         RETURNING id, ma_vien_chuc, ho_va_ten`,
-        [...values, id]
+        `UPDATE vien_chuc SET
+            ho_va_ten = $1, gioi_tinh = $2,ngay_sinh = $3, dan_toc = $4, so_dien_thoai = $5,
+            email = $6, dia_chi = $7, trinh_do_chuyen_mon = $8, chuyen_nganh = $9, ngach = $10,
+            nam_tot_nghiep = $11, trinh_do_ly_luan_ct = $12, trinh_do_ngoai_ngu = $13, trinh_do_tin_hoc = $14, ngay_ket_nap = $15,ngay_chinh_thuc = $16, don_vi_id = $17
+        WHERE id = $18
+        RETURNING id, ma_vien_chuc, ho_va_ten`,
+        [payload.hoVaTen, payload.gioiTinh, payload.ngaySinh,
+            payload.danToc, payload.soDienThoai, payload.email,
+            payload.diaChi, payload.trinhDoChuyenMon, payload.chuyenNganh,
+            payload.ngach, payload.namTotNghiep, payload.trinhDoLyLuanCt,
+            payload.trinhDoNgoaiNgu, payload.trinhDoTinHoc,
+            payload.ngayKetNap, payload.ngayChinhThuc, payload.donViId,
+            id]
     );
-    return result.rows[0] ?? null;
+    return mapToCamel(result.rows[0] ?? null);
 };
 
 export const softDeleteById = async (id: number) => {
@@ -167,7 +174,7 @@ export const getVienChucByDonVi = async (donViId: number) => {
             JOIN chuc_danh_quan_ly cd ON nkcv.chuc_danh_id = cd.id
             WHERE nkcv.trang_thai = 1
         ) nk ON nk.vien_chuc_id = vc.id
-        WHERE vc.don_vi_id = $1`, [donViId]
+        WHERE vc.don_vi_id = $1 AND vc.trang_thai = 1`, [donViId]
     )
     return mapArrayToCamel(res.rows);
 }
@@ -185,7 +192,7 @@ export const findHoSoVienChuc = async (vienChucId: number) => {
             LEFT JOIN chuc_danh_quan_ly cd ON cd.id = nk.chuc_danh_id
             LEFT JOIN qd_bo_nhiem qd ON qd.id = nk.qd_bo_nhiem_id
             LEFT JOIN tai_khoan tk ON tk.ten_dang_nhap = vc.ma_vien_chuc
-            WHERE vc.id = $1
+            WHERE vc.id = $1 AND vc.trang_thai = 1
         `, [vienChucId]),
 
         pool.query(`
@@ -196,7 +203,7 @@ export const findHoSoVienChuc = async (vienChucId: number) => {
             LEFT JOIN nhiem_ky_chuc_vu nk ON vc.id = nk.vien_chuc_id
             LEFT JOIN chuc_danh_quan_ly cd ON cd.id = nk.chuc_danh_id
             LEFT JOIN qd_bo_nhiem qd ON qd.id = nk.qd_bo_nhiem_id
-            WHERE vc.id = $1
+            WHERE vc.id = $1 AND vc.trang_thai = 1
             ORDER BY nk.ngay_bat_dau DESC
         `, [vienChucId]),
 
