@@ -13,4 +13,7 @@ export interface QuyetDinhBoNhiem {
 export interface NhiemKy {
     vienChucId: number;
     chucDanhId: number;
+    gioiTinh: number;
+    ngaySinh: Date;
+    thoiHan: number;
 }

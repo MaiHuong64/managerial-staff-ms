@@ -23,7 +23,15 @@ CREATE TABLE don_vi (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ma_don_vi VARCHAR(6) UNIQUE NOT NULL,
     ten_don_vi VARCHAR(100),
-    loai_don_vi VARCHAR(50)
+    loai_don_vi VARCHAR(50), 
+    don_vi_cha_id INT,
+    so_dien_thoai VARCHAR(12),
+    email VARCHAR(100),
+    dia_chi TEXT,
+    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ngay_cap_nhat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_dv_cha FOREIGN KEY (don_vi_cha_id) REFERENCES don_vi(id)
+    
 );
 
 CREATE TABLE vien_chuc (

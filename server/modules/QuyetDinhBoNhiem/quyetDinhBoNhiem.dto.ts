@@ -4,7 +4,9 @@ export interface CreateQDBoNhiemDTO {
     soQuyetDinh: string;
     ngayQuyetDinh: Date;
     ngayCoHieuLuc: Date;
-    thoiHan: number;
+    thoiHanGiuChucVu: number;
+    ngaySinh: Date;
+    gioiTinh: number;
     loaiBoNhiem: string | number;
     nguoiPheDuyet: string;
     chucVu: string;

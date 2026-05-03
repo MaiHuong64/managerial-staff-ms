@@ -16,7 +16,7 @@ const DonViPage = () => {
     try {
       setLoading(true);
       const res = await getDonViList();
-      console.log('📊 Full data:', res.data.data);
+      // console.log('📊 Full data:', res.data.data);
       const donVi7 = res.data.data?.find((dv: DonVi) => dv.id === 7);
       if (donVi7) {
         console.log('🔍 Đơn vị ID 7:', {
