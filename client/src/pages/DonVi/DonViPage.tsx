@@ -16,15 +16,6 @@ const DonViPage = () => {
     try {
       setLoading(true);
       const res = await getDonViList();
-      // console.log('📊 Full data:', res.data.data);
-      const donVi7 = res.data.data?.find((dv: DonVi) => dv.id === 7);
-      if (donVi7) {
-        console.log('🔍 Đơn vị ID 7:', {
-          tenDonVi: donVi7.tenDonVi,
-          tenTruongDonVi: donVi7.tenTruongDonVi,
-          tenPhoDonVi: donVi7.tenPhoDonVi
-        });
-      }
       setDanhSachDonVi(res.data.data || []);
     } catch {
       message.error("Không thể tải danh sách đơn vị");

@@ -15,11 +15,12 @@ import {
 } from "./vienChuc.repository";
 
 const ALLOWED_UPDATE_FIELDS = new Set<string>([
-    "ho_va_ten", "gioi_tinh", "ngay_sinh", "dan_toc",
-    "so_dien_thoai", "email", "dia_chi",
-    "trinh_do_chuyen_mon", "chuyen_nganh", "ngach", "nam_tot_nghiep",
-    "trinh_do_ly_luan_CT", "trinh_do_ngoai_ngu", "trinh_do_tin_hoc",
-    "ngay_ket_nap", "ngay_chinh_thuc", "don_vi_id",
+    "hoVaTen", "gioiTinh", "ngaySinh", "danToc",
+    "soDienThoai", "email", "diaChi",
+    "trinhDoChuyenMon", "chuyenNganh", "ngach", "namTotNghiep",
+    "trinhDoLyLuanCt", 
+    "trinhDoNgoaiNgu", "trinhDoTinHoc",
+    "ngayKetNap", "ngayChinhThuc", "donViId",
 ]);
 
 export const getAllStaff = async () => {
@@ -42,12 +43,11 @@ export const createStaff = async (data: CreateStaffDTO) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-
         const maVienChuc = await getNextStaffCode(client);
         const newStaff = await insertVienChuc(client, maVienChuc, data);
-
-        const mat_khau = await bcrypt.hash("123456", 10);
-        await insertTaiKhoan(client, maVienChuc, mat_khau, newStaff.id);
+        console.log("New staff created with ID:", newStaff);
+        const matKhau = await bcrypt.hash("123456", 10);
+        await insertTaiKhoan(client, newStaff.maVienChuc, matKhau, newStaff.id);
 
         await client.query("COMMIT");
         return newStaff;
@@ -59,19 +59,9 @@ export const createStaff = async (data: CreateStaffDTO) => {
     }
 };
 
-export const updateStaff = async (id: number, fields: Record<string, any>) => {
-    const safeFields: UpdateStaffDTO = {};
-    for (const key of Object.keys(fields)) {
-        if (ALLOWED_UPDATE_FIELDS.has(key)) {
-            (safeFields as any)[key] = fields[key];
-        }
-    }
-
-    if (Object.keys(safeFields).length === 0) {
-        throw new Error("Không có trường hợp lệ để cập nhật");
-    }
-
-    const updated = await updateById(id, safeFields);
+export const updateStaff = async (id: number, payload: UpdateStaffDTO) => {
+  
+    const updated = await updateById(id, payload);
     if (!updated) throw new Error("Không tìm thấy viên chức");
     return updated;
 };

@@ -11,7 +11,7 @@ export interface CreateStaffDTO {
     chuyenNganh: string;
     ngach: string;
     namTotNghiep: number;
-    trinhDoLyLuanCT: string;
+    trinhDoLyLuanCt: string;
     trinhDoNgoaiNgu: string;
     trinhDoTinHoc: string;
     ngayKetNap: string;
