@@ -20,6 +20,8 @@ export const createDonViService = async (payload: any) => {
     } catch (error) {
         await client.query('ROLLBACK');
         throw error;
+    } finally {
+        client.release();
     }
 }
 export const updateDonViService = async (id: number, payload: any) => {
@@ -32,6 +34,8 @@ export const updateDonViService = async (id: number, payload: any) => {
     } catch (error) {
         await client.query('ROLLBACK');
         throw error;
+    } finally {
+        client.release();
     }
 }
 
@@ -45,5 +49,7 @@ export const deleteDonViService = async (id: number) => {
     } catch (error) {
         await client.query('ROLLBACK');
         throw error;
+    } finally {
+        client.release();
     }
 }

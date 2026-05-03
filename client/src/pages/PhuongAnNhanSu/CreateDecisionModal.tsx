@@ -14,22 +14,30 @@ interface CreateDecisionModalProps {
 
 interface HoSoInfo {
     vienChucId: number;
-    hoVaTen: string;
+    hoVaTen: string;    
     maVienChuc: string;
     chucDanhId: number;
     tenChucDanh: string;
     thoiHanGiuChucVu: number;
     tenDonVi: string;
     loaiPhuongAn: number;
+}   
+interface QuyetDinhFormValues {
+    soQuyetDinh: string;
+    ngayQuyetDinh: dayjs.Dayjs;
+    ngayCoHieuLuc: dayjs.Dayjs;
+    thoiHan: number;
+    loaiBoNhiem: string;
+    nguoiPheDuyet: string;
+    chucVu: string;
 }
-
 const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCancel, dossier, onSuccess }) => {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [loadingInfo, setLoadingInfo] = useState(false);
     const [hoSoInfo, setHoSoInfo] = useState<HoSoInfo | null>(null);
-
+    const [formValues, setFormValues] = useState<QuyetDinhFormValues | null>(null);
     useEffect(() => {
         if (isOpen && dossier) {
             setLoadingInfo(true);
@@ -53,6 +61,7 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
     const next = async () => {
         try {
             await form.validateFields();
+            setFormValues(form.getFieldsValue(true));
             setCurrentStep(currentStep + 1);
         } catch (error) {
             console.log('Validation failed:', error);
@@ -64,31 +73,28 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
     const handleFinish = async () => {
         setLoading(true);
         try {
-            const values = form.getFieldsValue();
+            const values = formValues || form.getFieldsValue(true);
             const payload = {
                 soQuyetDinh: values.soQuyetDinh,
                 ngayQuyetDinh: dayjs(values.ngayQuyetDinh),
                 ngayCoHieuLuc: dayjs(values.ngayCoHieuLuc),
-                thoiHan: Number(values.thoiHan),
+                // thoiHan: Number(values.thoiHan),
                 loaiBoNhiem: values.loaiBoNhiem,
-                nguoiPheDuyet: values.nguoiKy,
+                nguoiPheDuyet: values.nguoiPheDuyet,
                 chucVu: values.chucVu
             };
+            console.log(payload) 
             await createQDBoNhiem(dossier.id, payload);
             message.success('Ban hành quyết định thành công!');
             onSuccess();
             setCurrentStep(0);
             form.resetFields();
-        } catch {
+        } catch (error) {
+            console.error('Error creating decision:', error);
             message.error('Có lỗi xảy ra, vui lòng thử lại!');
         } finally {
             setLoading(false);
         }
-    };
-
-    const calculateEndDate = (startDate: Date, thoiHan: number) => {
-        if (!startDate || !thoiHan) return '—';
-        return dayjs(startDate).add(thoiHan, 'month').format('DD/MM/YYYY');
     };
 
     const renderForm = () => {
@@ -122,24 +128,6 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
                         </Tag>
                     </div>
                 </div>
-
-                {/* Thời hạn nhiệm kỳ - readonly */}
-                <div className="bg-blue-50/30 border border-blue-200 rounded-xl p-4 mb-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Thời hạn nhiệm kỳ</div>
-                            <div className="text-2xl font-black text-blue-700">{Math.floor(hoSoInfo.thoiHanGiuChucVu / 12)} năm</div>
-                            <div className="text-[10px] text-slate-500 mt-1">({hoSoInfo.thoiHanGiuChucVu} tháng)</div>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Kết thúc dự kiến</div>
-                            <div className="text-base font-bold text-slate-700">
-                                {calculateEndDate(form.getFieldValue('ngayCoHieuLuc'), hoSoInfo.thoiHanGiuChucVu)}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <Form form={form} layout="vertical">
                     <div className="space-y-6">
                         <section>
@@ -193,7 +181,7 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
 
                             <Row gutter={20}>
                                 <Col span={14}>
-                                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Họ tên người ký</span>} name="nguoiKy">
+                                    <Form.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">Họ tên người ký</span>} name="nguoiPheDuyet">
                                         <Input placeholder="Họ và tên..." className="rounded-xl h-11 font-semibold" />
                                     </Form.Item>
                                 </Col>
@@ -211,7 +199,7 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
     };
 
     const renderConfirm = () => {
-        const values = form.getFieldsValue();
+        if( !formValues ) return;
         return (
             <div className="mt-8 animate-in slide-in-from-right-6 duration-400">
                 <Alert
@@ -221,7 +209,7 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
                             <p>Hệ thống sẽ thực hiện các thao tác tự động:</p>
                             <ul className="list-disc ml-4 font-semibold">
                                 <li>Đóng nhiệm kỳ cũ (nếu có)</li>
-                                <li>Tạo nhiệm kỳ mới từ ngày {values.ngayCoHieuLuc?.format('DD/MM/YYYY')}</li>
+                                <li>Tạo nhiệm kỳ mới từ ngày {formValues.ngayCoHieuLuc?.format('DD/MM/YYYY')}</li>
                                 <li>Cập nhật trạng thái hồ sơ</li>
                             </ul>
                         </div>
@@ -239,15 +227,15 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
                     </div>
                     <Descriptions column={1} bordered size="small" className="custom-descriptions">
                         <Descriptions.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">Số Quyết định</span>}>
-                            <span className="font-mono font-bold text-blue-700 text-base">{values.soQuyetDinh}</span>
+                            <span className="font-mono font-bold text-blue-700 text-base">{formValues.soQuyetDinh}</span>
                         </Descriptions.Item>
                         <Descriptions.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">Ngày hiệu lực</span>}>
-                            <span className="font-bold text-slate-800">{values.ngayCoHieuLuc?.format('DD/MM/YYYY')}</span>
+                            <span className="font-bold text-slate-800">{formValues.ngayCoHieuLuc?.format('DD/MM/YYYY')}</span>
                         </Descriptions.Item>
                         <Descriptions.Item label={<span className="text-[11px] font-bold text-slate-500 uppercase tracking-tighter">Đại diện ký</span>}>
                             <div className="flex flex-col">
-                                <span className="font-bold text-slate-800">{values.nguoiKy}</span>
-                                <span className="text-xs text-slate-500">{values.chucVu}</span>
+                                <span className="font-bold text-slate-800">{formValues.nguoiPheDuyet}</span>
+                                <span className="text-xs text-slate-500">{formValues.chucVu}</span>
                             </div>
                         </Descriptions.Item>
                     </Descriptions>

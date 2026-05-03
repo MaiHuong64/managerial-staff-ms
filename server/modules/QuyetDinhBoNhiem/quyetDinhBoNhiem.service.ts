@@ -9,15 +9,15 @@ export const CreateQDBN = async (payload: CreateQDBoNhiemDTO, hoSoId: number) =>
         await client.query("BEGIN");
         const maBN = await generateQDBNCode(client);
         const quyetDinh = await insertQuyetDinh(client, maBN, payload, hoSoId);
-        const {vienChucId, chucDanhId} = await getInforFromHS(client, hoSoId);
+        const {vienChucId, chucDanhId, gioiTinh, ngaySinh, thoiHan} = await getInforFromHS(client, hoSoId);
 
         // Đóng nhiệm kỳ cũ (nếu có)
         const ngayKetThucCu = new Date(payload.ngayCoHieuLuc);
         ngayKetThucCu.setDate(ngayKetThucCu.getDate() - 1);
         await handleNhiemKy(client, ngayKetThucCu, "Bổ nhiệm chức danh mới", vienChucId);
 
-        // Tạo nhiệm kỳ mới
-        await insertNhiemKy(client, vienChucId, chucDanhId, payload.ngayCoHieuLuc, payload.thoiHan, quyetDinh.id);
+            // Tạo nhiệm kỳ mới
+            await insertNhiemKy(client, vienChucId, chucDanhId, payload.ngayCoHieuLuc, thoiHan, ngaySinh, gioiTinh, quyetDinh.id);
 
         // Cập nhật trạng thái hồ sơ
         await updateHoSoStatus(client, hoSoId);

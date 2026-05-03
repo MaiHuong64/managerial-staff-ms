@@ -17,7 +17,7 @@ export const insertQuyetDinh = async (client: any, maBN: string, payload: Create
     const result = await client.query(
         `INSERT INTO qd_bo_nhiem (ma_bo_nhiem, so_quyet_dinh, ngay_quyet_dinh, ngay_co_hieu_luc, thoi_han, loai_bo_nhiem, nguoi_phe_duyet, chuc_vu, ho_so_bn_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-        [maBN, payload.soQuyetDinh, payload.ngayQuyetDinh, payload.ngayCoHieuLuc, payload.thoiHan, payload.loaiBoNhiem, payload.nguoiPheDuyet, payload.chucVu, hoSoBNId]
+        [maBN, payload.soQuyetDinh, payload.ngayQuyetDinh, payload.ngayCoHieuLuc, payload.thoiHanGiuChucVu, payload.loaiBoNhiem, payload.nguoiPheDuyet, payload.chucVu, hoSoBNId]
     );
     return mapToCamel(result.rows[0]);
 }
@@ -32,14 +32,16 @@ export const updateHoSoStatus = async (client: any, hoSoId: number) => {
 export const getInforFromHS = async (client: any, hoSoId: number): Promise<NhiemKy> => {
     const result = await client.query(
         `SELECT 
-            vc.id AS vien_chuc_id,  
-            pct.chuc_danh_id
+            vc.id AS vien_chuc_id, vc.gioi_tinh, vc.ngay_sinh,
+            pct.chuc_danh_id,
+            (cd.thoi_han_giu_chuc_vu * 12) AS thoi_han
         FROM ho_so_bo_nhiem hsbn
         JOIN chi_tiet_phuong_an ctpa ON hsbn.chi_tiet_pa_id = ctpa.id
         JOIN chi_tiet_bo_nhiem ctbn ON ctbn.id = ctpa.chi_tiet_bn_id
         JOIN vien_chuc vc ON vc.id = ctbn.vien_chuc_id
         JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
         JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
+         JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
         WHERE hsbn.id = $1`,
         [hoSoId]
     );
@@ -52,11 +54,17 @@ export const handleNhiemKy = async (client: any, ngayKetThucCu: Date, lyDo: stri
          SET trang_thai = 0, ngay_ket_thuc = $1, ly_do_ket_thuc = $2 
          WHERE vien_chuc_id = $3 AND trang_thai = 1`,
         [ngayKetThucCu, lyDo, vienChucId]
-    );
+    );  
 }
 
-export const insertNhiemKy = async (client: any, vienChucId: number, chucDanhId: number, ngayHieuLuc: Date, thoiHan: number, qdBNId: number) => {
-    const ngayKetThuc = dayjs(ngayHieuLuc).add(thoiHan, 'month').toDate();
+export const insertNhiemKy = async (client: any, vienChucId: number, chucDanhId: number, ngayHieuLuc: Date, thoiHan: number, ngaySinh: Date, gioiTinh: number, qdBNId: number) => {
+    const tuoiNghiHuu = gioiTinh === 1 ? 60 : 55; // Giả sử nam nghỉ hưu ở 60 tuổi, nữ ở 55 tuổi
+    const ngayNghiHuu = dayjs(ngaySinh).add(tuoiNghiHuu, 'year');
+    const ngayKetThucNhiemKy = dayjs(ngayHieuLuc).add(thoiHan, 'month');
+    const ngayKetThuc = ngayKetThucNhiemKy.isBefore(ngayNghiHuu) ? ngayKetThucNhiemKy.toDate() : ngayNghiHuu.toDate();
+    console.log('ngaySinh:', ngaySinh);
+    console.log('gioiTinh:', gioiTinh);
+    console.log('thoiHan:', thoiHan);
     await client.query(
         `INSERT INTO nhiem_ky_chuc_vu (vien_chuc_id, chuc_danh_id, ngay_bat_dau, ngay_ket_thuc, trang_thai, qd_bo_nhiem_id)
          VALUES ($1, $2, $3, $4, 1, $5)`,
