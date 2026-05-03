@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import type { VienChuc } from "../../types/VienChuc";
-import { SearchOutlined, UserAddOutlined, HistoryOutlined } from '@ant-design/icons';
-import { Button, Input, Table, message } from "antd";
-import { getVienChucList, getVienChucTheoDonVi } from "../../api/vienChuc.api";
+import { SearchOutlined, UserAddOutlined, HistoryOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Input, Popconfirm, Space, Table, message } from "antd";
+import { deleteVienChuc, getVienChucList, getVienChucTheoDonVi } from "../../api/vienChuc.api";
 import { getNhiemKyByStaffId } from "../../api/nhiemKyChucVu";
 import { useAuth } from "../../hook/useAuth";
 import type { NhiemKy, NhiemKyHienTai } from "../../types/NhiemKyChucVu";
 import { TermHistoryView } from "./LichSuNhiemKy";
+import { useNavigate } from "react-router-dom";
 
 export const StaffPage: React.FC = () => {
     const  {user} = useAuth()
@@ -19,18 +20,24 @@ export const StaffPage: React.FC = () => {
         nhiemKyHienTai: null,
         lichSuNhiemKy: []
     });
+    const navigate = useNavigate();
     
+    const fetchData = async () => {
+        try {
+            if (user?.vaiTro === "VCQL") {
+                const res = await getVienChucTheoDonVi();
+                setStaffList(res.data.data);
+            } else {
+                const res = await getVienChucList();
+                setStaffList(res.data.data);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     useEffect(() => {
-        if(user?.vaiTro === "VCQL"){
-            getVienChucTheoDonVi()
-            .then(res => setStaffList(res.data.data))
-            .catch(console.error);
-        }
-        else{
-            getVienChucList()
-            .then(res => setStaffList(res.data.data))
-            .catch(console.error);
-        }
+        fetchData();
     }, [user?.vaiTro])
 
     const handleViewHistory = async (staff: VienChuc) => {
@@ -82,7 +89,6 @@ export const StaffPage: React.FC = () => {
         </div>
     )
 
-    // Nếu đang xem chi tiết nhiệm kỳ, hiển thị TermHistoryView
     if (selectedStaff) {
         return (
             <TermHistoryView
@@ -99,6 +105,15 @@ export const StaffPage: React.FC = () => {
         s.hoVaTen?.toLowerCase().includes(searchText.toLowerCase())
     );
 
+    const handleDelete = async (id: number) => {
+        try {
+          await deleteVienChuc(id);
+          message.success("Xóa viên chức thành công!");
+          await fetchData();
+        } catch (error) {
+          message.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Lỗi khi xóa viên chức");
+        }
+    };
     const cols = [
         {
             title: 'Mã viên chức',
@@ -128,14 +143,17 @@ export const StaffPage: React.FC = () => {
             title: 'Thao tác',
             key: 'action',
             render: (_: unknown, record: VienChuc) => (
-                <Button
-                    type="link"
-                    icon={<HistoryOutlined />}
-                    onClick={() => handleViewHistory(record)}
-                    className="text-indigo-600"
-                >
+                <Space>
+                <Button type="link" icon={<HistoryOutlined />} onClick={() => handleViewHistory(record)} className="text-indigo-600" >
                     Xem lịch sử
                 </Button>
+                <Button type="link" icon={<EditOutlined />} onClick={() => navigate(`/vien-chuc/${record.id}/chinh-sua`)} className="text-green-600">
+                    Chỉnh sửa
+                </Button>
+                <Popconfirm title="Xác nhận xóa?" description="Viên chức sẽ bị vô hiệu hóa khỏi hệ thống." onConfirm={() => handleDelete(record.id)} okText="Xóa" okButtonProps={{ danger: true }} cancelText="Hủy">
+                    <Button type="link" danger icon={<DeleteOutlined />}> Xóa </Button>
+                </Popconfirm>
+            </Space>
             )
         }
     ]
@@ -146,7 +164,7 @@ export const StaffPage: React.FC = () => {
                     <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Danh sách Viên chức Quản lý</h1>
                     <p className="text-sm text-slate-400">Quản lý và theo dõi thông tin nhân sự toàn hệ thống</p>
                 </div>
-                <Button type="primary" icon={<UserAddOutlined />} className="bg-indigo-600 hover:bg-indigo-700 border-none h-10 px-6 rounded-xl shadow-lg shadow-indigo-100">
+                <Button type="primary" icon={<UserAddOutlined />} className="bg-indigo-600 hover:bg-indigo-700 border-none h-10 px-6 rounded-xl shadow-lg shadow-indigo-100" onClick={() => navigate('/vien-chuc/them-moi')}>
                     Thêm viên chức
                 </Button>
             </div>

@@ -34,12 +34,9 @@ export const getProfileHandler = async (req: AuthRequest, res: Response) => {
 export const create = async (req: AuthRequest, res: Response) => {
     try {
         const data = await createStaff(req.body);
-        return res.status(201).json({
-            success: true,
-            message: "Khởi tạo hồ sơ và cấp tài khoản thành công",
-            data,
-        });
+        return res.status(201).json({success: true,message: "Khởi tạo hồ sơ và cấp tài khoản thành công",data,});
     } catch (error: any) {
+        console.error('Lỗi tạo viên chức:', error); 
         if (error.code === "23505") {
             return res.status(400).json({
                 success: false,
@@ -62,6 +59,7 @@ export const update = async (req: AuthRequest, res: Response) => {
         if (error.message === "Không có trường hợp lệ để cập nhật") {
             return res.status(400).json({ success: false, message: error.message });
         }
+        console.error('Lỗi cập nhật viên chức:', error);
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 };

@@ -19,6 +19,7 @@ import HoSoBoNhiemDetailPage from './pages/PhuongAnNhanSu/HoSoBoNhiemDetailPage'
 import XepLoaiPage from './pages/XepLoai/XepLoaiPage'
 import DonViPage from './pages/DonVi/DonViPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { CreateStaffPage } from './pages/VienChuc/CreateStaffPage'
 // Chặn route nếu chưa có token
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token')
@@ -51,6 +52,8 @@ function App() {
           <Route path='dashboard' element={<DashboardPage/>}></Route>
           <Route path='profile' element={<ProfilePage />}></Route>
           <Route path='vien-chuc' element={<StaffPage />}></Route>
+          <Route path='vien-chuc/them-moi' element={<CreateStaffPage />} ></Route>
+          <Route path='vien-chuc/:id/chinh-sua' element={<CreateStaffPage />} ></Route>
           <Route path='dot-quy-hoach' element={<PlanningPage />}></Route>
           <Route path='dot-quy-hoach/:id' element={<PlanningDetailPage />}></Route>
           <Route path='dot-bo-nhiem' element={<AppointmentPage />}></Route>
@@ -58,7 +61,7 @@ function App() {
           <Route path='/phuong-an-nhan-su' element={<PersonnelProposalPage/>}></Route>
           <Route path='/phuong-an-nhan-su/:id' element={<PersonnelPlanDetailPage />}></Route>
           <Route path='/phieu-chu-truong' element={<PhieuChuTruongPage/>}></Route>
-           <Route path='/phieu-de-xuat' element={<PhieuDeXuatNhanSuPage/>}></Route>
+          <Route path='/phieu-de-xuat' element={<PhieuDeXuatNhanSuPage/>}></Route>
           <Route path='notification' element={<NotificationPage />} />
           <Route path='don-vi' element={<DonViPage />} />
           <Route path='xep-loai' element={<XepLoaiPage />} />
