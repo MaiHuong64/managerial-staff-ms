@@ -50,7 +50,6 @@ export const processStep3 = async (client: any, data: KetQuaHoiNghi) => {
         }
     }
 
-    // Nếu có hòa, query thêm thông tin viên chức
     if (isTie) {
         const chiTietBnIds = qualified.map(q => q.chiTietBnId);
         const candidateInfo = await client.query(
