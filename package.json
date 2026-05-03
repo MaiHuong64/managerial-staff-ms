@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "snake-camel": "^1.0.9"
+    "snake-camel": "^1.0.9",
+    "xlsx": "^0.18.5"
   }
 }

@@ -20,6 +20,7 @@ import XepLoaiPage from './pages/XepLoai/XepLoaiPage'
 import DonViPage from './pages/DonVi/DonViPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { CreateStaffPage } from './pages/VienChuc/CreateStaffPage'
+import ChucDanhPage from './pages/ChucDanh/ChucDanhPage'
 // Chặn route nếu chưa có token
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token')
@@ -65,7 +66,7 @@ function App() {
           <Route path='notification' element={<NotificationPage />} />
           <Route path='don-vi' element={<DonViPage />} />
           <Route path='xep-loai' element={<XepLoaiPage />} />
-          {/* <Route path='chuc-danh' element={<ComingSoonPage title="Quản lý chức danh" />} /> */}
+          <Route path='chuc-danh' element={<ChucDanhPage/>} />
           <Route path="/ho-so-bo-nhiem/:id" element={<HoSoBoNhiemDetailPage />} />
           <Route index element={<Navigate to="/dashboard" replace />} />
         </Route>       

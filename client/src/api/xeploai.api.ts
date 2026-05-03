@@ -25,3 +25,9 @@ export const deleteXepLoaiDangVien = (id: number) =>
 
 export const checkDieuKienQuyHoach = (vienChucId: number) =>
     axiosClient.get<{ data: CheckDieuKienQH }>(`/xep-loai/check-dieu-kien/${vienChucId}`);
+
+export const importExcel = (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return axiosClient.post("/import/xep-loai", formData, {headers: { "Content-Type": "multipart/form-data" }});
+};

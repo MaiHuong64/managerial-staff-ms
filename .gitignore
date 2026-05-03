@@ -21,3 +21,8 @@ Thumbs.db
 
 .claude/
 *.md
+
+uploads/
+*.xlsx
+*.xls
+*.csv
