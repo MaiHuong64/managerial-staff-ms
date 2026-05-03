@@ -1,19 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Table, Button, Tag, Card, Row, Col, Statistic, Tabs, message, Modal, Select, Input } from 'antd';
-import { PlusOutlined, StarOutlined, CheckCircleOutlined, HistoryOutlined } from '@ant-design/icons';
-import { getAllXepLoaiVC, getAllXepLoaiDangVien, deleteXepLoaiVC, deleteXepLoaiDangVien } from '../../api/xeploai.api';
+import { Table, Button, Tag, Card, Row, Col, Statistic, Tabs, message, Select, Input } from 'antd';
+import { StarOutlined, CheckCircleOutlined, UploadOutlined } from '@ant-design/icons';
+import { getAllXepLoaiVC, getAllXepLoaiDangVien } from '../../api/xeploai.api';
 import { type XepLoaiVC, type XepLoaiDV, MUC_XEP_LOAI_OPTIONS } from '../../types/XepLoai';
+import ImportExcelModal from './ImportExcelModal';
 
 const XepLoaiPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'vc' | 'dv'>('vc');
     const [dataVC, setDataVC] = useState<XepLoaiVC[]>([]);
     const [dataDV, setDataDV] = useState<XepLoaiDV[]>([]);
     const [loading, setLoading] = useState(true);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [editingRecord, setEditingRecord] = useState<XepLoaiVC | XepLoaiDV | null>(null);
-    const [historyDrawerVisible, setHistoryDrawerVisible] = useState(false);
-    const [selectedVienChucId, setSelectedVienChucId] = useState<number | null>(null);
-    const [selectedVienChucName, setSelectedVienChucName] = useState<string>('');
+    const [importModalVisible, setImportModalVisible] = useState(false);
     const [filterYear, setFilterYear] = useState<number | null>(null);
     const [searchText, setSearchText] = useState('');
 
@@ -38,39 +35,11 @@ const XepLoaiPage: React.FC = () => {
 
     useEffect(() => { fetchData(); }, []);
 
-    const handleDelete = async (id: number, type: 'vc' | 'dv') => {
-        Modal.confirm({
-            title: 'Xác nhận xóa',
-            content: 'Bạn có chắc chắn muốn xóa kết quả xếp loại này?',
-            okText: 'Xóa',
-            cancelText: 'Hủy',
-            okButtonProps: { danger: true },
-            onOk: async () => {
-                try {
-                    if (type === 'vc') {
-                        await deleteXepLoaiVC(id);
-                    } else {
-                        await deleteXepLoaiDangVien(id);
-                    }
-                    message.success('Xóa thành công');
-                    fetchData();
-                } catch {
-                    message.error('Xóa thất bại');
-                }
-            }
-        });
-    };
-
-    const handleEdit = (record: XepLoaiVC | XepLoaiDV) => {
-        setEditingRecord(record);
-        setModalVisible(true);
-    };
-
-    const handleViewHistory = (vienChucId: number, hoVaTen: string) => {
-        setSelectedVienChucId(vienChucId);
-        setSelectedVienChucName(hoVaTen);
-        setHistoryDrawerVisible(true);
-    };
+    // const handleViewHistory = (vienChucId: number, hoVaTen: string) => {
+    //     setSelectedVienChucId(vienChucId);
+    //     setSelectedVienChucName(hoVaTen);
+    //     setHistoryDrawerVisible(true);
+    // };
 
     const getColorByDanhGia = (danhGia: string) => {
         const option = MUC_XEP_LOAI_OPTIONS.find(o => o.value === danhGia);
@@ -147,25 +116,18 @@ const XepLoaiPage: React.FC = () => {
                 <Tag color={getColorByDanhGia(text)}>{text}</Tag>
             )
         },
-        {
-            title: 'Thao tác',
-            key: 'action',
-            width: 200,
-            render: (_: unknown, record: XepLoaiVC) => (
-                <div className="flex gap-2">
-                    <Button
-                        size="small"
-                        type="link"
-                        icon={<HistoryOutlined />}
-                        onClick={() => handleViewHistory(record.vienChucId, record.hoVaTen || '')}
-                    >
-                        Lịch sử
-                    </Button>
-                    <Button size="small" onClick={() => handleEdit(record)}>Sửa</Button>
-                    <Button size="small" danger onClick={() => handleDelete(record.id, 'vc')}>Xóa</Button>
-                </div>
-            )
-        }
+        // {
+        //     title: 'Thao tác',
+        //     key: 'action',
+        //     width: 200,
+        //     render: (_: unknown, record: XepLoaiVC) => (
+        //         <div className="flex gap-2">
+        //             <Button size="small" type="link" icon={<HistoryOutlined />}onClick={() => handleViewHistory(record.vienChucId, record.hoVaTen || '')}>
+        //                 Lịch sử
+        //             </Button>
+        //         </div>
+        //     )
+        // }
     ];
 
     const columnsDV = [
@@ -204,25 +166,25 @@ const XepLoaiPage: React.FC = () => {
                 <Tag color={getColorByDanhGia(text)}>{text}</Tag>
             )
         },
-        {
-            title: 'Thao tác',
-            key: 'action',
-            width: 200,
-            render: (_: unknown, record: XepLoaiDV) => (
-                <div className="flex gap-2">
-                    <Button
-                        size="small"
-                        type="link"
-                        icon={<HistoryOutlined />}
-                        onClick={() => handleViewHistory(record.vienChucId, record.hoVaTen || '')}
-                    >
-                        Lịch sử
-                    </Button>
-                    <Button size="small" onClick={() => handleEdit(record)}>Sửa</Button>
-                    <Button size="small" danger onClick={() => handleDelete(record.id, 'dv')}>Xóa</Button>
-                </div>
-            )
-        }
+        // {
+        //     title: 'Thao tác',
+        //     key: 'action',
+        //     width: 200,
+        //     render: (_: unknown, record: XepLoaiDV) => (
+        //         <div className="flex gap-2">
+        //             <Button
+        //                 size="small"
+        //                 type="link"
+        //                 icon={<HistoryOutlined />}
+        //                 onClick={() => handleViewHistory(record.vienChucId, record.hoVaTen || '')}
+        //             >
+        //                 Lịch sử
+        //             </Button>
+        //             <Button size="small" onClick={() => handleEdit(record)}>Sửa</Button>
+        //             <Button size="small" danger onClick={() => handleDelete(record.id, 'dv')}>Xóa</Button>
+        //         </div>
+        //     )
+        // }
     ];
 
     const tabItems = [
@@ -371,15 +333,8 @@ const XepLoaiPage: React.FC = () => {
                     <h1 className="text-2xl font-bold text-slate-800 m-0">Quản lý xếp loại hằng năm</h1>
                     <p className="text-slate-500 text-sm mt-1">Đánh giá viên chức và đảng viên theo năm</p>
                 </div>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => {
-                        setEditingRecord(null);
-                        setModalVisible(true);
-                    }}
-                >
-                    Thêm kết quả
+                <Button type="primary" icon={<UploadOutlined />} onClick={() => setImportModalVisible(true)}>
+                    Import Excel
                 </Button>
             </div>
 
@@ -389,8 +344,16 @@ const XepLoaiPage: React.FC = () => {
                     onChange={(key) => setActiveTab(key as 'vc' | 'dv')}
                     items={tabItems}
                 />
-            </Card>
+            </Card>               
+            <ImportExcelModal
+                open={importModalVisible}
+                onCancel={() => setImportModalVisible(false)}
+                onSuccess={() => {
+                    setImportModalVisible(false);
+                    fetchData();
+                }}/>
         </div>
+        
     );
 };
 
