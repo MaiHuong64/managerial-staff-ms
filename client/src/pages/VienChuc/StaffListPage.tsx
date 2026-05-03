@@ -48,8 +48,8 @@ export const StaffPage: React.FC = () => {
                 ngayKetThuc: nk.ngayKetThuc,
                 soQuyetDinh: nk.soQuyetDinh || 'N/A',
                 ngayQuyetDinh: nk.ngayQuyetDinh,
-                nguoiKy: nk.nguoiKy || 'N/A',
-                chucVuNguoiKy: '',
+                nguoiPheDuyet: nk.nguoiPheDuyet || '-',
+                chucVu: nk.chucVu || '',
                 loaiBoNhiem: nk.loaiBoNhiem || 'Bổ nhiệm',
                 trangThai: nk.trangThai === 1 ? 'Đang nhiệm kỳ' : 'Đã kết thúc',
                 lyDoKetThuc: nk.lyDoKetThuc

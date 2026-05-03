@@ -22,8 +22,8 @@ export interface NhiemKy {
     ngayKetThuc: string;
     soQuyetDinh: string;
     ngayQuyetDinh: string;
-    nguoiKy: string;
-    chucVuNguoiKy: string;
+    nguoiPheDuyet: string;
+    chucVu: string;
     loaiBoNhiem: string;
     trangThai: 'Đang nhiệm kỳ' | 'Đã kết thúc';
     lyDoKetThuc?: string;
@@ -35,8 +35,8 @@ export interface NhiemKyHienTai {
     ngayKetThuc: string;
     soQuyetDinh: string;
     ngayQuyetDinh: string;
-    nguoiKy: string;
-    chucVuNguoiKy: string;
+    nguoiPheDuyet: string;
+    chucVu: string;
     loaiBoNhiem: string;
     trangThai: number;
     lyDoKetThuc?: string;
