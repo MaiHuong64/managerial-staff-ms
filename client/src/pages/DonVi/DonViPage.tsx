@@ -57,6 +57,7 @@ const DonViPage = () => {
       title: "Tên đơn vị",
       dataIndex: "tenDonVi",
       key: "tenDonVi",
+      width: 250,  
       render: (text: string, record: DonVi) => (
         <div className="flex flex-col">
           <span className="font-medium text-slate-800">{text}</span>
