@@ -32,7 +32,7 @@ const CANDIDATE_STATUS: Record<number, { label: string; color: string; bg: strin
     0: { label: "Đã loại", color: "default", bg: "bg-slate-100", text: "text-slate-500"   },
     1: { label: "Hợp lệ", color: "success", bg: "bg-emerald-50", text: "text-emerald-700" },
     2: { label: "Không đạt", color: "error", bg: "bg-red-50", text: "text-red-700"     },
-    3: { label: "Đạt", color: "processing", bg: "bg-indigo-50", text: "text-indigo-700"  },
+    3: { label: "Đạt", color: "processing", bg: "bg-blue-50", text: "text-blue-700"  },
 };
 
 const InfoField = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -110,8 +110,8 @@ export const AppointmentDetailView: React.FC = () => {
             key: "vc",
             render: (_: unknown, r: UngVien) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                        <UserOutlined className="text-indigo-600 text-xs" />
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                        <UserOutlined className="text-blue-600 text-xs" />
                     </div>
                     <div>
                         <div className="font-semibold text-slate-800 text-sm">{r.hoVaTen}</div>
@@ -168,7 +168,7 @@ export const AppointmentDetailView: React.FC = () => {
                             type="text"
                             icon={<ArrowLeftOutlined />}
                             onClick={() => navigate("/dot-bo-nhiem")}
-                            className="text-slate-500 hover:text-indigo-600 shrink-0"
+                            className="text-slate-500 hover:text-blue-600 shrink-0"
                         />
                         <div className="min-w-0">
                             <h1 className="text-lg font-bold text-slate-800 truncate m-0 leading-tight">
@@ -224,7 +224,7 @@ export const AppointmentDetailView: React.FC = () => {
                         <InfoField label="Ngày bắt đầu" value={batchInfo.ngayBatDau ? new Date(batchInfo.ngayBatDau).toLocaleDateString("vi-VN") : null} />
                         <InfoField label="Ngày kết thúc" value={batchInfo.ngayKetThuc ? new Date(batchInfo.ngayKetThuc).toLocaleDateString("vi-VN") : null} />
                         <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-3">
-                            <div className="text-center p-3 bg-indigo-50 rounded-lg">
+                            <div className="text-center p-3 bg-blue-50 rounded-lg">
                                 {/* <div className="text-xl font-bold text-indigo-600">{batchInfo.chucDanhList.length}</div> */}
                                 <div className="text-xs text-slate-500 mt-0.5">Chức danh</div>
                             </div>
@@ -248,7 +248,7 @@ export const AppointmentDetailView: React.FC = () => {
                                     const isSelected = selectedChucDanh?.chiTietDotId === cd.chiTietDotId;
                                     const stepDot = cd.buocHienTai === 6 ? "bg-emerald-400"
                                         : cd.buocHienTai === 0 ? "bg-red-400"
-                                        : cd.buocHienTai != null ? "bg-indigo-400 animate-pulse"
+                                        : cd.buocHienTai != null ? "bg-blue-400 animate-pulse"
                                         : "bg-slate-300";
                                     return (
                                         <div
@@ -257,8 +257,8 @@ export const AppointmentDetailView: React.FC = () => {
                                             className={`
                                                 p-4 rounded-xl border-2 cursor-pointer transition-all
                                                 ${isSelected
-                                                    ? "border-indigo-500 bg-indigo-50/40 shadow-md shadow-indigo-100"
-                                                    : "border-slate-100 hover:border-indigo-200 hover:shadow-sm"
+                                                    ? "border-blue-500 bg-blue-50/40 shadow-md shadow-blue-100"
+                                                    : "border-slate-100 hover:border-blue-200 hover:shadow-sm"
                                                 }
                                             `}
                                         >
@@ -293,7 +293,7 @@ export const AppointmentDetailView: React.FC = () => {
                         {selectedChucDanh ? (
                             <div>
                                 <div className="font-semibold text-slate-800">
-                                    Ứng viên — <span className="text-indigo-600">{selectedChucDanh.tenChucDanh}</span>
+                                    Ứng viên — <span className="text-blue-600">{selectedChucDanh.tenChucDanh}</span>
                                 </div>
                                 <div className="text-xs text-slate-400 mt-0.5">{selectedChucDanh.tenDonVi}</div>
                             </div>
@@ -311,7 +311,7 @@ export const AppointmentDetailView: React.FC = () => {
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
                                 <CheckCircleOutlined className="text-[10px]" /> Hợp lệ {validCandidates.length}
                             </span>
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
                                 Đạt {passedCandidates.length}
                             </span>
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-red-700 text-xs font-medium">
