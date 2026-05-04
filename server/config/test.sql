@@ -36,7 +36,7 @@ CREATE TABLE vien_chuc (
     ngay_cap_nhat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     trang_thai SMALLINT DEFAULT 1, -- 1: đang hoạt động, 0: đã xóa
     don_vi_id INT NOT NULL,
-    CONSTRAINT fk_vc_dv FOREIGN KEY (dozn_vi_id) REFERENCES don_vi(id)
+    CONSTRAINT fk_vc_dv FOREIGN KEY (don_vi_id) REFERENCES don_vi(id)
 );
 
 CREATE TABLE chuc_danh_quan_ly (
@@ -356,7 +356,7 @@ CREATE TABLE tai_khoan (
 -- =============================================
 
 -- 1. DON VI
-INSERT INTO don_vi (ma_don_vi, ten_don_vi, loai_don_vi, don_vi_cha, dia_chi, so_dien_thoai, email, trang_thai) VALUES
+INSERT INTO don_vi (ma_don_vi, ten_don_vi, loai_don_vi, don_vi_cha_id, dia_chi, so_dien_thoai, email, trang_thai) VALUES
 ('DV001', 'Phòng Tổ chức - Chính trị', 'Phòng ban', NULL, 'Tầng 2, Nhà A, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.435', 'ptcct@agu.edu.vn', 1),
 ('DV002', 'Phòng Hành chính - Tổng hợp', 'Phòng ban', NULL, 'Tầng 1, Nhà A, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.436', 'phcth@agu.edu.vn', 1),
 ('DV003', 'Phòng Kế hoạch - Tài vụ', 'Phòng ban', NULL, 'Tầng 2, Nhà B, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.437', 'pkhtv@agu.edu.vn', 1),
@@ -617,25 +617,25 @@ INSERT INTO xep_loai_vc (nam_danh_gia, danh_gia, nhan_xet, vien_chuc_id) VALUES
 -- BỔ SUNG DATA VIÊN CHỨC (Năm 2024 & 2025 - Tạo drama để test Quy hoạch)
 -- =============================================
 INSERT INTO xep_loai_vc (nam_danh_gia, danh_gia, nhan_xet, vien_chuc_id) VALUES
--- 🟢 NHÓM 1: "Ngôi sao sáng" - Chuỗi 5 năm toàn Tốt với Xuất sắc (Pass quy hoạch 100%)
+-- NHÓM 1: "Ngôi sao sáng" - Chuỗi 5 năm toàn Tốt với Xuất sắc (Pass quy hoạch 100%)
 (2024, 'Hoàn thành xuất sắc nhiệm vụ', 'Đạt bằng khen của Bộ GD&ĐT', 1),
 (2025, 'Hoàn thành xuất sắc nhiệm vụ', 'Tiếp tục giữ vững phong độ lãnh đạo', 1),
 (2024, 'Hoàn thành tốt nhiệm vụ', 'Hoàn thành vượt mức kế hoạch', 4),
 (2025, 'Hoàn thành xuất sắc nhiệm vụ', 'Sáng kiến kinh nghiệm cấp tỉnh', 4),
 
--- 🔴 NHÓM 2: "Rớt đài" - Đang Tốt/Xuất sắc tự nhiên dính phốt (Sẽ bị tool chặn quy hoạch)
+-- NHÓM 2: "Rớt đài" - Đang Tốt/Xuất sắc tự nhiên dính phốt (Sẽ bị tool chặn quy hoạch)
 (2024, 'Không hoàn thành nhiệm vụ', 'Vi phạm quy chế thi cử, bị kỷ luật khiển trách', 8), 
 (2025, 'Hoàn thành nhiệm vụ', 'Đang trong thời gian thử thách sau kỷ luật', 8),
 (2024, 'Hoàn thành tốt nhiệm vụ', 'Công tác bình thường', 13),
 (2025, 'Không hoàn thành nhiệm vụ', 'Vi phạm đạo đức nghề nghiệp', 13),
 
--- 🟠 NHÓM 3: "Bình bình" - Dính 1 năm "Hoàn thành nhiệm vụ" (Test logic 3 năm liên tiếp Tốt)
+-- NHÓM 3: "Bình bình" - Dính 1 năm "Hoàn thành nhiệm vụ" (Test logic 3 năm liên tiếp Tốt)
 (2024, 'Hoàn thành nhiệm vụ', 'Chất lượng giảng dạy giảm sút do sức khỏe', 12),
 (2025, 'Hoàn thành tốt nhiệm vụ', 'Đã khắc phục và cải thiện chuyên môn', 12),
 (2024, 'Hoàn thành tốt nhiệm vụ', 'Làm tốt công tác chuyên môn', 19),
 (2025, 'Hoàn thành nhiệm vụ', 'Không đạt chỉ tiêu nghiên cứu khoa học', 19),
 
--- 🟡 NHÓM 4: Trộn lẫn ngẫu nhiên làm nền
+-- NHÓM 4: Trộn lẫn ngẫu nhiên làm nền
 (2024, 'Hoàn thành tốt nhiệm vụ', 'Hoàn thành nhiệm vụ năm', 2), (2025, 'Hoàn thành tốt nhiệm vụ', 'Ổn định chuyên môn', 2),
 (2024, 'Hoàn thành tốt nhiệm vụ', 'Nhiệt tình công tác', 3), (2025, 'Hoàn thành xuất sắc nhiệm vụ', 'Đạt giáo viên dạy giỏi', 3),
 (2024, 'Hoàn thành tốt nhiệm vụ', 'Tốt', 5), (2025, 'Hoàn thành tốt nhiệm vụ', 'Tốt', 5),
