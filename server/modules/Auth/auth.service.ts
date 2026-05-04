@@ -2,6 +2,7 @@
     import jwt from "jsonwebtoken";
     import dotenv from "dotenv";
     import { AuthRepository } from "./auth.repository";
+import { error } from "console";
 
     dotenv.config();
 
@@ -18,6 +19,7 @@
 
         login: async (username: string, password: string) => {
             const user = await AuthRepository.findByUsername(username);
+            console.log(user)
             if (!user) throw new Error("Invalid credentials");
 
             const validPass = await bcrypt.compare(password, user.matKhau);
