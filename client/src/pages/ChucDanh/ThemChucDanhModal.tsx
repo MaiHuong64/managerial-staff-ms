@@ -73,11 +73,11 @@ const ThemChucDanhModal: React.FC<ThemChucDanhModalProps> = ({ isOpen, onCancel,
                     </Form.Item>
                 </Col>
                 <Col span={12}>
-                    <Form.Item label={<span className="text-sm font-medium">Thời hạn giữ chức vụ</span>} name="thoiHanGiuChuVu" rules={[{ required: true, message: 'Vui lòng chọn thời hạn giữ chức vụ' }]}>
+                    <Form.Item label={<span className="text-sm font-medium">Thời hạn giữ chức vụ</span>} name="thoiHanGiuChucVu" rules={[{ required: true, message: 'Vui lòng chọn thời hạn giữ chức vụ' }]}>
                         <Select placeholder="Chọn thời hạn giữ chức vụ" size="large" className="rounded-lg">
-                            <Select.Option value="1 năm">1 năm</Select.Option>
-                            <Select.Option value="2 năm">2 năm</Select.Option>
-                            <Select.Option value="3 năm">5 năm</Select.Option>
+                            <Select.Option value={1}>1 năm</Select.Option>
+                            <Select.Option value={2}>2 năm</Select.Option>
+                            <Select.Option value={5}>5 năm</Select.Option>
                         </Select>
                     </Form.Item>
                 </Col>
