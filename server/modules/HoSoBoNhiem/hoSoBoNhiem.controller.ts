@@ -44,7 +44,7 @@ export const createHSBN = async (req: Request, res: Response) => {
         return res.status(200).json({success: true, data, message: "Tạo hồ sơ bổ nhiệm hồ sơ thành công"});
     } catch (error: any) {
          console.error('createHSBN error:', error.message);
-        return res.status(500).json({success: false, message: error});
+        return res.status(500).json({success: false, message: error.message});
     }
 }
 

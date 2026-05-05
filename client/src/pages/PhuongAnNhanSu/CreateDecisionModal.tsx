@@ -3,6 +3,8 @@ import { Modal, Steps, Form, Input, DatePicker, Select, Row, Col, Avatar, Button
 import { UserOutlined, FileDoneOutlined, CheckCircleOutlined, ArrowRightOutlined, IdcardOutlined, SafetyCertificateOutlined, CloseOutlined } from '@ant-design/icons';
 import { createQDBoNhiem, getHoSoInfoForQD } from '../../api/quyetDinhBoNhiem';
 import type { QuyetDinhBoNhiem } from '../../types/QuyetDinhBoNhiem';
+import { getTaiKhoanByVienChucId, updateVaiTro } from '../../api/taiKhoan.api';
+import type { TaiKhoan } from '../../types/TaiKhoan';
 import dayjs from 'dayjs';
 
 interface CreateDecisionModalProps {
@@ -38,12 +40,16 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
     const [loadingInfo, setLoadingInfo] = useState(false);
     const [hoSoInfo, setHoSoInfo] = useState<HoSoInfo | null>(null);
     const [formValues, setFormValues] = useState<QuyetDinhFormValues | null>(null);
+    const [taiKhoan, setTaiKhoan] = useState<TaiKhoan | null>(null);
+    const [upgradingRole, setUpgradingRole] = useState(false);
     useEffect(() => {
         if (isOpen && dossier) {
             setLoadingInfo(true);
-            getHoSoInfoForQD(dossier.id)
-                .then(res => {
-                    const info = res.data.data;
+            Promise.all([
+                getHoSoInfoForQD(dossier.id),
+            ])
+                .then(([resHoSo]) => {
+                    const info = resHoSo.data.data;
                     setHoSoInfo(info);
 
                     const loaiBoNhiem = info.loaiPhuongAn;
@@ -52,6 +58,17 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
                         loaiBoNhiem: loaiBoNhiem,
                         thoiHan: info.thoiHanGiuChucVu || 60
                     });
+
+                    // Fetch tài khoản của viên chức
+                    getTaiKhoanByVienChucId(info.vienChucId)
+                        .then(resTK => {
+                            if (resTK.data.success) {
+                                setTaiKhoan(resTK.data.data);
+                            }
+                        })
+                        .catch(() => {
+                            // Không có tài khoản - bỏ qua
+                        });
                 })
                 .catch(() => message.error('Không thể tải thông tin hồ sơ'))
                 .finally(() => setLoadingInfo(false));
@@ -69,6 +86,21 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
     };
 
     const prev = () => setCurrentStep(currentStep - 1);
+
+    const handleUpgradeRole = async () => {
+        if (!taiKhoan) return;
+
+        try {
+            setUpgradingRole(true);
+            await updateVaiTro(taiKhoan.id, 'VCQL');
+            message.success('Đã nâng cấp vai trò thành công!');
+            setTaiKhoan({ ...taiKhoan, vaiTro: 'VCQL' });
+        } catch (error: any) {
+            message.error(error?.response?.data?.message || 'Lỗi khi nâng cấp vai trò');
+        } finally {
+            setUpgradingRole(false);
+        }
+    };
 
     const handleFinish = async () => {
         setLoading(true);
@@ -128,6 +160,47 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
                         </Tag>
                     </div>
                 </div>
+
+                {taiKhoan && taiKhoan.vaiTro === 'VC' && (
+                    <Alert
+                        message={<span className="font-bold text-orange-900">Cần nâng cấp quyền tài khoản</span>}
+                        description={
+                            <div className="flex items-center justify-between">
+                                <div className="text-sm text-orange-800">
+                                    Viên chức này đang có vai trò <Tag color="default" className="mx-1">VC</Tag>.
+                                    Sau khi bổ nhiệm, cần nâng lên <Tag color="blue" className="mx-1">VCQL</Tag> để truy cập đầy đủ chức năng.
+                                </div>
+                                <Button
+                                    type="primary"
+                                    size="small"
+                                    loading={upgradingRole}
+                                    onClick={handleUpgradeRole}
+                                    className="ml-4 bg-orange-600 hover:bg-orange-700"
+                                >
+                                    Nâng cấp ngay
+                                </Button>
+                            </div>
+                        }
+                        type="warning"
+                        showIcon
+                        className="mb-4 rounded-xl"
+                    />
+                )}
+
+                {taiKhoan && taiKhoan.vaiTro === 'VCQL' && (
+                    <Alert
+                        message={<span className="font-bold text-green-900">Quyền tài khoản đã phù hợp</span>}
+                        description={
+                            <span className="text-sm text-green-800">
+                                Viên chức đã có vai trò <Tag color="blue" className="mx-1">VCQL</Tag>
+                            </span>
+                        }
+                        type="success"
+                        showIcon
+                        className="mb-4 rounded-xl"
+                    />
+                )}
+
                 <Form form={form} layout="vertical">
                     <div className="space-y-6">
                         <section>
