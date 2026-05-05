@@ -21,6 +21,8 @@ export const getAllPlanning = async () => {
     )
     return result.rows.map(toCamel);
 }
+
+
 export const getById = async (id: number) => {
     const result = await pool.query(
         `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc

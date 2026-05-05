@@ -4,7 +4,7 @@ import { deleteChucDanh, findAll, insertChucDanh, updateChucDanh } from "./chucD
 export const getAllChucDanh = async () => {
     return findAll();
 };
-export const createDonViService = async (payload: any) => {
+export const createChucDanhService = async (payload: any) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
@@ -18,7 +18,7 @@ export const createDonViService = async (payload: any) => {
         client.release();
     }
 }
-export const updateDonViService = async (id: number, payload: any) => {
+export const updateChucDanhService = async (id: number, payload: any) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');

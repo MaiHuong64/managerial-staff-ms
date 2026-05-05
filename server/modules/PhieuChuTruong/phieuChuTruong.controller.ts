@@ -7,6 +7,7 @@ export const getAll = async (req: Request, res: Response) => {
         const data = await getAllService();
         return res.status(200).json({ success: true, data: data.map(toCamel) });
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 }

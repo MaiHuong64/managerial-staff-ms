@@ -21,6 +21,7 @@ import DonViPage from './pages/DonVi/DonViPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { CreateStaffPage } from './pages/VienChuc/CreateStaffPage'
 import ChucDanhPage from './pages/ChucDanh/ChucDanhPage'
+import TaiKhoanPage from './pages/TaiKhoan/TaiKhoanPage'
 // Chặn route nếu chưa có token
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token')
@@ -69,6 +70,7 @@ function App() {
           <Route path='chuc-danh' element={<ChucDanhPage/>} />
           <Route path="/ho-so-bo-nhiem/:id" element={<HoSoBoNhiemDetailPage />} />
           <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path='/tai-khoan' element={<TaiKhoanPage/>} />
         </Route>       
       </Routes>
   )
