@@ -109,7 +109,7 @@ const PersonnelPlanDetailPage = () => {
         try {
             setCreatingHoSoId(chiTietPAId);
             console.log('payload:', {chiTietPAId });
-            const res = await createHoSo(chiTietPAId)
+            const res = await createHoSo({ chiTietPAId })
             
             if (res.data.success) {
                 message.success('Đã tạo hồ sơ bổ nhiệm mới');

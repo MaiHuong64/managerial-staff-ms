@@ -13,6 +13,7 @@ import hoSoBoNhiemRouter from "../modules/HoSoBoNhiem/hoSoBoNhiem.route"
 import quyetDinhBoNhiemRouter from "../modules/QuyetDinhBoNhiem/quyetDinhBoNhiem.route"
 import dashboardRouter from "../modules/Dashboard/dashboard.route"
 import xepLoaiRouter from "../modules/XepLoai/xepLoai.route";
+import taiKhoanRouter from "../modules/TaiKhoan/taiKhoan.route";
 const router = Router();
 
 router.use("/auth", authRouter);
@@ -28,5 +29,6 @@ router.use("/ho-so-bo-nhiem", hoSoBoNhiemRouter)
 router.use ("/quyet-dinh-bo-nhiem", quyetDinhBoNhiemRouter)
 router.use("/xep-loai", xepLoaiRouter);
 router.use("/dashboard", dashboardRouter)
+router.use("/tai-khoan", taiKhoanRouter);
 
 export default router;
