@@ -23,18 +23,25 @@ export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, 
         if (!isVisible) return;
         form.resetFields();
         setSelectedVienChucIds([]);
+
         const fetchData = async () => {
-            const [vienChucRes, chucDanhRes] = await Promise.all([
-                getVienChucTheoDonVi(),
-                getChucDanhList(),
-            ]);
-            setChucDanhList(chucDanhRes.data.data ?? []);
-            // console.log("chucDanhList:", chucDanhRes.data.data);
-            setVienChucList(vienChucRes.data.data ?? []);
+            try {
+                const [vienChucRes, chucDanhRes] = await Promise.all([
+                    getVienChucTheoDonVi(),
+                    getChucDanhList(),
+                ]);
+                setChucDanhList(chucDanhRes.data.data ?? []);
+                setVienChucList(vienChucRes.data.data ?? []);
+            } catch (error: any) {
+                console.error("Lỗi khi tải dữ liệu:", error);
+                message.error(
+                    error?.response?.data?.message || "Không thể tải dữ liệu, vui lòng thử lại!"
+                );
+            }
         };
+
         fetchData();
     }, [isVisible, form]);
-
     const handleSubmit = async () => {
         try {
             setLoading(true);

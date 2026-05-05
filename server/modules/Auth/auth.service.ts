@@ -7,14 +7,14 @@ import { error } from "console";
     dotenv.config();
 
     export const AuthService = {
-        register: async (username: string, password: string, role: string) => {
+        register: async (username: string, password: string, role: string, vienChucId: number) => {
             const exists = await AuthRepository.checkExistUser(username);
             if (exists) throw new Error("User already exists");
 
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
 
-            return await AuthRepository.createUser(username, hashedPassword, role);
+            return await AuthRepository.createUser(username, hashedPassword, role, vienChucId);
         },
 
         login: async (username: string, password: string) => {

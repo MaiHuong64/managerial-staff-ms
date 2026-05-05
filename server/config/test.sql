@@ -186,8 +186,10 @@ CREATE TABLE phieu_chu_truong (
     nguoi_lap VARCHAR(50),
     nguoi_duyet VARCHAR(50),
     ly_do_tu_choi TEXT,
+    vien_chuc_id INT, 
     CONSTRAINT fk_pct_dqh FOREIGN KEY (dot_quy_hoach_id) REFERENCES dot_quy_hoach(id),
     CONSTRAINT fk_pct_dv FOREIGN KEY (don_vi_id) REFERENCES don_vi(id),
+    CONSTRAINT fk_pct_vc FOREIGN KEY (vien_chuc_id) REFERENCES vien_chuc(id),
     CONSTRAINT fk_pct_cd FOREIGN KEY (chuc_danh_id) REFERENCES chuc_danh_quan_ly(id)
 );
 
@@ -276,7 +278,9 @@ CREATE TABLE ho_so_bo_nhiem (
     trang_thai SMALLINT DEFAULT 1,
     ghi_chu TEXT,
     chi_tiet_pa_id INT NOT NULL UNIQUE,
-    CONSTRAINT fk_hs_ctpa FOREIGN KEY (chi_tiet_pa_id) REFERENCES chi_tiet_phuong_an(id)
+    phieu_chu_truong_id INT,
+    CONSTRAINT fk_hs_ctpa FOREIGN KEY (chi_tiet_pa_id) REFERENCES chi_tiet_phuong_an(id),
+    CONSTRAINT fk_pct_hs FOREIGN KEY (phieu_chu_truong_id) REFERENCES phieu_chu_truong(id)
 );
 
 CREATE TABLE chi_tiet_ho_so (
@@ -357,22 +361,15 @@ CREATE TABLE tai_khoan (
 
 -- 1. DON VI
 INSERT INTO don_vi (ma_don_vi, ten_don_vi, loai_don_vi, don_vi_cha_id, dia_chi, so_dien_thoai, email, trang_thai) VALUES
-('DV001', 'Phòng Tổ chức - Chính trị', 'Phòng ban', NULL, 'Tầng 2, Nhà A, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.435', 'ptcct@agu.edu.vn', 1),
-('DV002', 'Phòng Hành chính - Tổng hợp', 'Phòng ban', NULL, 'Tầng 1, Nhà A, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.436', 'phcth@agu.edu.vn', 1),
-('DV003', 'Phòng Kế hoạch - Tài vụ', 'Phòng ban', NULL, 'Tầng 2, Nhà B, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.437', 'pkhtv@agu.edu.vn', 1),
-('DV004', 'Phòng Đào tạo', 'Phòng ban', NULL, 'Tầng 3, Nhà A, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.438', 'pdaotao@agu.edu.vn', 1),
-('DV005', 'Phòng Công tác sinh viên', 'Phòng ban', NULL, 'Tầng 1, Nhà C, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.439', 'pctsv@agu.edu.vn', 1),
-('DV006', 'Khoa Nông nghiệp và Tài nguyên Thiên nhiên', 'Khoa', NULL, 'Nhà D, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.440', 'knn@agu.edu.vn', 1),
-('DV007', 'Khoa Kỹ thuật - Công nghệ - Môi trường', 'Khoa', NULL, 'Nhà E, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.441', 'kktcnmt@agu.edu.vn', 1),
-('DV008', 'Khoa Sư phạm', 'Khoa', NULL, 'Nhà F, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.442', 'ksp@agu.edu.vn', 1),
-('DV009', 'Khoa Kinh tế và Quản trị kinh doanh', 'Khoa', NULL, 'Nhà G, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.443', 'kktqtkd@agu.edu.vn', 1),
-('DV010', 'Khoa Lý luận chính trị', 'Khoa', NULL, 'Nhà H, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.444', 'kllct@agu.edu.vn', 1),
-('DV011', 'Khoa Ngoại ngữ', 'Khoa', NULL, 'Nhà I, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.445', 'knn2@agu.edu.vn', 1),
-('DV012', 'Bộ môn Toán - Tin học', 'Bộ môn', 8, 'Nhà J, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.446', 'bmtth@agu.edu.vn', 1),
-('DV013', 'Bộ môn Giáo dục thể chất', 'Bộ môn', 8, 'Nhà K, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.447', 'bmgdtc@agu.edu.vn', 1),
-('DV014', 'Khoa công nghệ thông tin', 'Khoa', NULL, 'Nhà L, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.448', 'kcntt@agu.edu.vn', 1),
-('DV015', 'Bộ môn Công nghệ phần mềm', 'Bộ môn', 14, 'Nhà M, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.449', 'bmcnpm@agu.edu.vn', 1),
-('DV016', 'Bộ môn Mạng máy tính', 'Bộ môn', 14, 'Nhà N, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.450', 'bmmmt@agu.edu.vn', 1);
+('DV001', 'Khoa công nghệ thông tin', 'Khoa', NULL, 'Văn phòng khoa, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.448', 'kcntt@agu.edu.vn', 1),
+('DV002', 'Phòng Tổ chức - Chính trị', 'Phòng ban', NULL, 'Tầng 3,Khu hiệu bộ, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.435', 'ptcct@agu.edu.vn', 1)
+('DV003', 'Khoa Nông nghiệp - Tài nguyên thiên nhiên', 'Khoa', NULL, 'Khu thực hành, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.441', 'knntntn@agu.edu.vn', 1),
+('DV004', 'Khoa Kinh tế - Quản trị kinh doanh', 'Khoa', NULL, 'Khu giảng đường, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.443', 'kktqtkd@agu.edu.vn', 1),
+('DV005', 'Phòng Đào tạo', 'Phòng ban', NULL, 'Tầng trệt, Khu hiệu bộ, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.436', 'pdt@agu.edu.vn', 1),
+('DV006', 'Trung tâm Tin học và Ngoại ngữ', 'Trung tâm', NULL, '18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.458', 'ttthnn@agu.edu.vn', 1),
+('DV007', 'Bộ môn giáo dục quốc phòng', 'Bộ môn', NULL, 'Văn phòng khoa CNTT, 18 Ung Văn Khiêm', '0296.3841.748', 'bmkhmt@agu.edu.vn', 1),
+('DV008', 'Bộ môn giáo dục thể chất', 'Bộ môn', NULL, 'Văn phòng khoa CNTT, 18 Ung Văn Khiêm', '0296.3841.448', 'bmkhmt@agu.edu.vn', 1)
+('DV009', 'Ban Giám hiệu', 'Ban Giám hiệu', NULL, 'Tầng 3, Khu hiệu bộ, 18 Ung Văn Khiêm, TP. Long Xuyên', '0296.3841.590', 'bgh@agu.edu.vn', 1);
 -- 2. CHUC DANH QUAN LY
 INSERT INTO chuc_danh_quan_ly (ma_chuc_danh, ten_chuc_danh, thoi_han_giu_chuc_vu, he_so_phu_cap) VALUES
 ('CD001', 'Trưởng phòng', 5, 0.50),
@@ -380,185 +377,165 @@ INSERT INTO chuc_danh_quan_ly (ma_chuc_danh, ten_chuc_danh, thoi_han_giu_chuc_vu
 ('CD003', 'Trưởng khoa', 5, 0.50),
 ('CD004', 'Phó trưởng khoa', 5, 0.35),
 ('CD005', 'Trưởng bộ môn', 5, 0.25),
-('CD006', 'Phó trưởng bộ môn', 5, 0.20);
+('CD006', 'Phó trưởng bộ môn', 5, 0.20),
+('CD007', 'Hiệu trưởng', 5, 1.00),
+('CD008', 'Phó Hiệu trưởng', 5, 0.80);
 
 -- 3. VIEN CHUC (30 người)
 INSERT INTO vien_chuc ( ma_vien_chuc, ho_va_ten, gioi_tinh, so_cccd, so_dien_thoai, email, dia_chi, ngay_sinh, dan_toc, trinh_do_chuyen_mon, ngay_ket_nap, ngay_chinh_thuc, chuyen_nganh, ngach, nam_tot_nghiep, trinh_do_ly_luan_ct, trinh_do_ngoai_ngu, trinh_do_tin_hoc, trang_thai, don_vi_id) VALUES
--- Phòng Tổ chức - Chính trị (DV001)
-('VC001', 'Nguyễn Văn An', 1, '086001234501', '0901234501', 'an.nv@agu.edu.vn', '123 Trần Hưng Đạo, Long Xuyên', '1975-03-10', 'Kinh', 'Tiến sĩ', '2000-02-01', '2001-02-01', 'Quản trị nhân sự', 'Chuyên viên cao cấp', 2000, 'Cao cấp', 'C1', 'IC3', 1, 1),
-('VC002', 'Trần Thị Bích', 0, '086001234502', '0901234502', 'bich.tt@agu.edu.vn', '45 Ngô Gia Tự, Long Xuyên', '1982-07-22', 'Kinh', 'Thạc sĩ', '2005-09-01', '2006-09-01', 'Quản lý nhà nước', 'Chuyên viên chính', 2004, 'Trung cấp', 'B2', 'IC3', 1, 1),
-('VC003', 'Lê Quốc Bảo', 1, '086001234503', '0901234503', 'bao.lq@agu.edu.vn', '78 Lý Thái Tổ, Long Xuyên', '1985-11-15', 'Kinh', 'Thạc sĩ', '2008-04-01', '2009-04-01', 'Luật', 'Chuyên viên', 2007, 'Sơ cấp', 'B1', 'IC3', 1, 1),
+('VC001', 'Châu Ngân Khánh', 0, '086001234501', '0901234501', 'cnk@agu.edu.vn', '123 Trần Hưng Đạo, Long Xuyên', '1988-05-08', 'Kinh', 'Tiến sĩ', '2000-02-01', '2001-02-01', 'Hệ thống thông tin', 'Giảng viên', 2000, 'Cao cấp', 'C1', 'IC3', 1, 1),
+('VC002', 'Đoàn Thanh Nghị', 1, '086001234502', '0901234502', 'dtn@agu.edu.vn', '45 Ngô Gia Tự, Long Xuyên', '1976-06-04', 'Kinh', 'Thạc sĩ', '2005-09-01', '2006-09-01', 'Khoa học máy tính', 'Chuyên viên cao cấp', 2004, 'Trung cấp', 'B2', 'IC3', 1, 1),
+('VC003', 'Hồ Nhã Phong', 1, '086001234503', '0901234503', 'hnp@agu.edu.vn', '78 Lý Thái Tổ, Long Xuyên', '1973-12-01', 'Kinh', 'Thạc sĩ', '2008-04-01', '2009-04-01', 'Khoa học máy tính', 'Giảng viên', 2007, 'Sơ cấp', 'B1', 'IC3', 1, 1),
+('VC004', 'Huỳnh Cao Thế Cường', 1, '086001234504', '0901234504', 'hctc@agu.edu.vn', '22 Hùng Vương, Long Xuyên', '1984-09-10', 'Kinh', 'Thạc sĩ', '2003-07-01', '2004-07-01', 'Tin học', 'Giảng viên', 2002, 'Trung cấp', 'B2', 'IC3', 1, 1),
+('VC005', 'Huỳnh Lý Thanh Nhàn', 1, '086001234505', '0901234505', 'hltn@agu.edu.vn', '56 Trần Quốc Toản, Long Xuyên', '1986-12-08', 'Kinh', 'Tiến sĩ', '2007-03-01', '2008-03-01', 'Hệ thống thông tin', 'Giảng viên', 2006, 'Sơ cấp', 'B1', 'IC3', 1, 1),
+('VC006', 'Lê Công Đoàn', 1, '086001234506', '0901234506', 'lcd@agu.edu.vn', '10 Đinh Tiên Hoàng, Long Xuyên', '1984-01-01', 'Kinh', 'Tiến sĩ', '2004-06-01', '2005-06-01', 'Khoa học máy tính', 'Giảng viên', 2003, 'Trung cấp', 'B2', 'IC3', 1, 1),
+('VC007', 'Lê Hoàng Anh', 1, '086001234507', '0901234507', 'lha@agu.edu.vn', '34 Nguyễn Huệ, Long Xuyên', '1986-11-13', 'Kinh', 'Tiến sĩ', '2009-01-01', '2010-01-01', 'Hệ thống thông tin', 'Giảng viên', 2008, 'Sơ cấp', 'B1', 'IC3', 1, 1),
+('VC008', 'Lê Thị Minh Nguyệt', 0, '086001234508', '0901234508', 'ltmn@agu.edu.vn', '67 Hai Bà Trưng, Long Xuyên', '1978-12-12', 'Kinh', 'Thạc sĩ', '2003-08-01', '2004-08-01', 'Khoa học máy tính', 'Giảng viên', 2002, 'Trung cấp', 'C1', 'IC3', 1, 1),
+('VC009', 'Lê Trung Thư', 1, '086001234509', '0901234509', 'ltt@agu.edu.vn', '89 Lê Lợi, Long Xuyên', '1972-11-11', 'Kinh', 'Thạc sĩ', '2007-10-01', '2008-10-01', 'Tin học', 'Giảng viên', 2006, 'Sơ cấp', 'B2', 'IC3', 1, 1),
+('VC010', 'Lê Văn Toán', 1, '086001234510', '0901234510', 'lvt@agu.edu.vn', '12 Phạm Hồng Thái, Long Xuyên', '1977-10-04', 'Kinh', 'Thạc sĩ', '2001-05-01', '2002-05-01', 'Hệ thống thông tin', 'Giảng viên', 2000, 'Cao cấp', 'C1', 'IC3', 1, 1),
+('VC011', 'Lưu Thị Kim Loan', 0, '086001234511', '0901234511', 'ltkl@agu.edu.vn', '23 Lê Duẩn, Long Xuyên', '1980-03-12', 'Kinh', 'Thạc sĩ', '2005-02-01', '2006-02-01', 'Công nghệ thông tin', 'Chuyên viên', 2004, 'Trung cấp', 'C1', 'IC3', 1, 2),
+('VC012', 'Nguyễn Hoài Nam', 1, '086001234512', '0901234512', 'nhn@agu.edu.vn', '34 Võ Thị Sáu, Long Xuyên', '1985-07-08', 'Kinh', 'Đại học', '2009-06-01', '2010-06-01', 'Công nghệ thông tin', 'Trợ giảng', 2008, 'Sơ cấp', 'B2', 'IC3', 1, 1),
+('VC013', 'Nguyễn Hoàng Tùng', 1, '086001234513', '0901234513', 'nht@agu.edu.vn', '45 Nguyễn Đình Chiểu, Long Xuyên', '1986-04-18', 'Kinh', 'Thạc sĩ', '2002-08-01', '2003-08-01', 'Tin học', 'Giảng viên', 2001, 'Cao cấp', 'C1', 'IC3', 1, 1),
+('VC014', 'Nguyễn Huỳnh Thuần', 1, '086001234514', '0901234514', 'nht@agu.edu.vn', '56 Phan Bội Châu, Long Xuyên', '1982-04-05', 'Kinh', 'Thạc sĩ', '2006-03-01', '2007-03-01', 'Công nghệ thông tin', 'Chuyên viên', 2005, 'Trung cấp', 'C1', 'IC3', 1, 2),
+('VC015', 'Nguyễn Minh Vi', 0, '086001234515', '0901234515', 'nmv@agu.edu.vn', '67 Trần Phú, Long Xuyên', '1982-09-01', 'Kinh', 'Thạc sĩ', '2012-07-01', '2013-07-01', 'Hệ thống thông tin', 'Giảng viên', 2011, 'Sơ cấp', 'B2', 'IC3', 1, 1),
+('VC016', 'Nguyễn Ngọc Minh', 1, '086001234516', '0901234516', 'nnm@agu.edu.vn', '78 Nguyễn Trãi, Long Xuyên', '1983-03-16', 'Kinh', 'Thạc sĩ', '2000-04-01', '2001-04-01', 'Công nghệ thông tin', 'Giảng viên', 1999, 'Cao cấp', 'C1', 'IC3', 1, 1),
+('VC017', 'Nguyễn Quang Dũng', 1, '086001234517', '0901234517', 'nqd@agu.edu.vn', '89 Lý Tự Trọng, Long Xuyên', '1981-02-14', 'Kinh', 'Thạc sĩ', '2005-11-01', '2006-11-01', 'Công nghệ thông tin', 'Chuyên viên', 2004, 'Trung cấp', 'C1', 'IC3', 1, 2),
+('VC018', 'Nguyễn Quang Huy', 1, '086001234518', '0901234518', 'nqh@agu.edu.vn', '12 Đinh Bộ Lĩnh, Long Xuyên', '1976-01-09', 'Kinh', 'Thạc sĩ', '2011-09-01', '2012-09-01', 'Khoa học máy tính', 'Giảng viên', 2010, 'Sơ cấp', 'B2', 'IC3', 1, 1),
+('VC019', 'Nguyễn Quang Tường', 1, '086001234519', '0901234519', 'nqt@agu.edu.vn', '23 Trần Bình Trọng, Long Xuyên', '1974-05-18', 'Kinh', 'Đại học', '1999-03-01', '2000-03-01', 'Công nghệ thông tin', 'Chuyên viên', 1998, 'Cao cấp', 'C1', 'IC3', 1, 2),
+('VC020', 'Nguyễn Thái Dư', 1, '086001234520', '0901234520', 'ntd@agu.edu.vn', '34 Chu Văn An, Long Xuyên', '1974-12-10', 'Kinh', 'Thạc sĩ', '2007-06-01', '2008-06-01', 'Công nghệ thông tin', 'Giảng viên', 2006, 'Trung cấp', 'C1', 'IC3', 1, 1),
+('VC021', 'Nguyễn Thị Lan Quyên', 0, '086001234521', '0901234521', 'ntlq@agu.edu.vn', '45 Hoàng Diệu, Long Xuyên', '1979-03-21', 'Kinh', 'Thạc sĩ', '2013-08-01', '2014-08-01', 'Hệ thống thông tin', 'Giảng viên', 2012, 'Sơ cấp', 'B2', 'IC3', 1, 1),
+('VC022', 'Nguyễn Thị Mỹ Truyền', 0, '086001234522', '0901234522', 'ntmt@agu.edu.vn', '56 Phan Đình Phùng, Long Xuyên', '1979-02-20', 'Kinh', 'Tiến sĩ', '2001-10-01', '2002-10-01', 'Khoa học máy tính', 'Giảng viên', 2000, 'Cao cấp', 'C1', 'IC3', 1, 1),
+('VC023', 'Nguyễn Văn Đông', 1, '086001234523', '0901234523', 'nvd@agu.edu.vn', '67 Lê Văn Tám, Long Xuyên', '1979-01-12', 'Kinh', 'Thạc sĩ', '2006-07-01', '2007-07-01', 'Hệ thống thông tin', 'Giảng viên', 2005, 'Trung cấp', 'B2', 'IC3', 1, 1),
+('VC024', 'Nguyễn Văn Hòa', 0, '086001234524', '0901234524', 'nvh@agu.edu.vn', '78 Nguyễn Văn Cừ, Long Xuyên', '1974-05-28', 'Kinh', 'Thạc sĩ', '2003-05-01', '2004-05-01', 'Tin học', 'Giảng viên chính', 2002, 'Cao cấp', 'C1', 'IC3', 1, 1),
+('VC025', 'Phạm Hữu Dũng', 1, '086001234525', '0901234525', 'phd@agu.edu.vn', '89 Đinh Tiên Hoàng, Long Xuyên', '1975-01-26', 'Kinh', 'Thạc sĩ', '2009-04-01', '2010-04-01', 'Hệ thống thông tin', 'Giảng viên', 2008, 'Sơ cấp', 'B2', 'IC3', 1, 1),
+('VC026', 'Phạm Thị Mộng Trinh', 0, '086001234526', '0901234526', 'ptmt@agu.edu.vn', '12 Trần Văn Ơn, Long Xuyên', '1980-06-14', 'Kinh', 'Thạc sĩ', '2004-09-01', '2005-09-01', 'Công nghệ thông tin', 'Chuyên viên', 2003, 'Trung cấp', 'C1', 'IC3', 1, 1),
+('VC027', 'Phan Minh Trí', 1, '086001234527', '0901234527', 'pmt@agu.edu.vn', '23 Trần Quang Khải, Long Xuyên', '1973-03-02', 'Kinh', 'Thạc sĩ', '2010-08-01', '2011-08-01', 'Quản lý giáo dục', 'Giảng viên', 2009, 'Sơ cấp', 'B1', 'IC3', 1, 1),
+('VC028', 'Phan Thanh Bình', 1, '086001234528', '0901234528', 'ptb@agu.edu.vn', '34 Ngô Quyền, Long Xuyên', '1975-12-29', 'Kinh', 'Thạc sĩ', '2004-06-01', '2005-06-01', 'Tin học', 'Giảng viên', 2003, 'Trung cấp', 'B2', 'IC3', 1, 1),
+('VC029', 'Quách Thị Hồng', 0, '086001234529', '0901234529', 'qth@agu.edu.vn', '45 Bà Triệu, Long Xuyên', '1988-07-05', 'Kinh', 'Thạc sĩ', '2012-06-01', '2013-06-01', 'Công nghệ thông tin', 'Chuyên viên', 2011, 'Sơ cấp', 'B1', 'IC3', 1, 1),
+('VC030', 'Thiều Thanh Quang Phú', 1, '086001234530', '0901234530', 'ttqp@agu.edu.vn', '56 Lê Thánh Tông, Long Xuyên', '1985-09-07', 'Kinh', 'Thạc sĩ', '2008-08-01', '2009-08-01', 'Hệ thống thông tin', 'Giảng viên', 2007, 'Sơ cấp', 'B1', 'IC3', 1, 1),
+('VC031', 'Nguyễn Thế Thao', 1, '086001234531', '0901234531', 'ntt@agu.edu.vn', '12 Nguyễn Trãi, Long Xuyên', '1978-08-18', 'Kinh', 'Tiến sĩ', '2005-01-01', '2006-01-01', 'Chăn nuôi', 'Giảng viên', 2004, 'Sơ cấp', 'B2', 'IC3', 1, 3),
+('VC032', 'Nguyễn Tuyết Giang', 0, '086001234532', '0901234532', 'ntg@agu.edu.vn', '34 Trần Hưng Đạo, Long Xuyên', '1981-09-08', 'Kinh', 'Thạc sĩ', '2007-02-01', '2008-02-01', 'Khoa học Động vật', 'Giảng viên', 2005, 'Sơ cấp', 'B1', 'IC3', 1, 3),
+('VC033', 'Võ Lâm', 1, '086001234533', '0901234533', 'vl@agu.edu.vn', '56 Lý Thái Tổ, Long Xuyên', '1970-10-05', 'Kinh', 'Tiến sĩ', '2000-03-01', '2001-03-01', 'Chăn nuôi', 'Giảng viên', 1998, 'Cao cấp', 'C1', 'IC3', 1, 3),
+('VC034', 'Dương Văn Nhã', 1, '086001234534', '0901234534', 'dvn@agu.edu.vn', '78 Hùng Vương, Long Xuyên', '1971-01-01', 'Kinh', 'Tiến sĩ', '1995-04-01', '1996-04-01', 'Khoa học Đất', 'Giảng viên', 1993, 'Cao cấp', 'C1', 'IC3', 1, 3),
+('VC035', 'Nguyễn Văn Thái', 1, '086001234535', '0901234535', 'nvt@agu.edu.vn', '90 Nguyễn Huệ, Long Xuyên', '1987-08-02', 'Kinh', 'Đại học', '2010-05-01', '2011-05-01', 'Phát triển nông thôn', 'Giảng viên', 2009, 'Trung cấp', 'B2', 'IC3', 1, 3),
+-- ==============================================================================
+-- GIẢNG VIÊN KHOA KINH TẾ - QUẢN TRỊ KINH DOANH (don_vi_id = 4)
+-- ==============================================================================
+('VC036', 'Nguyễn Trí Tâm', 1, '086001234536', '0901234536', 'ntt2@agu.edu.vn', '15 Lê Lợi, Long Xuyên', '1952-03-12', 'Kinh', 'Tiến sĩ', '1980-06-01', '1981-06-01', 'Kinh tế tài chính', 'Giảng viên', 1978, 'Sơ cấp', 'B1', 'IC3', 1, 4),
+('VC037', 'Bùi Thanh Quang', 1, '086001234537', '0901234537', 'btq@agu.edu.vn', '27 Phạm Hồng Thái, Long Xuyên', '1968-01-01', 'Kinh', 'Tiến sĩ', '1992-07-01', '1993-07-01', 'Tài chính doanh nghiệp', 'Giảng viên', 1990, 'Sơ cấp', 'B2', 'IC3', 1, 4),
+('VC038', 'Tô Thiện Hiền', 1, '086001234538', '0901234538', 'tth@agu.edu.vn', '39 Chu Văn An, Long Xuyên', '1966-02-16', 'Kinh', 'Tiến sĩ', '1990-08-01', '1991-08-01', 'Tài chính ngân hàng', 'Giảng viên chính', 1988, 'Sơ cấp', 'B2', 'IC3', 1, 4),
+('VC039', 'Nguyễn Lan Duyên', 0, '086001234539', '0901234539', 'nld@agu.edu.vn', '41 Đinh Bộ Lĩnh, Long Xuyên', '1980-01-23', 'Kinh', 'Thạc sĩ', '2005-09-01', '2006-09-01', 'Kinh tế nông nghiệp', 'Giảng viên', 2003, 'Trung cấp', 'C1', 'IC3', 1, 4),
+('VC040', 'Mai Thị Ánh Tuyết', 0, '086001234540', '0901234540', 'mtat@agu.edu.vn', '53 Võ Thị Sáu, Long Xuyên', '1960-12-01', 'Kinh', 'Tiến sĩ', '1985-10-01', '1986-10-01', 'Kinh tế', 'Giảng viên', 1983, 'Trung cấp', 'B2', 'IC3', 1, 4);
+-- ==============================================================================
+-- GIẢNG VIÊN BỘ MÔN GIÁO DỤC QUỐC PHÒNG (don_vi_id = 7)
+-- ==============================================================================
+('VC041', 'Bùi Trường Xanh', 1, '086001234541', '0901234541', 'btx@agu.edu.vn', '12 Phạm Ngũ Lão, Long Xuyên', '1989-02-28', 'Kinh', 'Đại học', '2012-08-01', '2013-08-01', 'Giáo dục chính trị - Giáo dục Quốc phòng', 'Trợ giảng', 2011, 'Sơ cấp', 'B1', 'IC3', 1, 7),
+-- ==============================================================================
+-- GIẢNG VIÊN BỘ MÔN GIÁO DỤC THỂ CHẤT (don_vi_id = 8)
+-- ==============================================================================
+('VC042', 'Nguyễn Trần Phương Thảo', 0, '086001234542', '0901234542', 'ntpthao@agu.edu.vn', '34 Tôn Đức Thắng, Long Xuyên', '1967-06-09', 'Kinh', 'Thạc sĩ', '1990-09-01', '1991-09-01', 'Giáo dục học', 'Giảng viên', 1989, 'Sơ cấp', 'B2', 'IC3', 1, 8),
+('VC043', 'Văng Công Danh', 1, '086001234543', '0901234543', 'vcd@agu.edu.vn', '56 Nguyễn Trường Tộ, Long Xuyên', '1964-05-15', 'Kinh', 'Thạc sĩ', '1988-01-01', '1989-01-01', 'Giáo dục học', 'Giảng viên chính', 1986, 'Trung cấp', 'C1', 'IC3', 1, 8),
+('VC044', 'Trần Kỳ Quốc Tuấn', 1, '086001234544', '0901234544', 'tkqt@agu.edu.vn', '78 Thoại Ngọc Hầu, Long Xuyên', '1982-02-14', 'Kinh', 'Thạc sĩ', '2005-11-01', '2006-11-01', 'Thể dục Thể thao', 'Giảng viên', 2004, 'Sơ cấp', 'B2', 'IC3', 1, 8);
+-- PGS.TS Võ Văn Thắng (Nguyên Hiệu trưởng)
+('VC048', 'Võ Văn Thắng', 1, '086001234548', '0901234548', 'vvthang@agu.edu.vn', 'Khu Hiệu bộ, 18 Ung Văn Khiêm, Long Xuyên', '1962-05-15', 'Kinh', 'PGS.TS', '1990-02-03', '1991-02-03', 'Triết học', 'Giảng viên cao cấp', 1985, 'Cao cấp', 'C1', 'IC3', 1, 9),
 
--- Phòng Hành chính - Tổng hợp (DV002)
-('VC004', 'Phạm Thị Dung', 0, '086001234504', '0901234504', 'dung.pt@agu.edu.vn', '22 Hùng Vương, Long Xuyên', '1978-04-18', 'Kinh', 'Thạc sĩ', '2003-07-01', '2004-07-01', 'Hành chính học', 'Chuyên viên chính', 2002, 'Trung cấp', 'B2', 'IC3', 1, 2),
-('VC005', 'Hoàng Văn Em', 1, '086001234505', '0901234505', 'em.hv@agu.edu.vn', '56 Trần Quốc Toản, Long Xuyên', '1983-09-30', 'Kinh', 'Thạc sĩ', '2007-03-01', '2008-03-01', 'Văn thư lưu trữ', 'Chuyên viên', 2006, 'Sơ cấp', 'B1', 'IC3', 1, 2),
+-- TS. Nguyễn Hữu Trí (Phó Hiệu trưởng phụ trách)
+('VC049', 'Nguyễn Hữu Trí', 1, '086001234549', '0901234549', 'nhtri@agu.edu.vn', 'Khu Hiệu bộ, 18 Ung Văn Khiêm, Long Xuyên', '1975-08-20', 'Kinh', 'Tiến sĩ', '2005-05-19', '2006-05-19', 'Môi trường và nghiên cứu tài nguyên', 'Giảng viên chính', 2005, 'Cao cấp', 'C1', 'IC3', 1, 9),
 
--- Phòng Kế hoạch - Tài vụ (DV003)
-('VC006', 'Võ Thị Phương', 0, '086001234506', '0901234506', 'phuong.vt@agu.edu.vn', '10 Đinh Tiên Hoàng, Long Xuyên', '1980-01-14', 'Kinh', 'Thạc sĩ', '2004-06-01', '2005-06-01', 'Kế toán', 'Chuyên viên chính', 2003, 'Trung cấp', 'B2', 'IC3', 1, 3),
-('VC007', 'Đỗ Quốc Hùng', 1, '086001234507', '0901234507', 'hung.dq@agu.edu.vn', '34 Nguyễn Huệ, Long Xuyên', '1986-06-20', 'Kinh', 'Thạc sĩ', '2009-01-01', '2010-01-01', 'Tài chính', 'Chuyên viên', 2008, 'Sơ cấp', 'B1', 'IC3', 1, 3),
+-- TS. Nguyễn Phương Thảo (Phó Hiệu trưởng)
+('VC050', 'Nguyễn Phương Thảo', 0, '086001234550', '0985877299', 'npthao@agu.edu.vn', '18 Ung Văn Khiêm, Đông Xuyên, TP. Long Xuyên', '1982-01-01', 'Kinh', 'Tiến sĩ', '2008-09-02', '2009-09-02', 'Lý luận và PPDH Toán', 'Giảng viên', 2015, 'Cao cấp', 'C', 'IC3', 1, 9);
 
--- Phòng Đào tạo (DV004)
-('VC008', 'Nguyễn Thị Kim Loan', 0, '086001234508', '0901234508', 'loan.ntk@agu.edu.vn', '67 Hai Bà Trưng, Long Xuyên', '1979-12-03', 'Kinh', 'Tiến sĩ', '2003-08-01', '2004-08-01', 'Giáo dục học', 'Giảng viên chính', 2002, 'Trung cấp', 'C1', 'IC3', 1, 4),
-('VC009', 'Phan Văn Tài', 1, '086001234509', '0901234509', 'tai.pv@agu.edu.vn', '89 Lê Lợi, Long Xuyên', '1984-05-25', 'Kinh', 'Thạc sĩ', '2007-10-01', '2008-10-01', 'Quản lý giáo dục', 'Giảng viên', 2006, 'Sơ cấp', 'B2', 'IC3', 1, 4),
 
--- Khoa Nông nghiệp (DV006)
-('VC010', 'Lâm Thị Hồng', 0, '086001234510', '0901234510', 'hong.lt@agu.edu.vn', '12 Phạm Hồng Thái, Long Xuyên', '1976-08-17', 'Kinh', 'Tiến sĩ', '2001-05-01', '2002-05-01', 'Nông học', 'Giảng viên cao cấp', 2000, 'Cao cấp', 'C1', 'IC3', 1, 6),
-('VC011', 'Nguyễn Minh Tuấn', 1, '086001234511', '0901234511', 'tuan.nm@agu.edu.vn', '23 Lê Duẩn, Long Xuyên', '1980-03-12', 'Kinh', 'Tiến sĩ', '2005-02-01', '2006-02-01', 'Bảo vệ thực vật', 'Giảng viên chính', 2004, 'Trung cấp', 'C1', 'IC3', 1, 6),
-('VC012', 'Trần Thị Mỹ Linh', 0, '086001234512', '0901234512', 'linh.ttm@agu.edu.vn', '34 Võ Thị Sáu, Long Xuyên', '1985-07-08', 'Kinh', 'Thạc sĩ', '2009-06-01', '2010-06-01', 'Chăn nuôi thú y', 'Giảng viên', 2008, 'Sơ cấp', 'B2', 'IC3', 1, 6),
-
--- Khoa KT-CN-MT (DV007)
-('VC013', 'Lê Hoàng Nam', 1, '086001234513', '0901234513', 'nam.lh@agu.edu.vn', '45 Nguyễn Đình Chiểu, Long Xuyên', '1977-11-20', 'Kinh', 'Tiến sĩ', '2002-08-01', '2003-08-01', 'Công nghệ thông tin', 'Giảng viên cao cấp', 2001, 'Cao cấp', 'C1', 'IC3', 1, 7),
-('VC014', 'Phạm Thị Ngọc', 0, '086001234514', '0901234514', 'ngoc.pt@agu.edu.vn', '56 Phan Bội Châu, Long Xuyên', '1982-04-05', 'Kinh', 'Tiến sĩ', '2006-03-01', '2007-03-01', 'Kỹ thuật môi trường', 'Giảng viên chính', 2005, 'Trung cấp', 'C1', 'IC3', 1, 7),
-('VC015', 'Đặng Văn Phúc', 1, '086001234515', '0901234515', 'phuc.dv@agu.edu.vn', '67 Trần Phú, Long Xuyên', '1988-09-15', 'Kinh', 'Thạc sĩ', '2012-07-01', '2013-07-01', 'Điện tử viễn thông', 'Giảng viên', 2011, 'Sơ cấp', 'B2', 'IC3', 1, 7),
-
--- Khoa Sư phạm (DV008)
-('VC016', 'Nguyễn Thị Quỳnh', 0, '086001234516', '0901234516', 'quynh.nt@agu.edu.vn', '78 Nguyễn Trãi, Long Xuyên', '1975-06-28', 'Kinh', 'Tiến sĩ', '2000-04-01', '2001-04-01', 'Sư phạm Ngữ văn', 'Giảng viên cao cấp', 1999, 'Cao cấp', 'C1', 'IC3', 1, 8),
-('VC017', 'Trần Văn Sơn', 1, '086001234517', '0901234517', 'son.tv@agu.edu.vn', '89 Lý Tự Trọng, Long Xuyên', '1981-02-14', 'Kinh', 'Tiến sĩ', '2005-11-01', '2006-11-01', 'Sư phạm Toán', 'Giảng viên chính', 2004, 'Trung cấp', 'C1', 'IC3', 1, 8),
-('VC018', 'Lê Thị Thu', 0, '086001234518', '0901234518', 'thu.lt@agu.edu.vn', '12 Đinh Bộ Lĩnh, Long Xuyên', '1987-10-30', 'Kinh', 'Thạc sĩ', '2011-09-01', '2012-09-01', 'Sư phạm Vật lý', 'Giảng viên', 2010, 'Sơ cấp', 'B2', 'IC3', 1, 8),
-
--- Khoa KT-QTKD (DV009)
-('VC019', 'Phạm Văn Thắng', 1, '086001234519', '0901234519', 'thang.pv@agu.edu.vn', '23 Trần Bình Trọng, Long Xuyên', '1974-05-18', 'Kinh', 'Tiến sĩ', '1999-03-01', '2000-03-01', 'Quản trị kinh doanh', 'Giảng viên cao cấp', 1998, 'Cao cấp', 'C1', 'IC3', 1, 9),
-('VC020', 'Nguyễn Thị Uyên', 0, '086001234520', '0901234520', 'uyen.nt@agu.edu.vn', '34 Chu Văn An, Long Xuyên', '1983-08-22', 'Kinh', 'Tiến sĩ', '2007-06-01', '2008-06-01', 'Kinh tế học', 'Giảng viên chính', 2006, 'Trung cấp', 'C1', 'IC3', 1, 9),
-('VC021', 'Lê Văn Vũ', 1, '086001234521', '0901234521', 'vu.lv@agu.edu.vn', '45 Hoàng Diệu, Long Xuyên', '1989-01-10', 'Kinh', 'Thạc sĩ', '2013-08-01', '2014-08-01', 'Kế toán kiểm toán', 'Giảng viên', 2012, 'Sơ cấp', 'B2', 'IC3', 1, 9),
-
--- Khoa Lý luận CT (DV010)
-('VC022', 'Trần Thị Xuân', 0, '086001234522', '0901234522', 'xuan.tt@agu.edu.vn', '56 Phan Đình Phùng, Long Xuyên', '1976-12-05', 'Kinh', 'Tiến sĩ', '2001-10-01', '2002-10-01', 'Triết học', 'Giảng viên cao cấp', 2000, 'Cao cấp', 'C1', 'IC3', 1, 10),
-('VC023', 'Đỗ Văn Yên', 1, '086001234523', '0901234523', 'yen.dv@agu.edu.vn', '67 Lê Văn Tám, Long Xuyên', '1982-04-17', 'Kinh', 'Thạc sĩ', '2006-07-01', '2007-07-01', 'Lý luận chính trị', 'Giảng viên chính', 2005, 'Trung cấp', 'B2', 'IC3', 1, 10),
-
--- Khoa Ngoại ngữ (DV011)
-('VC024', 'Nguyễn Thị Ánh', 0, '086001234524', '0901234524', 'anh.nta@agu.edu.vn', '78 Nguyễn Văn Cừ, Long Xuyên', '1978-09-25', 'Kinh', 'Tiến sĩ', '2003-05-01', '2004-05-01', 'Ngôn ngữ Anh', 'Giảng viên cao cấp', 2002, 'Cao cấp', 'C1', 'IC3', 1, 11),
-('VC025', 'Phạm Văn Bình', 1, '086001234525', '0901234525', 'binh.pv@agu.edu.vn', '89 Đinh Tiên Hoàng, Long Xuyên', '1985-02-08', 'Kinh', 'Thạc sĩ', '2009-04-01', '2010-04-01', 'Ngôn ngữ Pháp', 'Giảng viên', 2008, 'Sơ cấp', 'B2', 'IC3', 1, 11),
-
--- Bộ môn Toán - Tin học (DV012)
-('VC026', 'Lê Thị Cẩm', 0, '086001234526', '0901234526', 'cam.lt@agu.edu.vn', '12 Trần Văn Ơn, Long Xuyên', '1980-06-14', 'Kinh', 'Tiến sĩ', '2004-09-01', '2005-09-01', 'Toán ứng dụng', 'Giảng viên chính', 2003, 'Trung cấp', 'C1', 'IC3', 1, 12),
-('VC027', 'Nguyễn Văn Dũng', 1, '086001234527', '0901234527', 'dung.nv@agu.edu.vn', '23 Trần Quang Khải, Long Xuyên', '1986-11-28', 'Kinh', 'Thạc sĩ', '2010-08-01', '2011-08-01', 'Khoa học máy tính', 'Giảng viên', 2009, 'Sơ cấp', 'B1', 'IC3', 1, 12),
-
--- Bộ môn GDTC (DV013)
-('VC028', 'Trần Văn Đức', 1, '086001234528', '0901234528', 'duc.tv@agu.edu.vn', '34 Ngô Quyền, Long Xuyên', '1979-03-20', 'Kinh', 'Thạc sĩ', '2004-06-01', '2005-06-01', 'Giáo dục thể chất', 'Giảng viên chính', 2003, 'Trung cấp', 'B2', 'IC3', 1, 13),
-('VC029', 'Lê Thị Én', 0, '086001234529', '0901234529', 'en.lt@agu.edu.vn', '45 Bà Triệu, Long Xuyên', '1988-07-05', 'Kinh', 'Thạc sĩ', '2012-06-01', '2013-06-01', 'Thể dục thể thao', 'Giảng viên', 2011, 'Sơ cấp', 'B1', 'IC3', 1, 13),
-
--- Phòng CTSV (DV005)
-('VC030', 'Phạm Thị Phụng', 0, '086001234530', '0901234530', 'phung.pt@agu.edu.vn', '56 Lê Thánh Tông, Long Xuyên', '1984-10-12', 'Kinh', 'Thạc sĩ', '2008-08-01', '2009-08-01', 'Công tác xã hội', 'Chuyên viên', 2007, 'Sơ cấp', 'B1', 'IC3', 1, 5);
 
 -- 4. XEP LOAI VIEN CHUC
 INSERT INTO xep_loai_vc (nam_danh_gia, danh_gia, nhan_xet, vien_chuc_id) VALUES
--- VC001 - Nguyễn Văn An
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Tích cực, có nhiều đóng góp cho đơn vị', 1),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Gương mẫu, trách nhiệm cao trong công tác tổ chức', 1),
  
--- VC002 - Trần Thị Bích
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Chấp hành tốt nội quy, quy định', 2),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Năng lực chuyên môn ổn định', 2),
  
--- VC003 - Lê Quốc Bảo
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Hoàn thành các nhiệm vụ được giao', 3),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Tích cực trong công tác chuyên môn', 3),
  
--- VC004 - Phạm Thị Dung
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Quản lý hành chính hiệu quả, gương mẫu', 4),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Tổ chức tốt công tác văn phòng', 4),
  
--- VC005 - Hoàng Văn Em
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Nhiệt tình, trách nhiệm trong công việc', 5),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Hoàn thành tốt công tác văn thư lưu trữ', 5),
  
--- VC006 - Võ Thị Phương
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Quản lý tài chính minh bạch, hiệu quả', 6),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Lập kế hoạch tài vụ chính xác, kịp thời', 6),
  
--- VC007 - Đỗ Quốc Hùng
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Thực hiện tốt công tác kế toán', 7),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Phối hợp tốt với các đơn vị trong công tác tài vụ', 7),
  
--- VC008 - Nguyễn Thị Kim Loan
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Quản lý đào tạo bài bản, khoa học', 8),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Cải tiến quy trình đào tạo hiệu quả', 8),
  
--- VC009 - Phan Văn Tài
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Hỗ trợ tốt công tác đào tạo', 9),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Tích cực trong công tác quản lý sinh viên', 9),
  
--- VC010 - Lâm Thị Hồng
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Nghiên cứu nông nghiệp đạt kết quả xuất sắc', 10),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Chủ nhiệm đề tài cấp tỉnh thành công', 10),
  
--- VC011 - Nguyễn Minh Tuấn
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Giảng dạy và nghiên cứu tốt', 11),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Công bố nhiều bài báo khoa học uy tín', 11),
  
--- VC012 - Trần Thị Mỹ Linh
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Giảng dạy nhiệt tình, sinh viên yêu thích', 12),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Tích cực đổi mới phương pháp giảng dạy', 12),
  
--- VC013 - Lê Hoàng Nam
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Dẫn đầu nghiên cứu CNTT trong khoa', 13),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Xuất bản nhiều công trình khoa học quốc tế', 13),
  
--- VC014 - Phạm Thị Ngọc
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Nghiên cứu môi trường đạt kết quả tốt', 14),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Chủ trì dự án môi trường cấp bộ', 14),
  
--- VC015 - Đặng Văn Phúc
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Giảng dạy kỹ thuật hiệu quả', 15),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Hỗ trợ sinh viên tốt trong học tập', 15),
  
--- VC016 - Nguyễn Thị Quỳnh
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Lãnh đạo khoa xuất sắc, uy tín cao', 16),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Phát triển chương trình đào tạo sư phạm', 16),
  
--- VC017 - Trần Văn Sơn
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Giảng dạy Toán hiệu quả, sinh viên đánh giá cao', 17),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Nghiên cứu và ứng dụng toán học trong giảng dạy', 17),
  
--- VC018 - Lê Thị Thu
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Tích cực trong giảng dạy Vật lý', 18),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Hỗ trợ sinh viên trong thực hành thí nghiệm', 18),
  
--- VC019 - Phạm Văn Thắng
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Quản lý khoa hiệu quả, uy tín cao', 19),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Phát triển hợp tác doanh nghiệp cho sinh viên', 19),
  
--- VC020 - Nguyễn Thị Uyên
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Nghiên cứu kinh tế đạt nhiều thành tích', 20),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Công bố nhiều bài báo kinh tế uy tín', 20),
  
--- VC021 - Lê Văn Vũ
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Giảng dạy kế toán tốt, sinh viên hài lòng', 21),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Tích cực hướng dẫn sinh viên thực tập', 21),
  
--- VC022 - Trần Thị Xuân
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Giảng dạy triết học sâu sắc, có uy tín', 22),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Hoàn thành tốt công tác tư tưởng chính trị', 22),
  
--- VC023 - Đỗ Văn Yên
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Nhiệt tình trong công tác lý luận chính trị', 23),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Tích cực tuyên truyền tư tưởng Hồ Chí Minh', 23),
  
--- VC024 - Nguyễn Thị Ánh
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Giảng dạy ngoại ngữ xuất sắc, uy tín cao', 24),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Phát triển chương trình tiếng Anh chuẩn quốc tế', 24),
  
--- VC025 - Phạm Văn Bình
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Giảng dạy tiếng Pháp hiệu quả', 25),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Tích cực đổi mới phương pháp giảng ngoại ngữ', 25),
  
--- VC026 - Lê Thị Cẩm
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Nghiên cứu toán học ứng dụng xuất sắc', 26),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Dẫn đầu bộ môn trong nghiên cứu khoa học', 26),
  
--- VC027 - Nguyễn Văn Dũng
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Giảng dạy tin học hiệu quả', 27),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Hỗ trợ tốt sinh viên trong học lập trình', 27),
  
--- VC028 - Trần Văn Đức
 (2022, 'Hoàn thành xuất sắc nhiệm vụ', 'Quản lý bộ môn GDTC tốt, uy tín cao', 28),
 (2023, 'Hoàn thành xuất sắc nhiệm vụ', 'Tổ chức hoạt động thể thao sinh viên hiệu quả', 28),
  
--- VC029 - Lê Thị Én
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Giảng dạy thể dục nhiệt tình', 29),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Tích cực trong các phong trào thể thao', 29),
  
--- VC030 - Phạm Thị Phụng
 (2022, 'Hoàn thành tốt nhiệm vụ', 'Hỗ trợ sinh viên tốt trong công tác xã hội', 30),
 (2023, 'Hoàn thành tốt nhiệm vụ', 'Tích cực trong công tác sinh viên', 30);
  
@@ -698,65 +675,44 @@ INSERT INTO xep_loai_dang_vien (nam_danh_gia, danh_gia, nhan_xet, vien_chuc_id) 
 (2024, 'Hoàn thành tốt nhiệm vụ', 'Tốt', 26), (2025, 'Hoàn thành xuất sắc nhiệm vụ', 'Xuất sắc', 26),
 (2024, 'Hoàn thành tốt nhiệm vụ', 'Tốt', 28), (2025, 'Hoàn thành tốt nhiệm vụ', 'Tốt', 28);
 
--- 6. TAI KHOAN
-INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai, vien_chuc_id) VALUES
-('admin1', '$2b$10$hashedpassword1', 'admin', 1, 1),
-('user02', '$2b$10$hashedpassword2', 'user', 1, 2),
-('user10', '$2b$10$hashedpassword3', 'user', 1, 10),
-('user13', '$2b$10$hashedpassword4', 'user', 1, 13),
-('user16', '$2b$10$hashedpassword5', 'user', 1, 16),
-('user19', '$2b$10$hashedpassword6', 'user', 1, 19);
-
 -- 7. NHIEM KY CHUC VU (người đang giữ chức)
 INSERT INTO nhiem_ky_chuc_vu (ngay_bat_dau, ngay_ket_thuc, trang_thai, vien_chuc_id, chuc_danh_id) VALUES
--- Trưởng phòng TC-CT
-('2020-01-15', '2025-01-15', 1, 1, 1),
--- Phó trưởng phòng TC-CT
-('2021-03-01', '2026-03-01', 1, 2, 2),
--- Trưởng phòng HC-TH
-('2019-06-01', '2024-06-01', 1, 4, 1),
--- Trưởng phòng KH-TV
-('2020-09-01', '2025-09-01', 1, 6, 1),
--- Trưởng khoa NN
+-- Trưởng khoa CNTT
 ('2021-01-01', '2026-01-01', 1, 10, 3),
--- Phó trưởng khoa NN
+-- Phó trưởng khoa CNTT
 ('2021-01-01', '2026-01-01', 1, 11, 4),
--- Trưởng khoa KT-CN-MT
-('2020-07-01', '2025-07-01', 1, 13, 3),
--- Phó trưởng khoa KT-CN-MT
-('2020-07-01', '2025-07-01', 1, 14, 4),
--- Trưởng khoa SP
-('2019-08-01', '2024-08-01', 1, 16, 3),
--- Trưởng khoa KT-QTKD
-('2021-05-01', '2026-05-01', 1, 19, 3),
--- Phó trưởng khoa KT-QTKD
-('2021-05-01', '2026-05-01', 1, 20, 4),
--- Trưởng khoa LLCT
-('2020-11-01', '2025-11-01', 1, 22, 3),
--- Trưởng khoa Ngoại ngữ
-('2022-01-01', '2027-01-01', 1, 24, 3),
--- Trưởng BM Toán-TH
+-- Trưởng BM Toán-TH (Giả định trực thuộc Khoa CNTT)
 ('2021-08-01', '2026-08-01', 1, 26, 5),
--- Trưởng BM GDTC
-('2020-04-01', '2025-04-01', 1, 28, 5);
+-- Trưởng BM GDTC (Giả định trực thuộc Khoa CNTT)
+('2020-04-01', '2025-04-01', 1, 28, 5)
+-- Nguyên Hiệu trưởng (PGS.TS Võ Văn Thắng) -> Trạng thái 0 (Đã kết thúc vào 2025)
+('2025-05-02', '2030-05-02', 0, 45, 7),
 
+-- Phó Hiệu trưởng phụ trách (TS. Nguyễn Hữu Trí) -> Trạng thái 1 (Bắt đầu từ 2025)
+('2025-05-02', '2030-05-02', 1, 46, 8),
+
+-- Phó Hiệu trưởng (TS. Nguyễn Phương Thảo) -> Trạng thái 1 (Bắt đầu từ 2025)
+('2025-05-02', '2030-05-02', 1, 47, 8);
 -- 8. PHIEU CHU TRUONG (demo bổ nhiệm)
 INSERT INTO phieu_chu_truong (ma_phieu, so_to_trinh_chu_truong, tieu_de, ly_do_de_xuat, so_luong_de_xuat, nguon_nhan_su, trang_thai, don_vi_id, chuc_danh_id, nguoi_lap, nguoi_duyet) VALUES
-('PCT001', 'TT001/2024', 'Bổ nhiệm Phó Trưởng khoa Nông nghiệp', 
+('PCT001', 'TT001/2024', 'Bổ nhiệm Phó Trưởng khoa Công Nghệ Thông Tin', 
     'Khoa cần bổ sung lãnh đạo do khối lượng công việc tăng', 1, 
-    1, 1, 6, 4, 'Nguyễn Văn An', 'BGH'),
-('PCT002', 'TT002/2024', 'Bổ nhiệm Trưởng BM Giáo dục thể chất', 
-    'Trưởng BM cũ đã hết nhiệm kỳ, cần bổ nhiệm mới', 1, 
-    1, 1, 13, 5, 'Nguyễn Văn An', 'BGH'),
-('PCT003', 'TT003/2024', 'Bổ nhiệm Phó Trưởng phòng Đào tạo', 
+    1, 1, 6, 4, 'Đoàn Thanh Nghị', 'VCQL'),
+('PCT003', 'TT003/2024', 'Bổ nhiệm Phó Trưởng Phòng khoa Công Nghệ Thông Tin', 
     'Phòng cần bổ sung phó trưởng phòng hỗ trợ công tác', 1, 
-    1, 0, 4, 2, 'Nguyễn Văn An', NULL);
+    1, 0, 4, 2, 'Châu Ngân Khánh', NULL);
 
 -- 9. DOT BO NHIEM
 INSERT INTO dot_bo_nhiem ( ma_dot_bo_nhiem, ten_dot_bo_nhiem, ngay_bat_dau, ngay_ket_thuc, so_quyet_dinh, nguoi_lap, trang_thai) VALUES
-('DBN001', 'Đợt bổ nhiệm lãnh đạo khoa tháng 3/2024', '2024-03-01', '2024-04-30', 'QD001/2024', 'Nguyễn Văn An', 6),
-('DBN002', 'Đợt bổ nhiệm bộ môn tháng 6/2024', '2024-06-01', '2024-07-31', 'QD002/2024', 'Nguyễn Văn An', 2),
-('DBN003', 'Đợt bổ nhiệm phòng ban tháng 9/2024', '2024-09-01', NULL, NULL, 'Nguyễn Văn An', 1);
+('DBN001', 'Đợt bổ nhiệm lãnh đạo khoa tháng 3/2024', '2024-03-01', '2024-04-30', 'QD001/2024', 'Đoàn Thanh Nghị', 6),
+('DBN002', 'Đợt bổ nhiệm bộ môn tháng 6/2024', '2024-06-01', '2024-07-31', 'QD002/2024', 'Đoàn Thanh Nghị', 2),
+('DBN003', 'Đợt bổ nhiệm phòng ban tháng 9/2024', '2024-09-01', NULL, NULL, 'Đoàn Thanh Nghị', 1);
+
+-- 9. DOT BO NHIEM
+INSERT INTO dot_bo_nhiem ( ma_dot_bo_nhiem, ten_dot_bo_nhiem, ngay_bat_dau, ngay_ket_thuc, so_quyet_dinh, nguoi_lap, trang_thai) VALUES
+('DBN001', 'Đợt bổ nhiệm lãnh đạo khoa tháng 3/2024', '2024-03-01', '2024-04-30', 'QD001/2024', 'Đoàn Thanh Nghị', 6),
+('DBN002', 'Đợt bổ nhiệm bộ môn tháng 6/2024', '2024-06-01', '2024-07-31', 'QD002/2024', 'Đoàn Thanh Nghị', 2),
+('DBN003', 'Đợt bổ nhiệm phòng ban tháng 9/2024', '2024-09-01', NULL, NULL, 'Đoàn Thanh Nghị', 1);
 
 -- 10. CHI TIET DOT BO NHIEM
 INSERT INTO chi_tiet_dot_bo_nhiem (dot_bo_nhiem_id, phieu_chu_truong_id, trang_thai, buoc_hien_tai) VALUES

@@ -12,12 +12,13 @@ export const findAll = async () => {
         FROM vien_chuc vc
         JOIN don_vi dv ON vc.don_vi_id = dv.id
         LEFT JOIN (
-            SELECT
+            SELECT DISTINCT ON (nkcv.vien_chuc_id)
                 nkcv.vien_chuc_id,
                 cd.ten_chuc_danh AS ten_chuc_vu
             FROM nhiem_ky_chuc_vu nkcv
             JOIN chuc_danh_quan_ly cd ON nkcv.chuc_danh_id = cd.id
             WHERE nkcv.trang_thai = 1
+            ORDER BY nkcv.vien_chuc_id, nkcv.id DESC -- lấy record mới nhất
         ) nk ON nk.vien_chuc_id = vc.id
         WHERE vc.trang_thai = 1
     `);
