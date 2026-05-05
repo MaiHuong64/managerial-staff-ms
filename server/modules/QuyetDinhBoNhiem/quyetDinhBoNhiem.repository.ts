@@ -31,17 +31,18 @@ export const updateHoSoStatus = async (client: any, hoSoId: number) => {
 
 export const getInforFromHS = async (client: any, hoSoId: number): Promise<NhiemKy> => {
     const result = await client.query(
-        `SELECT 
+        `SELECT
             vc.id AS vien_chuc_id, vc.gioi_tinh, vc.ngay_sinh,
-            pct.chuc_danh_id,
+            cd.id AS chuc_danh_id,
             (cd.thoi_han_giu_chuc_vu * 12) AS thoi_han
         FROM ho_so_bo_nhiem hsbn
-        JOIN chi_tiet_phuong_an ctpa ON hsbn.chi_tiet_pa_id = ctpa.id
-        JOIN chi_tiet_bo_nhiem ctbn ON ctbn.id = ctpa.chi_tiet_bn_id
-        JOIN vien_chuc vc ON vc.id = ctbn.vien_chuc_id
-        JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
-        JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
-         JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+        LEFT JOIN chi_tiet_phuong_an ctpa ON hsbn.chi_tiet_pa_id = ctpa.id
+        LEFT JOIN chi_tiet_bo_nhiem ctbn ON ctbn.id = ctpa.chi_tiet_bn_id
+        LEFT JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
+        LEFT JOIN phieu_chu_truong pct_from_pa ON pct_from_pa.id = ctdbn.phieu_chu_truong_id
+        LEFT JOIN phieu_chu_truong pct_direct ON pct_direct.id = hsbn.phieu_chu_truong_id
+        JOIN vien_chuc vc ON vc.id = COALESCE(ctbn.vien_chuc_id, pct_direct.vien_chuc_id)
+        JOIN chuc_danh_quan_ly cd ON cd.id = COALESCE(pct_from_pa.chuc_danh_id, pct_direct.chuc_danh_id)
         WHERE hsbn.id = $1`,
         [hoSoId]
     );
@@ -85,12 +86,13 @@ export const getDetail = async (id: number) => {
             nk.ngay_bat_dau, nk.ngay_ket_thuc, nk.trang_thai AS trang_thai_nhiem_ky
         FROM qd_bo_nhiem qd
         JOIN ho_so_bo_nhiem hs ON hs.id = qd.ho_so_bn_id
-        JOIN chi_tiet_phuong_an ctpa ON hs.chi_tiet_pa_id = ctpa.id
-        JOIN chi_tiet_bo_nhiem ctbn ON ctbn.id = ctpa.chi_tiet_bn_id
-        JOIN vien_chuc vc ON vc.id = ctbn.vien_chuc_id
-        JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
-        JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
-        JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+        LEFT JOIN chi_tiet_phuong_an ctpa ON hs.chi_tiet_pa_id = ctpa.id
+        LEFT JOIN chi_tiet_bo_nhiem ctbn ON ctbn.id = ctpa.chi_tiet_bn_id
+        LEFT JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
+        LEFT JOIN phieu_chu_truong pct_from_pa ON pct_from_pa.id = ctdbn.phieu_chu_truong_id
+        LEFT JOIN phieu_chu_truong pct_direct ON pct_direct.id = hs.phieu_chu_truong_id
+        JOIN vien_chuc vc ON vc.id = COALESCE(ctbn.vien_chuc_id, pct_direct.vien_chuc_id)
+        JOIN chuc_danh_quan_ly cd ON cd.id = COALESCE(pct_from_pa.chuc_danh_id, pct_direct.chuc_danh_id)
         JOIN don_vi dv ON dv.id = vc.don_vi_id
         LEFT JOIN nhiem_ky_chuc_vu nk ON nk.qd_bo_nhiem_id = qd.id
         WHERE qd.id = $1`, [id]
@@ -106,12 +108,13 @@ export const getHoSoInfoForQD = async (hoSoId: number) => {
             dv.ten_don_vi,
             ctpa.loai_phuong_an
         FROM ho_so_bo_nhiem hsbn
-        JOIN chi_tiet_phuong_an ctpa ON hsbn.chi_tiet_pa_id = ctpa.id
-        JOIN chi_tiet_bo_nhiem ctbn ON ctbn.id = ctpa.chi_tiet_bn_id
-        JOIN vien_chuc vc ON vc.id = ctbn.vien_chuc_id
-        JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
-        JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
-        JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+        LEFT JOIN chi_tiet_phuong_an ctpa ON hsbn.chi_tiet_pa_id = ctpa.id
+        LEFT JOIN chi_tiet_bo_nhiem ctbn ON ctbn.id = ctpa.chi_tiet_bn_id
+        LEFT JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.id = ctbn.chi_tiet_dot_bo_nhiem_id
+        LEFT JOIN phieu_chu_truong pct_from_pa ON pct_from_pa.id = ctdbn.phieu_chu_truong_id
+        LEFT JOIN phieu_chu_truong pct_direct ON pct_direct.id = hsbn.phieu_chu_truong_id
+        JOIN vien_chuc vc ON vc.id = COALESCE(ctbn.vien_chuc_id, pct_direct.vien_chuc_id)
+        JOIN chuc_danh_quan_ly cd ON cd.id = COALESCE(pct_from_pa.chuc_danh_id, pct_direct.chuc_danh_id)
         JOIN don_vi dv ON dv.id = vc.don_vi_id
         WHERE hsbn.id = $1`,
         [hoSoId]

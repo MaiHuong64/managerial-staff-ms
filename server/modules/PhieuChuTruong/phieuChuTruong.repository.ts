@@ -12,20 +12,22 @@ export const nextBatchCode = async (client: any) => {
 
 export const getAllPlanning = async () => {
     const result = await pool.query(
-        `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh
-        FROM phieu_chu_truong ptc 
+        `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
+        FROM phieu_chu_truong ptc
         LEFT JOIN don_vi dv ON ptc.don_vi_id = dv.id
         LEFT JOIN chuc_danh_quan_ly cd ON cd.id = ptc.chuc_danh_id
-        LEFT JOIN dot_quy_hoach dqt ON dqt.id = ptc.dot_quy_hoach_id`
+        LEFT JOIN dot_quy_hoach dqt ON dqt.id = ptc.dot_quy_hoach_id
+        LEFT JOIN vien_chuc vc ON vc.id = ptc.vien_chuc_id`
     )
     return result.rows.map(toCamel);
 }
 export const getById = async (id: number) => {
     const result = await pool.query(
-        `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh
+        `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
          FROM phieu_chu_truong ptc
          LEFT JOIN don_vi dv ON ptc.don_vi_id = dv.id
          LEFT JOIN chuc_danh_quan_ly cd ON cd.id = ptc.chuc_danh_id
+         LEFT JOIN vien_chuc vc ON vc.id = ptc.vien_chuc_id
          WHERE ptc.id = $1`,
         [id]
     );
@@ -49,12 +51,12 @@ export const insertPhieuChuTruong = async (client: any, payload: CreatePhieuChuT
         `INSERT INTO phieu_chu_truong
          (ma_phieu, so_to_trinh_chu_truong, tieu_de, ly_do_de_xuat,
           so_luong_de_xuat, nguon_nhan_su, dot_quy_hoach_id,
-          chuc_danh_id, don_vi_id, nguoi_lap, trang_thai)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,1) RETURNING *`,
+          chuc_danh_id, don_vi_id, nguoi_lap, vien_chuc_id, trang_thai)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,1) RETURNING *`,
         [maPhieu, payload.soToTrinhChuTruong, payload.tieuDe,
          payload.lyDoDeXuat, payload.soLuongDeXuat, payload.nguonNhanSu,
          payload.dotQuyHoachId ?? null, payload.chucDanhId,
-         donViId, hoVaTen]
+         donViId, hoVaTen, payload.vienChucId ?? null]
     )
     return result.rows[0];
 } 
