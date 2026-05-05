@@ -1,7 +1,7 @@
 import pool from "../../config/db";
 import fs from "fs";
 import path from "path";
-import { checkHoSoExistsByChiTietPAId, deleteChiTietHoSo, getAllHoSo, getChiTietHoSo, getHoSoBoNhiemById, getHoSoByPhuongAnId, getNextCode, insertChiTieHS, insertHoSoBoNhiem, updateTrangThaiHoSo } from "./hoSoBoNhiem.repository";
+import { checkHoSoExistsByChiTietPAId, checkHoSoExistsByPhieuChuTruongId, deleteChiTietHoSo, getAllHoSo, getChiTietHoSo, getHoSoBoNhiemById, getHoSoByPhieuChuTruongId, getHoSoByPhuongAnId, getNextCode, insertChiTieHS, insertHoSoBoNhiem, updateTrangThaiHoSo } from "./hoSoBoNhiem.repository";
 import { CreateHoSoDTO, UploadFileDTO } from "./hoSoBoNhiem.type";
 
 export const getAllHSBN = async () => {
@@ -10,6 +10,10 @@ export const getAllHSBN = async () => {
 
 export const getByPhuongAnId = async (id: number) => {
     return await getHoSoByPhuongAnId(id);
+};
+
+export const getByPhieuChuTruongId = async (id: number) => {
+    return await getHoSoByPhieuChuTruongId(id);
 };
 
 export const getById = async (id: number) => {
@@ -29,10 +33,33 @@ export const createHoSo = async (payload: CreateHoSoDTO) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        const exist = await checkHoSoExistsByChiTietPAId(client, payload.chiTietPAId);
-        if (exist) throw new Error("Hồ sơ này đã tồn tại");
+
+        // Validate: phải có ít nhất 1 trong 2 (chiTietPAId hoặc phieuChuTruongId)
+        if (!payload.chiTietPAId && !payload.phieuChuTruongId) {
+            throw new Error("Phải có chi tiết phương án hoặc phiếu chủ trương");
+        }
+        if (payload.chiTietPAId && payload.phieuChuTruongId) {
+            throw new Error("Chỉ được chọn 1 trong 2: chi tiết phương án hoặc phiếu chủ trương");
+        }
+
+        // Check duplicate
+        if (payload.chiTietPAId) {
+            const exist = await checkHoSoExistsByChiTietPAId(client, payload.chiTietPAId);
+            if (exist) throw new Error("Hồ sơ từ phương án này đã tồn tại");
+        }
+        if (payload.phieuChuTruongId) {
+            const exist = await checkHoSoExistsByPhieuChuTruongId(client, payload.phieuChuTruongId);
+            if (exist) throw new Error("Hồ sơ từ phiếu chủ trương này đã tồn tại");
+        }
+
         const maHoSo = await getNextCode(client);
-        const hoSo = await insertHoSoBoNhiem(client, maHoSo, payload.chiTietPAId, payload.ghiChu ?? null);
+        const hoSo = await insertHoSoBoNhiem(
+            client,
+            maHoSo,
+            payload.chiTietPAId ?? null,
+            payload.phieuChuTruongId ?? null,
+            payload.ghiChu ?? null
+        );
         await client.query("COMMIT");
         return hoSo;
     } catch (error) {

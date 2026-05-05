@@ -1,5 +1,6 @@
 export interface CreateHoSoDTO {
-    chiTietPAId: number,
+    chiTietPAId?: number,
+    phieuChuTruongId?: number,
     ghiChu?: string
 }
 export interface UploadFileDTO{
@@ -13,7 +14,8 @@ export interface HoSoBoNhiem {
     ngayLap: Date;
     trangThai: number;
     ghiChu: string | null;
-    chiTietPaId: number;
+    chiTietPaId: number | null;
+    phieuChuTruongId: number | null;
     hoVaTen: string;
     maVienChuc: string;
     tenChucDanh: string;

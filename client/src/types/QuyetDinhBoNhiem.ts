@@ -1,5 +1,6 @@
 export interface QuyetDinhBoNhiem {
     id: number;
+    hoSoBoNhiemId?: number;
     hoVaTen: string;
     maVienChuc: string;
     tenChucDanh: string

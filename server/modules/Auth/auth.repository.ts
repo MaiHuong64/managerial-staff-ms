@@ -23,12 +23,12 @@ export const AuthRepository = {
         return result.rows.length > 0;
     },
 
-    createUser: async (username: string, hashedPassword: string, role: string) => {
+    createUser: async (username: string, hashedPassword: string, role: string, vienChucId: number) => {
         const result = await pool.query(
-            `INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai)
-             VALUES ($1, $2, $3, 1)
+            `INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai, vien_chuc_id)
+             VALUES ($1, $2, $3, 1, $4)
              RETURNING id, ten_dang_nhap, vai_tro`,
-            [username, hashedPassword, role]
+            [username, hashedPassword, role, vienChucId]
         );
         return mapToCamel<any>(result.rows[0]);
     }
