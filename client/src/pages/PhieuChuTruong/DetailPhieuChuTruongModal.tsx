@@ -1,7 +1,9 @@
 import { Button, Descriptions, Modal, Tag, Spin, message, Form, Input } from "antd";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { approvePhieuChuTruong,  getPhieuChuTruongById, rejectPhieuChuTruong,} from "../../api/phieuChuTruong.api";
+import { getHoSoByPhieuChuTruong, createHoSo } from "../../api/hoSoBoNhiem.api";
 import type { PhieuChuTruong } from "../../types/PhieuChuTruong";
 
 interface Props {
@@ -11,11 +13,15 @@ interface Props {
 }
 
 export const DetailPhieuChuTruongModal: React.FC<Props> = ({ id, onClose, onSuccess }) => {
+    const navigate = useNavigate();
     const [data, setData] = useState<PhieuChuTruong | null>(null);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [rejectModalVisible, setRejectModalVisible] = useState(false);
     const [rejectForm] = Form.useForm();
+    const [hasHoSo, setHasHoSo] = useState(false);
+    const [checkingHoSo, setCheckingHoSo] = useState(false);
+    const [hoSoId, setHoSoId] = useState<number | null>(null);
 
     const fetchData = async () => {
         if (!id) return;
@@ -23,6 +29,11 @@ export const DetailPhieuChuTruongModal: React.FC<Props> = ({ id, onClose, onSucc
             setLoading(true);
             const response = await getPhieuChuTruongById(id);
             setData(response.data.data);
+
+            // Check xem đã có hồ sơ bổ nhiệm chưa
+            if (response.data.data.trangThai === 2 && response.data.data.nguonNhanSu === 2) {
+                checkHoSoExists(id);
+            }
         } catch {
             message.error("Không thể tải dữ liệu phiếu chủ trương");
         } finally {
@@ -30,7 +41,26 @@ export const DetailPhieuChuTruongModal: React.FC<Props> = ({ id, onClose, onSucc
         }
     };
 
-    // Fix: Gọi fetchData khi id thay đổi
+    const checkHoSoExists = async (phieuId: number) => {
+        try {
+            setCheckingHoSo(true);
+            const response = await getHoSoByPhieuChuTruong(phieuId);
+            const hoSoList = response.data.data;
+            if (hoSoList.length > 0) {
+                setHasHoSo(true);
+                setHoSoId(hoSoList[0].id);
+            } else {
+                setHasHoSo(false);
+                setHoSoId(null);
+            }
+        } catch {
+            setHasHoSo(false);
+            setHoSoId(null);
+        } finally {
+            setCheckingHoSo(false);
+        }
+    };
+
     useEffect(() => {
         fetchData();
     }, [id]);
@@ -76,6 +106,22 @@ export const DetailPhieuChuTruongModal: React.FC<Props> = ({ id, onClose, onSucc
         }
     };
 
+    const handleCreateHoSo = async () => {
+        if (!id) return;
+        try {
+            setSubmitting(true);
+            const response = await createHoSo({ phieuChuTruongId: id });
+            message.success("Tạo hồ sơ bổ nhiệm thành công");
+            const hoSoId = response.data.data.id;
+            onClose();
+            navigate(`/ho-so-bo-nhiem/${hoSoId}`);
+        } catch (err: any) {
+            message.error(err?.response?.data?.message || "Không thể tạo hồ sơ");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <>
             <Modal
@@ -93,6 +139,22 @@ export const DetailPhieuChuTruongModal: React.FC<Props> = ({ id, onClose, onSucc
                         <Button key="approve" type="primary" loading={submitting} onClick={handleApprove} >
                             Duyệt
                         </Button>
+                    ),
+                    data?.trangThai === 2 && data?.nguonNhanSu === 2 && (
+                        !hasHoSo ? (
+                            <Button key="create-ho-so" type="primary" loading={submitting || checkingHoSo} onClick={handleCreateHoSo}>
+                                Lập Hồ Sơ Bổ Nhiệm
+                            </Button>
+                        ) : (
+                            <Button key="view-ho-so" type="primary" onClick={() => {
+                                if (hoSoId) {
+                                    onClose();
+                                    navigate(`/ho-so-bo-nhiem/${hoSoId}`);
+                                }
+                            }}>
+                                Xem Hồ Sơ Bổ Nhiệm
+                            </Button>
+                        )
                     ),
                     <Button key="close" onClick={onClose}>
                         Đóng

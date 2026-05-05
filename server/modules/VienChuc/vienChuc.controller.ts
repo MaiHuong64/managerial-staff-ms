@@ -77,10 +77,12 @@ export const remove = async (req: AuthRequest, res: Response) => {
 export const getByDonVi = async (req: AuthRequest, res: Response) => {
     try {
         const donviId = req.user!.donViId;
+         console.log("donViId:", donviId);
         const data = await getStaffbyDepartment(donviId);
         return res.status(200).json({success: true, data})
     } catch (error) {
-         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+        console.log(error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 }
 export const getHoSoVC = async (req:Request, res: Response) => {

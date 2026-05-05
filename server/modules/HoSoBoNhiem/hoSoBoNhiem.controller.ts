@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { createHoSo, deleteTaiLieu, getAllHSBN, getById, getByPhuongAnId, hoanThienHoSo, uploadFile } from "./hoSoBoNhiem.service"
+import { createHoSo, deleteTaiLieu, getAllHSBN, getById, getByPhieuChuTruongId, getByPhuongAnId, hoanThienHoSo, uploadFile } from "./hoSoBoNhiem.service"
 
 export const getAll = async(req: Request, res: Response) => {
     try {
@@ -15,6 +15,7 @@ export const getChiTietHoSoById = async (req: Request, res: Response) => {
         const data = await getById(id);
         return res.status(200).json({success: true, data});
     } catch (error) {
+        console.log(error)
         return res.status(500).json({success: false, message: "Internal server"});
     }
 }
@@ -24,6 +25,16 @@ export const getHoSoByPAId = async (req: Request, res: Response) => {
         const data = await getByPhuongAnId(id);
         return res.status(200).json({success: true, data});
     } catch (error) {
+        return res.status(500).json({success: false, message: "Internal server"});
+    }
+}
+export const getHoSoByPhieuChuTruongId = async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+        const data = await getByPhieuChuTruongId(id);
+        return res.status(200).json({success: true, data});
+    } catch (error) {
+        console.log(error);
         return res.status(500).json({success: false, message: "Internal server"});
     }
 }

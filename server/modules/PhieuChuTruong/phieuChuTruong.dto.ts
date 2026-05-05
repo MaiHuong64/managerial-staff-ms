@@ -4,6 +4,7 @@ export interface CreatePhieuChuTruongDTO {
     lyDoDeXuat: string;
     soLuongDeXuat: number;
     nguonNhanSu: 1 | 2;    // 1: tại chỗ, 2: nơi khác
-    dotQuyHoachId?: number; 
+    dotQuyHoachId?: number;
     chucDanhId: number;
+    vienChucId?: number;   // Bắt buộc khi nguonNhanSu = 2
 }
