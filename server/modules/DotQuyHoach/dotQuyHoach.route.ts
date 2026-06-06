@@ -1,23 +1,23 @@
 import { Router } from "express";
 import { verifyToken } from "../../middleware/auth.middleware";
-import { addCandidates, addNewCandidateController, approveQuyHoach, create, filterCandidatesHandler, getAll, getById, getCandidatesHandler, getRoot, submitVoteQuyHoach } from "./dotQuyHoach.controller";
+import * as DotQuyHoachController from "./dotQuyHoach.controller";
 
 const router = Router()
 
-// router.use(verifyToken);
-router.get("/candidates/:chucDanhId", getCandidatesHandler);
-router.get("/filter", filterCandidatesHandler);
-router.get("/root", getRoot);
+router.use(verifyToken);
+router.get("/candidates/:chucDanhId", DotQuyHoachController.getVienChucByChucDanh);
+router.get("/filter", DotQuyHoachController.filterVienChuc);
+router.get("/root", DotQuyHoachController.getDotQuyHoachGoc);
 
 
-router.post("/submit", submitVoteQuyHoach);
-router.post("/", create);
-router.post("/:id/chi-tiet", addCandidates);
-router.post("/:id/chi-tiet/170",addNewCandidateController)
+router.post("/submit", DotQuyHoachController.submitVoteDotQuyHoach);
+router.post("/", DotQuyHoachController.createDotQuyHoach);
+router.post("/:id/chi-tiet", DotQuyHoachController.addBulkVienChuc);
+router.post("/:id/chi-tiet/170",DotQuyHoachController.addUngVien);
 
-router.patch("/:id/phe-duyet", approveQuyHoach);
+router.patch("/:id/phe-duyet", DotQuyHoachController.approveDotQuyHoach);
 
-router.get("/", getAll);       // list
-router.get("/:id", getById);   // detail
+router.get("/", DotQuyHoachController.getAllDotQuyHoach);       // list
+router.get("/:id", DotQuyHoachController.getDotQuyHoachById);   // detail
 
 export default router;

@@ -1,14 +1,15 @@
 import { Router } from "express";
 import { verifyToken } from "../../middleware/auth.middleware";
-import { getAll, getById, approve, create, reject } from "./phieuChuTruong.controller";
+import * as PhieuChuTruongController from "./phieuChuTruong.controller";
+import { checkRole } from "../../middleware/role.middleware";
 
 const router = Router();
 
 router.use(verifyToken);
 
-router.get("/", getAll);
-router.get("/:id", getById);
-router.post("/", create);
-router.post("/:id/approve", approve);
-router.post("/:id/reject", reject);
+router.get("/", PhieuChuTruongController.getAllPhieuChuTruong);
+router.get("/:id", PhieuChuTruongController.getPhieuChuTruongById);
+router.post("/",checkRole(['VCQL']), PhieuChuTruongController.createPhieuChuTruong);
+router.post("/:id/approve", checkRole(['BGH']), PhieuChuTruongController.approvePCT);
+router.post("/:id/reject", checkRole(['BGH']), PhieuChuTruongController.rejectPCT);
 export default router;

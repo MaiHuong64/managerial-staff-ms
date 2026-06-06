@@ -1,10 +1,10 @@
 import { Request ,Response } from "express";
 import { AuthRequest } from "../../middleware/auth.middleware";
-import { getAllStaff, getStaffById,  getProfile,  createStaff, updateStaff, deleteStaff, getStaffbyDepartment, getHoSoVienChuc,} from "./vienChuc.service";
+import * as VienChucService from "./vienChuc.service";
 
 export const getAll = async (req: AuthRequest, res: Response) => {
     try {
-        const data = await getAllStaff();
+        const data = await VienChucService.getAllStaff();
         return res.status(200).json({ success: true, data });
     } catch {
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
@@ -14,7 +14,7 @@ export const getAll = async (req: AuthRequest, res: Response) => {
 export const getById = async (req: AuthRequest, res: Response) => {
     try {
         const id = Number(req.params.id);
-        const data = await getStaffById(id);
+        const data = await VienChucService.getStaffById(id);
         return res.status(200).json({ success: true, data });
     } catch (error: any) {
         return res.status(404).json({ success: false, message: error.message });
@@ -24,7 +24,7 @@ export const getById = async (req: AuthRequest, res: Response) => {
 export const getProfileHandler = async (req: AuthRequest, res: Response) => {
     try {
         const uid = req.user!.id;
-        const data = await getProfile(uid);
+        const data = await VienChucService.getProfile(uid);
         return res.status(200).json({ success: true, data });
     } catch (error: any) {
         return res.status(404).json({ success: false, message: error.message });
@@ -33,7 +33,7 @@ export const getProfileHandler = async (req: AuthRequest, res: Response) => {
 
 export const create = async (req: AuthRequest, res: Response) => {
     try {
-        const data = await createStaff(req.body);
+        const data = await VienChucService.createStaff(req.body);
         return res.status(201).json({success: true,message: "Khởi tạo hồ sơ và cấp tài khoản thành công",data,});
     } catch (error: any) {
         console.error('Lỗi tạo viên chức:', error); 
@@ -50,7 +50,7 @@ export const create = async (req: AuthRequest, res: Response) => {
 export const update = async (req: AuthRequest, res: Response) => {
     try {
         const id = Number(req.params.id);
-        const data = await updateStaff(id, req.body);
+        const data = await VienChucService.updateStaff(id, req.body);
         return res.status(200).json({ success: true, message: "Cập nhật thành công", data });
     } catch (error: any) {
         if (error.message === "Không tìm thấy viên chức") {
@@ -67,7 +67,7 @@ export const update = async (req: AuthRequest, res: Response) => {
 export const remove = async (req: AuthRequest, res: Response) => {
     try {
         const id = Number(req.params.id);
-        await deleteStaff(id);
+        await VienChucService.deleteStaff(id);
         return res.status(200).json({ success: true, message: "Xóa thành công" });
     } catch {
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
@@ -78,7 +78,7 @@ export const getByDonVi = async (req: AuthRequest, res: Response) => {
     try {
         const donviId = req.user!.donViId;
          console.log("donViId:", donviId);
-        const data = await getStaffbyDepartment(donviId);
+        const data = await VienChucService.getStaffbyDepartment(donviId);
         return res.status(200).json({success: true, data})
     } catch (error) {
         console.log(error);
@@ -88,7 +88,7 @@ export const getByDonVi = async (req: AuthRequest, res: Response) => {
 export const getHoSoVC = async (req:Request, res: Response) => {
     try {
         const vienChucId = Number(req.params.id);
-        const data = await getHoSoVienChuc(vienChucId);
+        const data = await VienChucService.getHoSoVienChuc(vienChucId);
         return res.status(200).json({ success: true, data });
     } catch (error: any) {
         return res.status(404).json({ success: false, message: error.message });

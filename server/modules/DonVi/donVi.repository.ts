@@ -3,7 +3,7 @@ import pool from "../../config/db";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
 import { CreateDonViDTO, DonViDTO } from "./donVi.dto";
 
-export const getAllDonViRepository = async (): Promise<DonViDTO[]> => {
+export const getAllDonVi = async (): Promise<DonViDTO[]> => {
     const result = await pool.query(
     `  SELECT dv.*,
         (
@@ -32,7 +32,7 @@ export const getAllDonViRepository = async (): Promise<DonViDTO[]> => {
     return mapArrayToCamel<DonViDTO>(result.rows);
 };
 
-export const getDonViByIdRepository = async (id: number): Promise<DonViDTO | null> => {
+export const getDonViById = async (id: number): Promise<DonViDTO | null> => {
     const result = await pool.query(
     ` SELECT dv.*,
         (
@@ -58,15 +58,15 @@ export const getDonViByIdRepository = async (id: number): Promise<DonViDTO | nul
         WHERE dv.id = $1 AND dv.trang_thai = 1`, [id]);
     return mapToCamel<DonViDTO>(result.rows[0]) ?? null;
 };
-export const createCodeRepository = async (client: PoolClient) => {
+export const createCode = async (client: PoolClient) => {
     const result = await client.query(
         `SELECT COALESCE(MAX(id), 0) as max FROM don_vi`
     );
     const nextId = Number(result.rows[0].max) + 1;
     return 'DV' + nextId.toString().padStart(3, '0');
 };
-export const createDonViRepository = async (client: PoolClient, payload: CreateDonViDTO) => {
-    const maDonVi = await createCodeRepository(client);
+export const createDonVi = async (client: PoolClient, payload: CreateDonViDTO) => {
+    const maDonVi = await createCode(client);
     const result = await client.query(
         `INSERT INTO don_vi (ma_don_vi, ten_don_vi, loai_don_vi, don_vi_cha_id, so_dien_thoai, email, dia_chi)
         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
@@ -74,7 +74,7 @@ export const createDonViRepository = async (client: PoolClient, payload: CreateD
     );
     return mapToCamel<DonViDTO>(result.rows[0]);
 }
-export const updateDonViRepository = async (client: PoolClient, id: number, payload: CreateDonViDTO) => {
+export const updateDonVi = async (client: PoolClient, id: number, payload: CreateDonViDTO) => {
     const result = await client.query(
         `UPDATE don_vi SET ten_don_vi = $1, loai_don_vi = $2, don_vi_cha_id = $3, so_dien_thoai = $4, email = $5, dia_chi = $6
         WHERE id = $7 RETURNING *`,
@@ -82,6 +82,6 @@ export const updateDonViRepository = async (client: PoolClient, id: number, payl
     );
     return mapToCamel<DonViDTO>(result.rows[0]);
 }
-export const deleteDonViRepository = async (client: PoolClient, id: number) => {
+export const deleteDonVi = async (client: PoolClient, id: number) => {
     await client.query(`UPDATE don_vi SET trang_thai = 0 WHERE id = $1`, [id]);
 }

@@ -42,7 +42,7 @@ export const getBuocHienTai = async (client: any, chiTietDotBoNhiemId: number) =
     );
     return result.rows[0].min_step;
 }
-export const checkAllDone = async (client: any, dotBoNhiemId: number) => {
+export const checkDotBoNhiemHoanThanh = async (client: any, dotBoNhiemId: number) => {
       const result = await client.query(
         `SELECT
             COUNT(*) FILTER (WHERE buoc_hoi_nghi BETWEEN 2 AND 5) AS dang_xu_ly,
@@ -54,26 +54,26 @@ export const checkAllDone = async (client: any, dotBoNhiemId: number) => {
     return result.rows[0];
 
 }
-export const updateStepForCandidate = async (client: any, buoc: number, chiTietBnId: number) => {
+export const updateBuocHienTaiChiTietBoNhiem = async (client: any, buoc: number, chiTietBnId: number) => {
     await client.query(
         `UPDATE chi_tiet_bo_nhiem SET buoc_hoi_nghi = $1 WHERE id = $2`,
         [buoc, chiTietBnId]
     )
 }
 
-export const updateStatusBatch = async (client: any, dotBoNhiemId: number, trangThai: number) => {
+export const updateTrangThaiDotBoNhiem = async (client: any, dotBoNhiemId: number, trangThai: number) => {
     await client.query(
         `UPDATE dot_bo_nhiem SET trang_thai = $1 WHERE id = $2`,
         [trangThai, dotBoNhiemId]
     );
 }
-export const updateStatusChiTietDot = async (client: any, chiTietDotId: number, trangThai: number) => {
+export const updateTrangThaiChiTietDotBoNhiem = async (client: any, chiTietDotId: number, trangThai: number) => {
     await client.query(
         `UPDATE chi_tiet_dot_bo_nhiem SET trang_thai = $1 WHERE id = $2`,
         [trangThai, chiTietDotId]
     );
 }
-export const updateStepForChucDanh = async (client: any, buoc: number, chiTIetDottId: number) => {
+export const updateBuocHienTaiChiTietDotBoNhiem = async (client: any, buoc: number, chiTIetDottId: number) => {
     await client.query (
         `UPDATE chi_tiet_dot_bo_nhiem
          SET buoc_hien_tai = $1
@@ -81,9 +81,17 @@ export const updateStepForChucDanh = async (client: any, buoc: number, chiTIetDo
         [buoc, chiTIetDottId]
     )
 }
-export const updateStatusCandidate = async (client: any, chiTietBnId: number, trangThai: number) => {
+export const updateTrangThaiUngVien = async (client: any, chiTietBnId: number, trangThai: number) => {
     await client.query(
         `UPDATE chi_tiet_bo_nhiem SET trang_thai = $1 WHERE id = $2`,
         [trangThai, chiTietBnId]
     );
+}
+export const getUngVienHoa = async (client: any, danhSachUngVien: number[]) => {
+    const result = await client.query(
+        `SELECT ctbn.id as chi_tiet_bn_id, vc.ho_va_ten
+        FROM chi_tiet_bo_nhiem ctbn
+        JOIN vien_chuc vc ON ctbn.vien_chuc_id = vc.id
+        WHERE ctbn.id = ANY($1)`, danhSachUngVien)
+    return result.rows
 }

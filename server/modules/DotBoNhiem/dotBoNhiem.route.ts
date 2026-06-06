@@ -1,16 +1,15 @@
 import { Router } from "express";
 import { verifyToken } from "../../middleware/auth.middleware";
-import { create, getAll, submitVoteBoNhiem, getById, getCandidates, resolveVoteTie } from "./dotBoNhiem.controller"
+import * as DotBoNhiemController from "./dotBoNhiem.controller"
+import { checkRole } from "../../middleware/role.middleware";
+
 
 const router = Router();
-
-// router.use(verifyToken);
-router.get('/', getAll)
-router.post('/', create)
-router.post('/submit', submitVoteBoNhiem)
-router.get('/detail/:chiTietDotId/candidates', getCandidates)
-router.post('/detail/:chiTietDotId/candidates/resolve-tie', resolveVoteTie)
-// router.post('/detail/:chiTietDotId/candidates', addCandidate) 
-// router.post('/:id/start-voting', startVoting)
-router.get('/:id', getById)
+router.use(verifyToken);
+router.get('/', checkRole(["PTCCT", "BGH", "VCQL"]),DotBoNhiemController.getAllDotBoNhiem)
+router.post('/', checkRole(["PTCCT"]), DotBoNhiemController.createDotBoNhiem)
+router.post('/submit' , checkRole(["PTCCT", "BGH", "VCQL"]), DotBoNhiemController.submitVoteDotBoNhiem)
+router.get('/detail/:chiTietDotId/candidates', checkRole(["PTCCT", "BGH", "VCQL"]), DotBoNhiemController.getUngVienByChiTietDotId)
+router.post('/detail/:chiTietDotId/candidates/resolve-tie', checkRole(["PTCCT", "BGH", "VCQL"]), DotBoNhiemController.resolveHoaPhieuBoNhiem)
+router.get('/:id', checkRole(["PTCCT", "BGH", "VCQL"]), DotBoNhiemController.getDotBoNhiemById)
 export default router;

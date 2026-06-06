@@ -1,26 +1,26 @@
 import pool from "../../config/db";
 import { mapArrayToCamel } from "../../utils/mapper";
 import { CreateQDBoNhiemDTO } from "./quyetDinhBoNhiem.dto";
-import { generateQDBNCode, getDetail, getHoSoInfoForQD, getInforFromHS, handleNhiemKy, insertNhiemKy, insertQuyetDinh, updateHoSoStatus } from "./quyetDinhBoNhiem.repository";
+import * as QDBoNhiemRepo from "./quyetDinhBoNhiem.repository";
 
 export const CreateQDBN = async (payload: CreateQDBoNhiemDTO, hoSoId: number) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        const maBN = await generateQDBNCode(client);
-        const quyetDinh = await insertQuyetDinh(client, maBN, payload, hoSoId);
-        const {vienChucId, chucDanhId, gioiTinh, ngaySinh, thoiHan} = await getInforFromHS(client, hoSoId);
+        const maBN = await QDBoNhiemRepo.generateQDBNCode(client);
+        const quyetDinh = await QDBoNhiemRepo.insertQuyetDinh(client, maBN, payload, hoSoId);
+        const {vienChucId, chucDanhId, gioiTinh, ngaySinh, thoiHan} = await QDBoNhiemRepo.getInforFromHS(client, hoSoId);
 
-        // Đóng nhiệm kỳ cũ (nếu có)
+        // Đóng nhiệm kỳ cũ 
         const ngayKetThucCu = new Date(payload.ngayCoHieuLuc);
         ngayKetThucCu.setDate(ngayKetThucCu.getDate() - 1);
-        await handleNhiemKy(client, ngayKetThucCu, "Bổ nhiệm chức danh mới", vienChucId);
+        await QDBoNhiemRepo.handleNhiemKy(client, ngayKetThucCu, "Bổ nhiệm chức danh mới", vienChucId);
 
             // Tạo nhiệm kỳ mới
-            await insertNhiemKy(client, vienChucId, chucDanhId, payload.ngayCoHieuLuc, thoiHan, ngaySinh, gioiTinh, quyetDinh.id);
+        await QDBoNhiemRepo.insertNhiemKy(client, vienChucId, chucDanhId, payload.ngayCoHieuLuc, thoiHan, ngaySinh, gioiTinh, quyetDinh.id);
 
         // Cập nhật trạng thái hồ sơ
-        await updateHoSoStatus(client, hoSoId);
+        await QDBoNhiemRepo.updateHoSoStatus(client, hoSoId);
 
         await client.query("COMMIT");
         return quyetDinh;
@@ -33,11 +33,11 @@ export const CreateQDBN = async (payload: CreateQDBoNhiemDTO, hoSoId: number) =>
 }
 
 export const getQDBoNhiemById = async (id: number) => {
-    const result = await getDetail(id);
+    const result = await QDBoNhiemRepo.getDetail(id);
     return mapArrayToCamel(result);
 }
 
 export const getHoSoInfo = async (hoSoId: number) => {
-    const result = await getHoSoInfoForQD(hoSoId);
+    const result = await QDBoNhiemRepo.getHoSoInfoForQD(hoSoId);
     return result;
 }

@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { CreateQDBN, getHoSoInfo, getQDBoNhiemById } from "./quyetDinhBoNhiem.service";
+import * as QDBoNhiemService from "./quyetDinhBoNhiem.service";
 
 export const CreateQDBNController = async (req: Request, res: Response) => {
     try {
         const hoSoId = Number(req.params.hoSoId);
-        const data = await CreateQDBN(req.body, hoSoId);
+        const data = await QDBoNhiemService.CreateQDBN(req.body, hoSoId);
         return res.status(201).json({ success: true, data });
     } catch (error: any) {
         console.error(error);
@@ -15,7 +15,7 @@ export const CreateQDBNController = async (req: Request, res: Response) => {
 export const getQDBoNhiemByIdController = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
-        const result = await getQDBoNhiemById(id);
+        const result = await QDBoNhiemService.getQDBoNhiemById(id);
         if (!result) return res.status(404).json({ message: "Không tìm thấy quyết định" });
         res.status(200).json(result);
     } catch (error) {
@@ -26,7 +26,7 @@ export const getQDBoNhiemByIdController = async (req: Request, res: Response) =>
 export const getHoSoInfoController = async (req: Request, res: Response) => {
     try {
         const hoSoId = Number(req.params.hoSoId);
-        const data = await getHoSoInfo(hoSoId);
+        const data = await QDBoNhiemService.getHoSoInfo(hoSoId);
         return res.status(200).json({ success: true, data });
     } catch (error: any) {
         res.status(500).json({ message: error.message || "Lấy thông tin hồ sơ thất bại" });
