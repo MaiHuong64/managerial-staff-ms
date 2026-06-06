@@ -1,16 +1,16 @@
 import pool from "../../config/db";
-import { CreatePhieuDeXuatDTO, UpdateDuDieuKienDTO, UpdateTrangThaiPhieu } from "./phieuDeXuat.dto";
-import { getAllPhieuDeXuat, generatePhieuDeXuatCode, getPhieuDeXuatById, insertChiTietPhieu, insertPhieuDeXuat, submitPhieuDeXuat, updateTrangThaiPhieu, insertVaoChiTietQuyHoach, updateDuDieuKien, getPhieuIdByChiTietId, updateTrangThaiPhieuDuDieuKien, checkAllCandidatesReviewed, countEligibleCandidates } from "./phieuDeXuat.repository";
+import * as PhieuDeXuatDTO  from "./phieuDeXuat.dto";
+import * as PhieuDeXuatRepo from "./phieuDeXuat.repository";
 
-export const createPhieuDeXuat = async (payload: CreatePhieuDeXuatDTO, user: any) => {
+export const createPhieuDeXuat = async (payload: PhieuDeXuatDTO.CreatePhieuDeXuatDTO, user: any) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        const maPhieu = await generatePhieuDeXuatCode(client);
-        const phieu = await insertPhieuDeXuat(client, payload, user, maPhieu);
+        const maPhieu = await PhieuDeXuatRepo.generatePhieuDeXuatCode(client);
+        const phieu = await PhieuDeXuatRepo.insertPhieuDeXuat(client, payload, user, maPhieu);
 
         for(const vc of payload.vienChucList){
-            await insertChiTietPhieu(client, phieu.id, vc)
+            await PhieuDeXuatRepo.insertChiTietPhieu(client, phieu.id, vc)
         }
         await client.query("COMMIT");
         return phieu;
@@ -23,11 +23,11 @@ export const createPhieuDeXuat = async (payload: CreatePhieuDeXuatDTO, user: any
     }
 }
 export const getList = async () => {
-    return await getAllPhieuDeXuat();
+    return await PhieuDeXuatRepo.getAllPhieuDeXuat();
 };
 
 export const getDetail = async (id: number) => {
-    const rows = await getPhieuDeXuatById(id);
+    const rows = await PhieuDeXuatRepo.getPhieuDeXuatById(id);
     if(!rows.length) throw new Error("Không tìm thấy thông tin phiếu")
     const { chiTietId, hoVaTen, vienChucId, duDieuKien, lyDoKhongDu, ghiChu, ...phieu } = rows[0];
     return {
@@ -47,7 +47,7 @@ export const submitPDX = async (id: number, user: any) => {
         await client.query("BEGIN");
         if (user.vaiTro !== 'VCQL')
             throw new Error("Không có quyền gửi phiếu");
-        const result = await submitPhieuDeXuat(client, id);
+        const result = await PhieuDeXuatRepo.submitPhieuDeXuat(client, id);
         if (!result) throw new Error("Phiếu không tồn tại hoặc đã được gửi");
         await client.query("COMMIT");
         return result;
@@ -60,18 +60,15 @@ export const submitPDX = async (id: number, user: any) => {
 }
 
 // Duyệt các ứng viên trong phiếu đề xuất chủ
-export const CheckCandidateCondition = async (chiTietId: number, user: any, payload: UpdateDuDieuKienDTO) => {
+export const CheckCandidateCondition = async (chiTietId: number, user: any, payload: PhieuDeXuatDTO.UpdateDuDieuKienDTO) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
         if (user.vaiTro !== 'PTCCT') {
             throw new Error("Không có quyền đối soát hồ sơ");
         }
-        const result = await updateDuDieuKien(client, chiTietId, payload);
-        // const phieuId = await getPhieuIdByChiTietId(client, chiTietId);
-        // if (phieuId) {
-        //     await updateTrangThaiPhieuDuDieuKien(client, phieuId);
-        // }
+        const result = await PhieuDeXuatRepo.updateDuDieuKien(client, chiTietId, payload);
+       
         await client.query("COMMIT");
         return result;
     } catch (error) {
@@ -82,7 +79,7 @@ export const CheckCandidateCondition = async (chiTietId: number, user: any, payl
     }
 }
 
-export const approvePDX = async (id: number, user: any, payload: UpdateTrangThaiPhieu) => {
+export const approvePDX = async (id: number, user: any, payload: PhieuDeXuatDTO.UpdateTrangThaiPhieu) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
@@ -92,19 +89,19 @@ export const approvePDX = async (id: number, user: any, payload: UpdateTrangThai
             throw new Error("Vui lòng chọn đợt quy hoạch");
 
         // Check đã xét hết từng viên chức chưa
-        const allReviewed = await checkAllCandidatesReviewed(client, id);
+        const allReviewed = await PhieuDeXuatRepo.checkAllCandidatesReviewed(client, id);
         if (!allReviewed) {
             throw new Error("Phải xét duyệt hết từng viên chức trước khi phê duyệt phiếu");
         }
 
         // Check có ít nhất 1 người đủ điều kiện
-        const eligibleCount = await countEligibleCandidates(client, id);
+        const eligibleCount = await PhieuDeXuatRepo.countEligibleCandidates(client, id);
         if (eligibleCount === 0) {
             throw new Error("Không có viên chức nào đủ điều kiện để thêm vào quy hoạch");
         }
 
-        const result = await updateTrangThaiPhieu(client, payload.trangThai, id, payload.ghiChu);
-        await insertVaoChiTietQuyHoach(client, id, payload.dotQuyHoachId);
+        const result = await PhieuDeXuatRepo.updateTrangThaiPhieu(client, payload.trangThai, id, payload.ghiChu);
+        await PhieuDeXuatRepo.insertVaoChiTietQuyHoach(client, id, payload.dotQuyHoachId);
 
         await client.query('COMMIT');
         return result;
@@ -116,13 +113,13 @@ export const approvePDX = async (id: number, user: any, payload: UpdateTrangThai
     }
 }
 
-export const rejectPDX = async (id: number, user: any, payload: UpdateTrangThaiPhieu) => {
+export const rejectPDX = async (id: number, user: any, payload: PhieuDeXuatDTO.UpdateTrangThaiPhieu) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
         if(user.vaiTro !== 'PTCCT')
             throw new Error("Không có quyền duyệt phiếu");
-        const result = await updateTrangThaiPhieu(client, payload.trangThai, id, payload.ghiChu);
+        const result = await PhieuDeXuatRepo.updateTrangThaiPhieu(client, payload.trangThai, id, payload.ghiChu);
         await client.query('COMMIT');
         return result;
     } catch (error) {

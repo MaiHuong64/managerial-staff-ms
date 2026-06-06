@@ -1,16 +1,17 @@
 import { Router } from "express";
 import { verifyToken } from "../../middleware/auth.middleware";
-import { getAllPhieuDeXuatNhanSu, gePhieuDeXuatNhanSutById, approvePhieuDeXuatNhanSu, createPhieuDeXuatNhanSu, rejectPhieuDeXuatNhanSu, submitPhieuDeXuatNhanSu, auditPhieuDeXuatCandidate } from "./phieuDeXuat.controller";
+import * as PhieuDeXuatController from "./phieuDeXuat.controller";
+import { checkRole } from "../../middleware/role.middleware";
 
 const router = Router();
 
 router.use(verifyToken);
 
-router.get("/", getAllPhieuDeXuatNhanSu);
-router.get("/:id", gePhieuDeXuatNhanSutById);
-router.post("/", createPhieuDeXuatNhanSu);
-router.patch("/:id/submit", submitPhieuDeXuatNhanSu);
-router.patch("/chi-tiet/:chiTietId/audit", auditPhieuDeXuatCandidate);
-router.post("/:id/approve", approvePhieuDeXuatNhanSu);
-router.post("/:id/reject", rejectPhieuDeXuatNhanSu);
+router.get("/", PhieuDeXuatController.getAllPhieuDeXuatNhanSu);
+// router.get("/:id", PhieuDeXuatController.getPhieuDeXuatNhanSutById);
+router.post("/", checkRole(['VCQL']), PhieuDeXuatController.createPhieuDeXuatNhanSu);
+router.patch("/:id/submit", PhieuDeXuatController.submitPhieuDeXuatNhanSu);
+router.patch("/chi-tiet/:chiTietId/audit", PhieuDeXuatController.auditPhieuDeXuatCandidate);
+router.post("/:id/approve", checkRole(['PTCCT']), PhieuDeXuatController.approvePhieuDeXuatNhanSu);
+router.post("/:id/reject", checkRole(['PTCCT']), PhieuDeXuatController.rejectPhieuDeXuatNhanSu);
 export default router;

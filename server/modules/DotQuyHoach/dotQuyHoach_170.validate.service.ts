@@ -1,6 +1,5 @@
 import { BuocHoiNghiQH_170, KetQuaHoiNghiQH, KetQuaPhieuBauQH } from "./dotQuyHoach.validate.type";
-import { checkBatchDone_QT170, getBuocHienTaiByDot, getUngVienByDotAndBuoc, insertKetQuaQuyHoach, updateBuocHienTaiById, updateStatusBatch, updateStatusCandidate } from "./dotQuyHoach.validate.repository";
-import pool from "../../config/db";
+import * as DotQuyHoachRepository from "./dotQuyHoach.validate.repository";
 
 export const validateVoteInput = (data: KetQuaHoiNghiQH) => {
     if (!data.dotQHId || !data.buocHoiNghi)
@@ -23,17 +22,17 @@ const processStep1 = async (client: any, data: KetQuaHoiNghiQH) => {
         const tiLe = data.soNguoiTrieuTap > 0 ? uv.soPhieuDongY / data.soNguoiTrieuTap : 0;
         const ketQua = tiLe > 0.5 ? KetQuaPhieuBauQH.KhongDat : KetQuaPhieuBauQH.Dat;
 
-        await insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap,
+        await DotQuyHoachRepository.insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap,
             data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
             data.soPhieuHopLe, uv.soPhieuDongY, uv.soPhieuKhongDongY, ketQua]);
 
         const nextStep = ketQua === KetQuaPhieuBauQH.KhongDat ? 0 : BuocHoiNghiQH_170.HoanThanh;
-        await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+        await DotQuyHoachRepository.updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
 
         if (ketQua === KetQuaPhieuBauQH.KhongDat)
-            await updateStatusCandidate(client, uv.chiTietQHId, 0);
+            await DotQuyHoachRepository.updateStatusCandidate(client, uv.chiTietQHId, 0);
         else
-            await updateStatusCandidate(client, uv.chiTietQHId, 1);
+            await DotQuyHoachRepository.updateStatusCandidate(client, uv.chiTietQHId, 1);
     }
 };
 
@@ -46,15 +45,15 @@ const processStep2 = async (client: any, data: KetQuaHoiNghiQH) => {
 
         const ketQua = uv.soPhieuDongY >= nguong ? KetQuaPhieuBauQH.Dat : KetQuaPhieuBauQH.KhongDat;
 
-        await insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap,
+        await DotQuyHoachRepository.insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap,
             data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
             data.soPhieuHopLe, uv.soPhieuDongY, uv.soPhieuKhongDongY, ketQua]);
 
         const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH_170.HoiNghiLanhDaoMoRong : 0;
-        await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+        await DotQuyHoachRepository.updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
 
         if (ketQua === KetQuaPhieuBauQH.KhongDat)
-            await updateStatusCandidate(client, uv.chiTietQHId, 0);
+            await DotQuyHoachRepository.updateStatusCandidate(client, uv.chiTietQHId, 0);
     }
 };
 
@@ -67,15 +66,15 @@ const processStep3 = async (client: any, data: KetQuaHoiNghiQH) => {
 
         const ketQua = uv.soPhieuDongY > nguong ? KetQuaPhieuBauQH.Dat : KetQuaPhieuBauQH.KhongDat;
 
-        await insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap,
+        await DotQuyHoachRepository.insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap,
             data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
             data.soPhieuHopLe, uv.soPhieuDongY, uv.soPhieuKhongDongY, ketQua]);
 
         const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH_170.HoiNghiLanhDaoLan2 : 0;
-        await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+        await DotQuyHoachRepository.updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
 
         if (ketQua === KetQuaPhieuBauQH.KhongDat)
-            await updateStatusCandidate(client, uv.chiTietQHId, 0);
+            await DotQuyHoachRepository.updateStatusCandidate(client, uv.chiTietQHId, 0);
     }
 };
 
@@ -88,33 +87,33 @@ const processStep4 = async (client: any, data: KetQuaHoiNghiQH) => {
         const tiLe = data.soNguoiTrieuTap > 0 ? uv.soPhieuDongY / data.soNguoiTrieuTap : 0;
         const ketQua = tiLe > 0.5 ? KetQuaPhieuBauQH.Dat : KetQuaPhieuBauQH.KhongDat;
 
-        await insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap,
+        await DotQuyHoachRepository.insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap,
             data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
             data.soPhieuHopLe, uv.soPhieuDongY, uv.soPhieuKhongDongY, ketQua]);
 
         const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH_170.HoanThanh : 0;
-        await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+        await DotQuyHoachRepository.updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
 
         if (ketQua === KetQuaPhieuBauQH.Dat)
-            await updateStatusCandidate(client, uv.chiTietQHId, 1);
+            await DotQuyHoachRepository.updateStatusCandidate(client, uv.chiTietQHId, 1);
         else
-            await updateStatusCandidate(client, uv.chiTietQHId, 0);
+            await DotQuyHoachRepository.updateStatusCandidate(client, uv.chiTietQHId, 0);
     }
 };
 
-export const submitVoteResult_QT170 = async (data: KetQuaHoiNghiQH) => {
+export const submitVoteResult_QT170 = async (client: any, data: KetQuaHoiNghiQH) => {
     validateVoteInput(data);
-    const client = await pool.connect();
+    // const client = await pool.connect();
 
     try {
         await client.query("BEGIN");
-        const current = await getBuocHienTaiByDot(client, data.dotQHId);
+        const current = await DotQuyHoachRepository.getBuocHienTaiByDot(client, data.dotQHId);
         if (!current?.buoc_hien_tai)
             throw new Error("Đợt quy hoạch không có ứng viên đang xử lý");
 
         const currentStep = Number(current.buoc_hien_tai);
 
-        const ungVien = await getUngVienByDotAndBuoc(client, data.dotQHId, currentStep);
+        const ungVien = await DotQuyHoachRepository.getUngVienByDotAndBuoc(client, data.dotQHId, currentStep);
         if (data.ketQuaUngVien.length !== ungVien.length)
             throw new Error(`Số ứng viên không khớp: gửi ${data.ketQuaUngVien.length}, DB có ${ungVien.length}`);
 
@@ -134,8 +133,8 @@ export const submitVoteResult_QT170 = async (data: KetQuaHoiNghiQH) => {
         // Với QT170, chỉ check ứng viên mới (loai_nguon = 1) đã xong chưa
         // Không tính ứng viên copy (loai_nguon = 2) vì họ đã ở bước 6 sau bước 1
         if (currentStep !== BuocHoiNghiQH_170.RaSoatDuaRa) {
-            const isDone = await checkBatchDone_QT170(client, data.dotQHId);
-            if (isDone) await updateStatusBatch(client, data.dotQHId);
+            const isDone = await DotQuyHoachRepository.checkBatchDone_QT170(client, data.dotQHId);
+            if (isDone) await DotQuyHoachRepository.updateStatusBatch(client, data.dotQHId);
         }
         await client.query("COMMIT");
     } catch (error) {

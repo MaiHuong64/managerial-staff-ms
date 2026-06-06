@@ -1,6 +1,6 @@
 import pool from "../../config/db";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
-import { AddNhanSuDTO, ChiTietPhieuDeXuatNhanSu, CreatePhieuDeXuatDTO, DanhSachPhieuDeXuatNhanSu, PhieuDeXuatNhanSu, UpdateDuDieuKienDTO } from "./phieuDeXuat.dto";
+import * as PhieuDeXuatDTO from "./phieuDeXuat.dto";
 
 export const generatePhieuDeXuatCode = async (client: any) => {
     const result = await client.query(
@@ -10,7 +10,7 @@ export const generatePhieuDeXuatCode = async (client: any) => {
     return result.rows[0].ma_phieu_de_xuat;
 };
 
-export const getAllPhieuDeXuat = async (): Promise<DanhSachPhieuDeXuatNhanSu[]> => {
+export const getAllPhieuDeXuat = async (): Promise<PhieuDeXuatDTO.DanhSachPhieuDeXuatNhanSu[]> => {
     const result = await pool.query(
         `SELECT p.*, dv.ten_don_vi, cd.ten_chuc_danh, COUNT(ct.id) as so_nguoi_de_xuat
         FROM phieu_de_xuat_nhan_su_quy_hoach p
@@ -20,9 +20,9 @@ export const getAllPhieuDeXuat = async (): Promise<DanhSachPhieuDeXuatNhanSu[]> 
         GROUP BY p.id, dv.ten_don_vi, cd.ten_chuc_danh
         ORDER BY p.ngay_lap DESC`
     );
-    return mapArrayToCamel<DanhSachPhieuDeXuatNhanSu>(result.rows);
+    return mapArrayToCamel<PhieuDeXuatDTO.DanhSachPhieuDeXuatNhanSu>(result.rows);
 }
-export const getPhieuDeXuatById = async (id: number): Promise<ChiTietPhieuDeXuatNhanSu[]> => {
+export const getPhieuDeXuatById = async (id: number): Promise<PhieuDeXuatDTO.ChiTietPhieuDeXuatNhanSu[]> => {
     const result = await pool.query(
         `SELECT 
             p.*,
@@ -42,7 +42,7 @@ export const getPhieuDeXuatById = async (id: number): Promise<ChiTietPhieuDeXuat
     return mapArrayToCamel(result.rows);
 }
 
-export const insertPhieuDeXuat = async (client: any, payload: CreatePhieuDeXuatDTO , user: any, maPhieu: string): Promise<PhieuDeXuatNhanSu> => {
+export const insertPhieuDeXuat = async (client: any, payload: PhieuDeXuatDTO.CreatePhieuDeXuatDTO , user: any, maPhieu: string): Promise<PhieuDeXuatDTO.PhieuDeXuatNhanSu> => {
     const { hoVaTen, donViId } = user
     const result = await client.query (
         `
@@ -52,9 +52,9 @@ export const insertPhieuDeXuat = async (client: any, payload: CreatePhieuDeXuatD
         ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
         `,[maPhieu, payload.tieuDe, payload.noiDung, payload.soLuongDeXuat, payload.chucDanhId, donViId, hoVaTen, payload.ngayLap ?? new Date(), -1]
     )
-    return mapToCamel<PhieuDeXuatNhanSu>(result.rows[0]);
+    return mapToCamel<PhieuDeXuatDTO.PhieuDeXuatNhanSu>(result.rows[0]);
 };
-export const insertChiTietPhieu = async (client: any, phieuDeXuatId: number, payload: AddNhanSuDTO) => {
+export const insertChiTietPhieu = async (client: any, phieuDeXuatId: number, payload: PhieuDeXuatDTO.AddNhanSuDTO) => {
     const result = await client.query(
         `
         INSERT INTO chi_tiet_phieu_de_xuat (phieu_de_xuat_id, vien_chuc_id, ghi_chu, du_dieu_kien) VALUES
@@ -98,7 +98,7 @@ export const updateTrangThaiPhieu= async (client: any, trangThai: number, phieuI
     return mapToCamel(result.rows[0]);
 }
 
-export const updateDuDieuKien = async (client: any, chiTietPhieuId: number, payload: UpdateDuDieuKienDTO) => {
+export const updateDuDieuKien = async (client: any, chiTietPhieuId: number, payload: PhieuDeXuatDTO.UpdateDuDieuKienDTO) => {
     const result = await client.query (
         `
         UPDATE chi_tiet_phieu_de_xuat

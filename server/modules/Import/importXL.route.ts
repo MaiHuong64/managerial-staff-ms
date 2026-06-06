@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { importXepLoaiController, upload } from "./importXL.controller";
+import { importXepLoaiController } from "./importXL.controller";
 import { verifyToken } from "../../middleware/auth.middleware";
+import { uploadExcel } from "../../middleware/upload.middleware";
 
 const router = Router();
 
 router.use(verifyToken);
-router.post("/xep-loai", upload.single("file"), importXepLoaiController);
+router.post("/xep-loai", uploadExcel.single("file"), importXepLoaiController);
 
 export default router;

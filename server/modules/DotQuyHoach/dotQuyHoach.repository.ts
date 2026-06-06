@@ -1,23 +1,23 @@
 import { toCamel } from "snake-camel";
 import pool from "../../config/db";
-import { AddNewCandidate, AddPlanningBatchDetailDTO, CreatePlanningBatchDTO, PlanningBatch } from "./dotQuyHoach.dto";
+import * as DotQuyHoachDTO from "./dotQuyHoach.dto";
 import { mapToCamel } from "../../utils/mapper";
 import { PoolClient } from "pg";
 
-export const getNextBatchCode = async (client: any) => {
+export const getNextMaDQH = async (client: any) => {
     const result = await client.query(
         `SELECT COALESCE(MAX(id), 0) AS max FROM dot_quy_hoach`
     )
     const nextId = Number(result.rows[0].max) + 1;
     return 'DQH' + nextId.toString().padStart(3, '0');
 }
-export const getPlanningById = async (id: number) => {
+export const getDotQuyHoachById = async (id: number) => {
     const result = await pool.query(
         `SELECT * FROM dot_quy_hoach WHERE id = $1`, [id]
     );
-    return mapToCamel<PlanningBatch>(result.rows[0]);
+    return mapToCamel<DotQuyHoachDTO.DotQuyHoachDTO>(result.rows[0]);
 }
-export const getAllPlanning = async () => {
+export const getAllDotQuyHoach = async () => {
     const result = await pool.query(
         `select d.*, count(c.vien_chuc_id) as so_luong
         from dot_quy_hoach d left join chi_tiet_quy_hoach c on d.id = c.dot_quy_hoach_id
@@ -25,7 +25,7 @@ export const getAllPlanning = async () => {
     )
     return result.rows.map(toCamel);
 }
-export const getPlanningRoot = async () => {
+export const getDotQuyHoachGoc = async () => {
     const result = await pool.query(
         `select d.* 
         from dot_quy_hoach d left join chi_tiet_quy_hoach c on d.id = c.dot_quy_hoach_id
@@ -34,7 +34,7 @@ export const getPlanningRoot = async () => {
     )
     return result.rows.map(toCamel);
 }
-export const getDetail = async (id: number) => {
+export const getChiTietDotQuyHoach = async (id: number) => {
     const result = await pool.query(
         `SELECT
             ct.id AS chi_tiet_id, ct.dot_quy_hoach_id, ct.trang_thai, ct.buoc_hien_tai,
@@ -52,8 +52,8 @@ export const getDetail = async (id: number) => {
     return result.rows.map(toCamel);
 }
 
-export const insertPlanningBatch = async (client: any, payload: CreatePlanningBatchDTO) => {
-    const maDotQuyHoach = await getNextBatchCode(client);
+export const insertDotQuyHoach = async (client: any, payload: DotQuyHoachDTO.CreateDotQuyHoachDTO) => {
+    const maDotQuyHoach = await getNextMaDQH(client);
     const result = await client.query(
        `INSERT INTO dot_quy_hoach
         (ma_quy_hoach, ten_quy_hoach, loai_quy_hoach, nam_thuc_hien, nhiem_ky,
@@ -62,7 +62,7 @@ export const insertPlanningBatch = async (client: any, payload: CreatePlanningBa
         [maDotQuyHoach, payload.tenQuyHoach, payload.loaiQuyHoach, payload.namThucHien,
          payload.nhiemKy, payload.soQdPheDuyet, payload.ngayQdPheDuyet, 0, payload.dotGocId ?? null]
     )
-    return mapToCamel<PlanningBatch>(result.rows[0]);
+    return mapToCamel<DotQuyHoachDTO.DotQuyHoachDTO>(result.rows[0]);
 }
 
 export const copyChiTietFromDotGoc = async (client: any, dotRaSoatId: number, dotGocId: number) => {
@@ -77,15 +77,15 @@ export const copyChiTietFromDotGoc = async (client: any, dotRaSoatId: number, do
         [dotRaSoatId, dotGocId]
     );
 }
-export const insertPlanningDetail = async (client: any, payload: AddPlanningBatchDetailDTO) => {
-    // Lấy loại quy hoạch để xác định bước bắt đầu
+export const getLoaiQuyHoach = async (client: any, dotQuyHoachId: number) => {
     const dotQH = await client.query(
         `SELECT loai_quy_hoach FROM dot_quy_hoach WHERE id = $1`,
-        [payload.dotQuyHoachId]
+        [dotQuyHoachId]
     );
-    const loaiQH = dotQH.rows[0]?.loai_quy_hoach;
-    const buocBatDau = loaiQH === 2 ? 1 : 2; // Loại 2 (rà soát) bắt đầu từ bước 2, loại 1 từ bước 1
+    return dotQH.rows[0]?.loai_quy_hoach;
 
+}
+export const insertChiTietDQH = async (client: any, payload: DotQuyHoachDTO.ChiTietDotQuyHoachDTO, buocBatDau: number) => {
     for(const vc of payload.vienChucId) {
         await client.query(
             `INSERT INTO chi_tiet_quy_hoach (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, buoc_hien_tai, trang_thai)
@@ -95,7 +95,7 @@ export const insertPlanningDetail = async (client: any, payload: AddPlanningBatc
     }
 }
 
-export const getCandidatesByChucDanhId = async (chucDanhId: number) => {
+export const getVienChucByChucDanhId = async (chucDanhId: number) => {
     const result = await pool.query (
         `SELECT vc.id, vc.ma_vien_chuc, vc.ho_va_ten, dv.ten_don_vi, ctqh.id AS chi_tiet_qh_id
         FROM chi_tiet_quy_hoach ctqh
@@ -107,7 +107,7 @@ export const getCandidatesByChucDanhId = async (chucDanhId: number) => {
     return result.rows.map(toCamel);
 }
 
-export const filterCandidates = async (donViId: number, dotQuyHoachId: number) => {
+export const filterVienChuc = async (donViId: number, dotQuyHoachId: number) => {
     const result = await pool.query(
         `SELECT * 
         FROM vien_chuc
@@ -119,7 +119,7 @@ export const filterCandidates = async (donViId: number, dotQuyHoachId: number) =
     return result.rows.map(toCamel);
 }
 
-export const updateApprovalDecision = async (dotQuyHoachId: number, soQdPheDuyet: string, ngayQdPheDuyet: Date) => {
+export const updatePheDuyetDQH = async (dotQuyHoachId: number, soQdPheDuyet: string, ngayQdPheDuyet: Date) => {
     const result = await pool.query(
         `UPDATE dot_quy_hoach
          SET so_qd_phe_duyet = $1, ngay_qd_phe_duyet = $2, trang_thai = 2
@@ -127,10 +127,10 @@ export const updateApprovalDecision = async (dotQuyHoachId: number, soQdPheDuyet
          RETURNING *`,
         [soQdPheDuyet, ngayQdPheDuyet, dotQuyHoachId]
     );
-    return mapToCamel<PlanningBatch>(result.rows[0]);
+    return mapToCamel<DotQuyHoachDTO.DotQuyHoachDTO>(result.rows[0]);
 }
 
-export const insertNewCandidates = async (client: PoolClient, payload: AddNewCandidate)=> {
+export const insertNewCandidates = async (client: PoolClient, payload: DotQuyHoachDTO.CreateUngVienDTO)=> {
     const result = await client.query(
         `INSERT INTO chi_tiet_quy_hoach
         (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id,
@@ -138,5 +138,5 @@ export const insertNewCandidates = async (client: PoolClient, payload: AddNewCan
         ON CONFLICT  (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id) DO NOTHING
         RETURNING id`, [payload.dotQuyHoachId, payload.vienChucId, payload.chucDanhId, payload.donViId, payload.ngayVaoQH]
     )
-    return mapToCamel<AddNewCandidate>(result.rows[0]);
+    return mapToCamel<DotQuyHoachDTO.CreateUngVienDTO>(result.rows[0]);
 }

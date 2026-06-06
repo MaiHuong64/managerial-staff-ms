@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { createDonViService, deleteDonViService, getAllDonViService, getDonViByIdService, updateDonViService } from "./donVi.service";
+import * as DonViService from "./donVi.service";
 
-export const getAllDonViController = async (req: Request, res: Response) => {
+export const getAllDonVi = async (req: Request, res: Response) => {
     try {
-        const data = await getAllDonViService();
+        const data = await DonViService.getAllDonVi();
         return res.status(200).json({ success: true, data });
     } catch (error: any) {
         console.error("Lỗi khi lấy danh sách đơn vị", error);
@@ -11,37 +11,37 @@ export const getAllDonViController = async (req: Request, res: Response) => {
     }
 };
 
-export const getDonViByIdController = async (req: Request, res: Response) => {
+export const getDonViById = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
-        const data = await getDonViByIdService(id);
+        const data = await DonViService.getDonViById(id);
         return res.status(200).json({ success: true, data });
     } catch (error: any) {
         return res.status(404).json({ success: false, message: error.message });
     }
 };
-export const createDonViController = async (req: Request, res: Response) => {
+export const createDonVi = async (req: Request, res: Response) => {
     try {
-        const data = await createDonViService(req.body);
+        const data = await DonViService.createDonVi(req.body);
         return res.status(201).json({ success: true, data });
     } catch (error: any) {
         return res.status(500).json({ success: false, message: error.message });
     }
 };
 
-export const updateDonViController = async (req: Request, res: Response) => {
+export const updateDonVi = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
-        const data = await updateDonViService(id, req.body);
+        const data = await DonViService.updateDonVi(id, req.body);
         return res.status(200).json({ success: true, data });
     } catch (error: any) {
         return res.status(500).json({ success: false, message: error.message });
     }
 };
-export const deleteDonViController = async (req: Request, res: Response) => {
+export const deleteDonVi = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
-        const data = await deleteDonViService(id);
+        const data = await DonViService.deleteDonVi(id);
         return res.status(200).json({ success: true, data });
     } catch (error: any) {
         return res.status(500).json({ success: false, message: error.message });

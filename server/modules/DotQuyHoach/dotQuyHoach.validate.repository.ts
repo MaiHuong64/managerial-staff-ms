@@ -24,7 +24,7 @@ export const upsertKetQuaBuoc2 = async (client: any, params: any[]) => {
 }
 
 // Lấy bước hiện tại của đợt (MIN của các ứng viên đang hoạt động)
-export const getBuocHienTaiByDot = async (client: any, dotQhId: number) => {
+export const getBuocHienTaiByDotId = async (client: any, dotQhId: number) => {
     const result = await client.query(
         `SELECT MIN(buoc_hien_tai) AS buoc_hien_tai, d.loai_quy_hoach 
          FROM chi_tiet_quy_hoach ct JOIN dot_quy_hoach d ON ct.dot_quy_hoach_id = d.id
@@ -36,7 +36,7 @@ export const getBuocHienTaiByDot = async (client: any, dotQhId: number) => {
 }
 
 // Lấy danh sách ứng viên đang ở bước hiện tại
-export const getUngVienByDotAndBuoc = async (client: any, dotQhId: number, buoc: number) => {
+export const getChiTietByDotAndBuoc = async (client: any, dotQhId: number, buoc: number) => {
     const result = await client.query(
         `SELECT id, vien_chuc_id, chuc_danh_id, don_vi_id, buoc_hien_tai, loai_nguon
          FROM chi_tiet_quy_hoach
@@ -47,14 +47,14 @@ export const getUngVienByDotAndBuoc = async (client: any, dotQhId: number, buoc:
 }
 
 // Update bước hiện tại cho 1 ứng viên (per ứng viên, không phải per đợt)
-export const updateBuocHienTaiById = async (client: any, buoc: number, chiTietQhId: number) => {
+export const updateBuocHienTaiByChiTietId = async (client: any, buoc: number, chiTietQhId: number) => {
     await client.query(
         `UPDATE chi_tiet_quy_hoach SET buoc_hien_tai = $1 WHERE id = $2`,
         [buoc, chiTietQhId]
     )
 }
 //Kiểm tra tất cả các ứng viên đã vote xong chưa
-export const checkBatchDone = async (client: any, dotQuyHoachId: number ) => {
+export const checkDQH_QT169 = async (client: any, dotQuyHoachId: number ) => {
     const count = await client.query(
         `SELECT COUNT(*) AS con_active FROM chi_tiet_quy_hoach
          WHERE dot_quy_hoach_id = $1 AND buoc_hien_tai > 0 AND buoc_hien_tai != 6`,
@@ -64,7 +64,7 @@ export const checkBatchDone = async (client: any, dotQuyHoachId: number ) => {
 }
 
 // Kiểm tra ứng viên mới (loai_nguon = 1) đã vote xong chưa - dùng cho QT170
-export const checkBatchDone_QT170 = async (client: any, dotQuyHoachId: number) => {
+export const checkDQH_QT170 = async (client: any, dotQuyHoachId: number) => {
     const count = await client.query(
         `SELECT COUNT(*) AS con_active FROM chi_tiet_quy_hoach
          WHERE dot_quy_hoach_id = $1 AND loai_nguon = 1 AND buoc_hien_tai > 0 AND buoc_hien_tai != 6`,
@@ -72,13 +72,13 @@ export const checkBatchDone_QT170 = async (client: any, dotQuyHoachId: number) =
     );
     return Number(count.rows[0].con_active) === 0;
 }
-export const updateStatusBatch = async (client: any, dotQuyHoachId: number) => {
+export const updateTrangThaiDQH = async (client: any, dotQuyHoachId: number) => {
     await client.query(
         `UPDATE dot_quy_hoach SET trang_thai = 1 WHERE id = $1`, [dotQuyHoachId]
     )
 }
 
-export const updateStatusCandidate = async (client: any, chiTietQhId: number, trangThai: number) => {
+export const updateTrangThaiChiTietDQH = async (client: any, chiTietQhId: number, trangThai: number) => {
     await client.query(
         `UPDATE chi_tiet_quy_hoach SET trang_thai = $1 WHERE id = $2`,[trangThai, chiTietQhId]
     )
