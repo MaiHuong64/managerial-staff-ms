@@ -1,18 +1,18 @@
 import pool from "../../config/db";
-import { createXepLoaiDV, createXepLoaiVC, deleteXepLoaiDV, deleteXepLoaiVC, getAllXepLoaiDV, getChiTietXepLoaiDV, getChiTietXepLoaiVC, getDanhSachXepLoaiVC } from "./xepLoai.repository"
-import { CreateXepLoaiDTO, UpdateXepLoaiDTO } from "./xepLoai.type";
+import * as XepLoaiRepo from "./xepLoai.repository"
+import * as XepLoaiDTO from "./xepLoai.type";
 
 export const getDanhSachXLVC = async () =>{ 
-    return await getDanhSachXepLoaiVC();
+    return await XepLoaiRepo.getDanhSachXLVC();
 }
 export const getXepLoaiByVienChucId = async (vienChucId:  number) => {
-    return await getChiTietXepLoaiVC(vienChucId);
+    return await XepLoaiRepo.getChiTietXLVC(vienChucId);
 }
-export const createXLVC = async (payload: CreateXepLoaiDTO) => {
+export const createXLVC = async (payload: XepLoaiDTO.CreateXepLoaiDTO) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        const result = await createXepLoaiVC(client, payload);
+        const result = await XepLoaiRepo.createXLVC(client, payload);
         await client.query("COMMIT");
         return result;
     } catch (error) {
@@ -28,7 +28,7 @@ export const deleteXLVC = async (id: number) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        await deleteXepLoaiVC(client, id);
+        await XepLoaiRepo.deleteXLVC(client, id);
         await client.query("COMMIT");
     } catch (error) {
         await client.query("ROLLBACK");
@@ -38,17 +38,17 @@ export const deleteXLVC = async (id: number) => {
     }
 };
 
-export const getDanhSachXepLoaiDV = async () =>{ 
-    return await getAllXepLoaiDV();
+export const getDanhSachXLDV = async () =>{ 
+    return await XepLoaiRepo.getDanhSachXLDV();
 }
 export const getXepLoaiByDVId = async (vienChucId:  number) => {
-    return await getChiTietXepLoaiDV(vienChucId);
+    return await XepLoaiRepo.getChiTietXLDV(vienChucId);
 }
-export const createXLDV = async (payload: CreateXepLoaiDTO) => {
+export const createXLDV = async (payload: XepLoaiDTO.CreateXepLoaiDTO) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        const result = await createXepLoaiDV(client, payload);
+        const result = await XepLoaiRepo.createXLDV(client, payload);
         await client.query("COMMIT");
         return result;
     } catch (error) {
@@ -64,7 +64,7 @@ export const deleteXLDV = async (id: number) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        await deleteXepLoaiDV(client, id);
+        await XepLoaiRepo.deleteXLDV(client, id);
         await client.query("COMMIT");
     } catch (error) {
         await client.query("ROLLBACK");

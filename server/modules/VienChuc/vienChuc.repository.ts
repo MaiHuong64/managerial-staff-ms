@@ -97,11 +97,7 @@ export const getNextStaffCode = async (client: PoolClient): Promise<string> => {
     return nextId.toString().padStart(4, "0");
 };
 
-export const insertVienChuc = async (
-    client: PoolClient,
-    maVienChuc: string,
-    data: CreateStaffDTO
-): Promise<{ id: number; maVienChuc: string; hoVaTen: string }> => {
+export const insertVienChuc = async ( client: PoolClient, maVienChuc: string, data: CreateStaffDTO): Promise<{ id: number; maVienChuc: string; hoVaTen: string }> => {
     const result = await client.query(
         `INSERT INTO vien_chuc (
             ma_vien_chuc, ho_va_ten, gioi_tinh, ngay_sinh, dan_toc,
@@ -121,19 +117,6 @@ export const insertVienChuc = async (
         ]
     );
     return mapToCamel(result.rows[0]);
-};
-
-export const insertTaiKhoan = async (
-    client: PoolClient,
-    maVienChuc: string,
-    matKhau: string,
-    vienChucId: number
-) => {
-    await client.query(
-        `INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, vai_tro, trang_thai, vien_chuc_id)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [maVienChuc, matKhau, "VC", 1, vienChucId]
-    );
 };
 
 export const updateById = async (id: number, payload: UpdateStaffDTO) => {

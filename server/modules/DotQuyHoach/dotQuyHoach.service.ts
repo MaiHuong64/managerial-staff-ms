@@ -1,32 +1,32 @@
 import pool from "../../config/db";
-import { AddNewCandidate, AddPlanningBatchDetailDTO, ApprovalDecisionDTO, CreatePlanningBatchDTO } from "./dotQuyHoach.dto";
-import { filterCandidates, getAllPlanning, getCandidatesByChucDanhId, getDetail, getPlanningById, insertPlanningBatch, insertPlanningDetail, copyChiTietFromDotGoc, getPlanningRoot, updateApprovalDecision, insertNewCandidates } from "./dotQuyHoach.repository";
+import * as DotQuyHoachDTO from "./dotQuyHoach.dto";
+import * as DotQuyHoachRepository from "./dotQuyHoach.repository";
 
-export const fetchAllPlanning = async () => {
-    const data = await getAllPlanning();
+export const fetchAllDotQuyHoach = async () => {
+    const data = await DotQuyHoachRepository.getAllDotQuyHoach();
     return data;
 }
 
-export const fetchRoot = async () => {
-    const data = await getPlanningRoot();
+export const fetchDotQuyHoachGoc = async () => {
+    const data = await DotQuyHoachRepository.getDotQuyHoachGoc();
     return data;
 }
 
-export const findPlanningBatchById = async (id: number) => {
-    const planning = await getPlanningById(id);
-    if (!planning)
+export const findDotQuyHoachById = async (id: number) => {
+    const dotQuyHoach = await DotQuyHoachRepository.getDotQuyHoachById(id);
+    if (!dotQuyHoach)
         throw new Error(`Không tìm thấy đợt quy hoạch với id: ${id}`);
-    const staff = await getDetail(id);
-    return { planning, staff };
+    const staff = await DotQuyHoachRepository.getChiTietDotQuyHoach(id);
+    return { dotQuyHoach, staff };
 }
-export const createPlanningBatch = async(payload: CreatePlanningBatchDTO) => {
+export const createDotQuyHoach = async(payload: DotQuyHoachDTO.CreateDotQuyHoachDTO) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        const dotQuyHoach = await insertPlanningBatch(client, payload);
+        const dotQuyHoach = await DotQuyHoachRepository.insertDotQuyHoach(client, payload);
 
         if (payload.loaiQuyHoach === 2 && payload.dotGocId) {
-            await copyChiTietFromDotGoc(client, dotQuyHoach.id, payload.dotGocId);
+            await DotQuyHoachRepository.copyChiTietFromDotGoc(client, dotQuyHoach.id, payload.dotGocId);
         }
 
         await client.query("COMMIT")
@@ -38,11 +38,13 @@ export const createPlanningBatch = async(payload: CreatePlanningBatchDTO) => {
         client.release();
     }
 }   
-export const addPlanningCandidates = async(payload: AddPlanningBatchDetailDTO) => {
+export const addBulkChiTietDotQuyHoach = async(payload: DotQuyHoachDTO.ChiTietDotQuyHoachDTO) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        const result = await insertPlanningDetail(client, payload);
+        const loaiQH = await DotQuyHoachRepository.getLoaiQuyHoach(client, payload.dotQuyHoachId);
+        const buocBatDau = loaiQH === 2 ? 1 : 2; // Loại 2 (rà soát) bắt đầu từ bước 2, loại 1 từ bước 1
+        const result = await DotQuyHoachRepository.insertChiTietDQH(client, payload, buocBatDau);
         await client.query("COMMIT");
         return result;
     } catch (error) {
@@ -52,16 +54,16 @@ export const addPlanningCandidates = async(payload: AddPlanningBatchDetailDTO) =
         client.release();
     }
 }
-export const fetchCandidatesForChucDanh  = async (chucDanhId: number) => {
-    return await getCandidatesByChucDanhId(chucDanhId);
+export const fetchVienChucByChucDanh  = async (chucDanhId: number) => {
+    return await DotQuyHoachRepository.getVienChucByChucDanhId(chucDanhId);
 }
-export const filterPlanningCandidates = async (donViId: number, dotQuyHoachId: number) => {
-    const result = await filterCandidates(donViId, dotQuyHoachId);
+export const filterVienChucQuyHoach = async (donViId: number, dotQuyHoachId: number) => {
+    const result = await DotQuyHoachRepository.filterVienChuc(donViId, dotQuyHoachId);
     return result;
 }
 
-export const approvePlanningBatch = async (dotQuyHoachId: number, payload: ApprovalDecisionDTO) => {
-    const planning = await getPlanningById(dotQuyHoachId);
+export const approveDotQuyHoach = async (dotQuyHoachId: number, payload: DotQuyHoachDTO.ApproveDotQuyHoachDTO) => {
+    const planning = await DotQuyHoachRepository.getDotQuyHoachById(dotQuyHoachId);
     if (!planning) {
         throw new Error(`Không tìm thấy đợt quy hoạch với id: ${dotQuyHoachId}`);
     }
@@ -70,15 +72,15 @@ export const approvePlanningBatch = async (dotQuyHoachId: number, payload: Appro
         throw new Error("Chỉ có thể phê duyệt đợt quy hoạch đã hoàn thành");
     }
 
-    const result = await updateApprovalDecision(dotQuyHoachId, payload.soQdPheDuyet, payload.ngayQdPheDuyet);
+    const result = await DotQuyHoachRepository.updatePheDuyetDQH(dotQuyHoachId, payload.soQdPheDuyet, payload.ngayQdPheDuyet);
     return result;
 }
 
-export const addNewCandidateService = async (payload: AddNewCandidate) => {
+export const createUngVien = async (payload: DotQuyHoachDTO.CreateUngVienDTO) => {
     const client = await pool.connect();
     try {
        await client.query("BEGIN");
-       const result =  await insertNewCandidates(client, payload);
+       const result =  await DotQuyHoachRepository.insertNewCandidates(client, payload);
        await client.query("COMMIT");
        return result;
     } catch (error) {

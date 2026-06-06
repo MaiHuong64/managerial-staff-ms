@@ -1,4 +1,4 @@
-export interface CreatePlanningBatchDTO {
+export interface CreateDotQuyHoachDTO {
     tenQuyHoach: string;
     loaiQuyHoach: 1 | 2; //1: đầu nhiệm kỳ, 2: rà soát hằng năm
     namThucHien: number;
@@ -7,11 +7,11 @@ export interface CreatePlanningBatchDTO {
     ngayQdPheDuyet?: Date;
     dotGocId?: number; 
 }
-export interface ChucDanhItem {
+export interface ChucDanhDTO {
     vienChucId: number[];
     chucDanhId: number;
 }
-export interface AddPlanningBatchDetailDTO {
+export interface ChiTietDotQuyHoachDTO {
     dotQuyHoachId: number;
     vienChucId:number [];
     chucDanhId: number;
@@ -19,19 +19,19 @@ export interface AddPlanningBatchDetailDTO {
     ngayVaoQh?: Date;
 }
 
-export interface PlanningBatch {
+export interface DotQuyHoachDTO {
     id: number;
     maQuyHoach: string;
     tenQuyHoach: string;
     trangThai: number; //0: Đang xử lý, 1: Hoàn thành bỏ phiếu (chờ phê duyệt), 2: Đã phê duyệt
 }
 
-export interface ApprovalDecisionDTO {
+export interface ApproveDotQuyHoachDTO {
     soQdPheDuyet: string;
     ngayQdPheDuyet: Date;
     // trangThai: number;
 }
-export interface AddNewCandidate {
+export interface CreateUngVienDTO {
     dotQuyHoachId: number;
     vienChucId: number;
     chucDanhId: number;

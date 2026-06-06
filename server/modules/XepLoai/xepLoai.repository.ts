@@ -3,7 +3,7 @@ import pool from "../../config/db"
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper"
 import { CreateXepLoaiDTO } from "./xepLoai.type";
 
-export const getChiTietXepLoaiVC = async (vienChucId: number) => {
+export const getChiTietXLVC = async (vienChucId: number) => {
     const result = await pool.query(
         `SELECT xl.*,
         vc.ma_vien_chuc, vc.ho_va_ten,
@@ -16,7 +16,7 @@ export const getChiTietXepLoaiVC = async (vienChucId: number) => {
     )
     return mapArrayToCamel<any>(result.rows);
 }
-export const getDanhSachXepLoaiVC = async () => {
+export const getDanhSachXLVC = async () => {
     const result = await pool.query(
         `SELECT xl.*, vc.ma_vien_chuc, vc.ho_va_ten, dv.ten_don_vi
         FROM xep_loai_vc xl
@@ -26,17 +26,17 @@ export const getDanhSachXepLoaiVC = async () => {
         `);
     return mapArrayToCamel<any>(result.rows);
 };
-export const createXepLoaiVC = async (client: PoolClient, payload: CreateXepLoaiDTO) => {
+export const createXLVC = async (client: PoolClient, payload: CreateXepLoaiDTO) => {
     const result = await client.query(`INSERT INTO xep_loai_vc (vien_chuc_id, nam_danh_gia, danh_gia, nhan_xet)
         VALUES ($1, $2, $3, $4)
         RETURNING *`, [payload.vienChucId, payload.namDanhGia, payload.danhGia, payload.nhanXet])
     return mapToCamel(result.rows[0])
 }
-export const deleteXepLoaiVC = async (client: PoolClient, id: number) => {
+export const deleteXLVC = async (client: PoolClient, id: number) => {
     await client.query(`DELETE FROM xep_loai_vc WHERE id = $1`, [id]);
 };
 
-export const getChiTietXepLoaiDV = async (vienChucId: number) => {
+export const getChiTietXLDV = async (vienChucId: number) => {
     const result = await pool.query(
         `SELECT xl.*, vc.ma_vien_chuc, vc.ho_va_ten,
         dv.ten_don_vi
@@ -48,7 +48,7 @@ export const getChiTietXepLoaiDV = async (vienChucId: number) => {
     )
     return mapArrayToCamel<any>(result.rows);
 }
-export const getAllXepLoaiDV = async () => {
+export const getDanhSachXLDV = async () => {
     const result = await pool.query(
         `SELECT xl.*, vc.ma_vien_chuc, vc.ho_va_ten, dv.ten_don_vi
         FROM xep_loai_dang_vien  xl
@@ -58,12 +58,12 @@ export const getAllXepLoaiDV = async () => {
         `);
     return mapArrayToCamel<any>(result.rows);
 };
-export const createXepLoaiDV = async (client: PoolClient, payload: CreateXepLoaiDTO) => {
+export const createXLDV = async (client: PoolClient, payload: CreateXepLoaiDTO) => {
     const result = await client.query(`INSERT INTO xep_loai_dang_vien  (vien_chuc_id, nam_danh_gia, danh_gia, nhan_xet)
         VALUES ($1, $2, $3, $4)
         RETURNING *`, [payload.vienChucId, payload.namDanhGia, payload.danhGia, payload.nhanXet])
     return mapToCamel(result.rows[0])
 }
-export const deleteXepLoaiDV = async (client: PoolClient, id: number) => {
+export const deleteXLDV = async (client: PoolClient, id: number) => {
     await client.query(`DELETE FROM xep_loai_dang_vien  WHERE id = $1`, [id]);
 };

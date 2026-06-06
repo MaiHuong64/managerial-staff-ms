@@ -1,17 +1,17 @@
 import { Router } from "express";
 import { verifyToken } from "../../middleware/auth.middleware";
-import { getAll, getById, approve, create, reject, submit, getCandidates } from "./phuongAnNhanSu.controller";
+import * as PhuongAnNSController from "./phuongAnNhanSu.controller";
 
 const router = Router();
 
 router.use(verifyToken);
-router.get("/candidates", getCandidates);
-router.get("/", getAll);
-router.get("/:id", getById);
-router.post('/', create);
-router.patch('/:id/trinh', submit);
+router.get("/candidates", PhuongAnNSController.getCandidates);
+router.get("/", PhuongAnNSController.getAll);
+router.get("/:id", PhuongAnNSController.getById);
+router.post('/', PhuongAnNSController.create);
+router.patch('/:id/trinh', PhuongAnNSController.submit);
 
-router.patch('/:id/duyet', approve);
-router.patch('/:id/tu-choi', reject);
+router.patch('/:id/duyet', PhuongAnNSController.approve);
+router.patch('/:id/tu-choi', PhuongAnNSController.reject);
 
 export default router;

@@ -1,5 +1,5 @@
 import pool from "../../config/db";
-import { AppointmentBatch, AppointmentDetail, CreateAppointmentBatchDTO, UngVienQuyHoach } from "./dotBoNhiem.dto";
+import * as DotBoNhiemDTO from "./dotBoNhiem.dto";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
 
 export const getNextBatchCode = async (client: any) =>{
@@ -10,7 +10,7 @@ export const getNextBatchCode = async (client: any) =>{
     return 'DBN' + nextId.toString().padStart(3, '0');
 }
 
-export const getAllAppointment = async () => {
+export const getAllDotBoNhiem = async () => {
     const result = await pool.query(`
         SELECT dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem,
                dbn.ngay_bat_dau, dbn.ngay_ket_thuc, dbn.so_quyet_dinh,
@@ -27,7 +27,7 @@ export const getAllAppointment = async () => {
     return mapArrayToCamel(result.rows);
 }
 
-export const getAppointmentById = async (dotBoNhiemId: number) => {
+export const getDotBoNhiemById = async (dotBoNhiemId: number) => {
     const result = await pool.query(
         `SELECT dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem, dbn.ngay_bat_dau, dbn.ngay_ket_thuc, dbn.trang_thai,
                 ctdbn.id AS chi_tiet_dot_id,
@@ -47,7 +47,7 @@ export const getAppointmentById = async (dotBoNhiemId: number) => {
     return mapArrayToCamel(result.rows) ?? [];
 }
 
-export const insertAppointmentBatch = async (client: any, payload: CreateAppointmentBatchDTO) => {
+export const insertDotBoNhiem = async (client: any, payload: DotBoNhiemDTO.CreateDotBoNhiemDTO) => {
     const maDotBoNhiem = await getNextBatchCode(client);
     const result = await client.query(
         `INSERT INTO dot_bo_nhiem
@@ -55,18 +55,18 @@ export const insertAppointmentBatch = async (client: any, payload: CreateAppoint
         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
         [maDotBoNhiem, payload.tenDotBoNhiem, payload.ngayBatDau, payload.ngayKetThuc, payload.ngayPheDuyet, payload.soQuyetDinh]
     )
-    return mapToCamel<AppointmentBatch>(result.rows[0]);;
+    return mapToCamel<DotBoNhiemDTO.DotBoNhiem>(result.rows[0]);;
 }
 
-export const insertAppointmentDetail = async (client: any, dotBoNhiemId: number,  phieuChuTruongId: number): Promise<AppointmentDetail> => {
+export const insertChiTietDotBoNhiem = async (client: any, dotBoNhiemId: number,  phieuChuTruongId: number): Promise<DotBoNhiemDTO.ChiTietDotBoNhiem> => {
     const result = await client.query (
         `INSERT INTO chi_tiet_dot_bo_nhiem (dot_bo_nhiem_id, phieu_chu_truong_id)
         VALUES ($1, $2) RETURNING *
         `, [dotBoNhiemId, phieuChuTruongId]
     )
-    return mapToCamel<AppointmentDetail>(result.rows[0]);
+    return mapToCamel<DotBoNhiemDTO.ChiTietDotBoNhiem>(result.rows[0]);
 }
-export const getCandidatesFromQH = async (phieuChuTruongId: number): Promise<UngVienQuyHoach[]> => {
+export const getUngVienTuQuyHoach = async (phieuChuTruongId: number): Promise<DotBoNhiemDTO.UngVienQuyHoach[]> => {
     const result = await pool.query(
         `SELECT ctqh.id, ctqh.vien_chuc_id
         FROM chi_tiet_quy_hoach ctqh
@@ -75,16 +75,16 @@ export const getCandidatesFromQH = async (phieuChuTruongId: number): Promise<Ung
         WHERE pct.id = $1 AND ctqh.buoc_hien_tai = 6 AND ctqh.trang_thai = 1 AND dqh.trang_thai = 2
         `, [phieuChuTruongId]
     )
-    return mapArrayToCamel<UngVienQuyHoach>(result.rows);
+    return mapArrayToCamel<DotBoNhiemDTO.UngVienQuyHoach>(result.rows);
 }
-export const insertCandidateFromQH = async (client: any, chiTietDoBoNhiemId: number,  chiTietQHId: number, vienChucId: number) => {
+export const insertUngVien = async (client: any, chiTietDoBoNhiemId: number,  chiTietQHId: number, vienChucId: number) => {
     await client.query (
         `INSERT INTO chi_tiet_bo_nhiem (chi_tiet_dot_bo_nhiem_id, vien_chuc_id, chi_tiet_qh_id, buoc_hoi_nghi)
          VALUES ($1, $2, $3, 2)
         `, [chiTietDoBoNhiemId, vienChucId, chiTietQHId]
     )
 }
-export const getCandidatesByDotId  = async (chiTietDotBn: number) => 
+export const getUngVienByDotId  = async (chiTietDotBn: number) => 
 {
     const result = await pool.query (
         `SELECT ctbn.id AS chi_tiet_bn_id, ctbn.ly_do_vao, ctbn.buoc_hoi_nghi, ctbn.trang_thai,

@@ -1,8 +1,5 @@
 import { Request, Response } from "express";
-import multer from "multer";
 import { xepLoaiVienChuc } from "./importXL.service";
-
-export const upload = multer({ storage: multer.memoryStorage() });
 
 export const importXepLoaiController = async (req: Request, res: Response) => {
     try {

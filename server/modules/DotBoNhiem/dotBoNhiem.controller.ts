@@ -1,31 +1,31 @@
 import { Request, Response } from "express";
-import { fetchAllAppointmentBatch,  findAppointmentBatchById, createAppointmentBatch, fetchCandidates} from "./dotBoNhiem.service";
+import * as DotBoNhiemService from "./dotBoNhiem.service";
 import {  resolveVoteTieService, submitVoteResult } from "./dotBoNhiem.validate.service";
 
-export const getAll = async (req: Request, res: Response) => {
+export const getAllDotBoNhiem = async (req: Request, res: Response) => {
     try {
-        const data = await fetchAllAppointmentBatch ();
+        const data = await DotBoNhiemService.fetchAllAppointmentBatch ();
         return res.status(200).json({ success: true, data});
     } catch (error) {
         return res.status(500).json({success: false, message:"Lỗi máy chủ"});
     }
 }
-export const getById = async (req: Request, res: Response) => {
+export const getDotBoNhiemById = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
-        const data = await findAppointmentBatchById(id);
+        const data = await DotBoNhiemService.findAppointmentBatchById(id);
         return res.status(200).json({ success: true, data});
     } catch (error: any) {
         return res.status(404).json({ success: false, message: error.message });
     }
 }
-export const create = async (req: Request, res: Response) => {
+export const createDotBoNhiem = async (req: Request, res: Response) => {
     try {
        const { tenDotBoNhiem, ngayBatDau, ngayKetThuc, ngayPheDuyet, 
                 soQuyetDinh, nguoiLap, phieuChuTruong } = req.body;
         
         const payload = {tenDotBoNhiem, ngayBatDau, ngayKetThuc, ngayPheDuyet, soQuyetDinh, nguoiLap, phieuChuTruong}
-        const data = await createAppointmentBatch(payload);
+        const data = await DotBoNhiemService.createAppointmentBatch(payload);
         return res.status(201).json({ success: true, message: "Tạo thành công!", data});
     } catch (error: any) {
         if (error.code === '23505')
@@ -36,7 +36,7 @@ export const create = async (req: Request, res: Response) => {
     }
 };
 
-export const submitVoteBoNhiem = async (req: Request, res: Response) => {
+export const submitVoteDotBoNhiem = async (req: Request, res: Response) => {
     try {
         const result = await submitVoteResult(req.body);
 
@@ -58,19 +58,17 @@ export const submitVoteBoNhiem = async (req: Request, res: Response) => {
     }
 }
 
-// GET /bo-nhiem/detail/:chiTietDotId/candidates
-// Trả về danh sách ứng viên của 1 chi_tiet_dot_bo_nhiem
-export const getCandidates = async (req: Request, res: Response) => {
+export const getUngVienByChiTietDotId = async (req: Request, res: Response) => {
     try {
         const chiTietDotId = Number(req.params.chiTietDotId);
-        const data = await fetchCandidates(chiTietDotId);
+        const data = await DotBoNhiemService.fetchCandidates(chiTietDotId);
         return res.status(200).json({ success: true, data });
     } catch (error: any) {
         return res.status(500).json({ success: false, message: error.message });
     }
 }
 
-export const resolveVoteTie = async (req: Request, res: Response) => {
+export const resolveHoaPhieuBoNhiem = async (req: Request, res: Response) => {
     try {
         const { chiTietBnId, tieCandidates } = req.body;
         await resolveVoteTieService(chiTietBnId, tieCandidates);

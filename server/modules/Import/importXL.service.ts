@@ -28,16 +28,16 @@ export const xepLoaiVienChuc = async (file: Buffer) => {
                 errors.push(`Row thiếu dữ liệu bắt buộc: ${ma_vien_chuc}`);
                 continue;
             }
-            const vcRes = await findStaff(ma_vien_chuc);
+            const vcRes = await findStaff(client, ma_vien_chuc);
             if(vcRes.rows.length === 0){
                 errors.push(`Không tìm thấy viên chức: ${ma_vien_chuc}`);
                 continue;
             }
             const vienChucId = vcRes.rows[0].id;
-            await insertImportVC(vienChucId, nam_danh_gia, xl_vien_chuc, nx_vien_chuc || '');
+            await insertImportVC(client, vienChucId, nam_danh_gia, xl_vien_chuc, nx_vien_chuc || '');
 
             if (xl_dang_vien) {
-                await insertImportDV(vienChucId, nam_danh_gia, xl_dang_vien, nx_dang_vien || '');
+                await insertImportDV(client, vienChucId, nam_danh_gia, xl_dang_vien, nx_dang_vien || '');
             }
 
             count++;

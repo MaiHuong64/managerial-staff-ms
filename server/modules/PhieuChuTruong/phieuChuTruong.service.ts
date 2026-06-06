@@ -1,12 +1,12 @@
 import pool from "../../config/db";
 import { CreatePhieuChuTruongDTO } from "./phieuChuTruong.dto";
-import { getAllPlanning, getById as getByIdRepo, approvePhieuChuTruong, insertPhieuChuTruong, nextBatchCode, rejectPhieuChuTruong } from "./phieuChuTruong.repository";
+import * as PhieuChuTruongRepo from "./phieuChuTruong.repository";
 
-export const getAll = async () => {
-    return getAllPlanning();
+export const getAllPhieuChuTruong = async () => {
+    return PhieuChuTruongRepo.getAllPhieuChuTruong();
 }
-export const getPCTById = async (id: number) => {
-    const data = await getByIdRepo(id);
+export const getPhieuChuTruongById = async (id: number) => {
+    const data = await PhieuChuTruongRepo.getPhieuChuTruongById(id);
     if (!data) throw new Error("Không tìm thấy phiếu chủ trương");
     return data;
 }
@@ -15,8 +15,8 @@ export const createPhieuChuTruong = async (payload: CreatePhieuChuTruongDTO, use
     const client = await pool.connect();
     try { 
         await client.query("BEGIN");
-        const maPhieu = await nextBatchCode(client);
-        const phieuChuTruong = await insertPhieuChuTruong(client, payload, user, maPhieu);
+        const maPhieu = await PhieuChuTruongRepo.nextBatchCode(client);
+        const phieuChuTruong = await PhieuChuTruongRepo.insertPhieuChuTruong(client, payload, user, maPhieu);
         await client.query("COMMIT");
         return phieuChuTruong;
     } catch (error) {
@@ -32,7 +32,7 @@ export const approvePCT = async (id: number, user: any) =>{
         await client.query("BEGIN");
         if(user.vaiTro !== "BGH")
             throw new Error("Không có quyền duyệt phiếu");
-        const result = await approvePhieuChuTruong(client, id, user.hoVaTen);
+        const result = await PhieuChuTruongRepo.approvePhieuChuTruong(client, id, user.hoVaTen);
         await client.query("COMMIT");
         return result;
     } catch (error) {
@@ -46,9 +46,9 @@ export const rejectPCT = async (id: number, user: any, lyDoTuChoi: string) =>{
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        if(user.vai_tro !== "BGH")
+        if(user.vaiTro !== "BGH")
             throw new Error("Không có quyền duyệt phiếu");
-        const result = await rejectPhieuChuTruong(client, id, user.hoVaTen, lyDoTuChoi);
+        const result = await PhieuChuTruongRepo.rejectPhieuChuTruong(client, id, user.hoVaTen, lyDoTuChoi);
         await client.query("COMMIT");
         return result;
     } catch (error) {
