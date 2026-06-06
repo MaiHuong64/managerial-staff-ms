@@ -14,6 +14,7 @@ import quyetDinhBoNhiemRouter from "../modules/QuyetDinhBoNhiem/quyetDinhBoNhiem
 import dashboardRouter from "../modules/Dashboard/dashboard.route"
 import xepLoaiRouter from "../modules/XepLoai/xepLoai.route";
 import taiKhoanRouter from "../modules/TaiKhoan/taiKhoan.route";
+import importRouter from "../modules/Import/importXL.route";
 const router = Router();
 
 router.use("/auth", authRouter);
@@ -30,5 +31,6 @@ router.use ("/quyet-dinh-bo-nhiem", quyetDinhBoNhiemRouter)
 router.use("/xep-loai", xepLoaiRouter);
 router.use("/dashboard", dashboardRouter)
 router.use("/tai-khoan", taiKhoanRouter);
+router.use ("/import", importRouter)
 
 export default router;

@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
 import pool from "../../config/db";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
-// Lưu ý: Đảm bảo CreateQDBoNhiemDTO đã có trường chucVu
 import { CreateQDBoNhiemDTO } from "./quyetDinhBoNhiem.dto";
 import { NhiemKy, QuyetDinhBoNhiem } from "./quyetDinhBoNhiem.type";
+import { getTuoiNghHuu, TinhNgayKetThuc } from "./quyetDinhBoNhiem.rule";
 
 export const generateQDBNCode = async (client: any) => {
     const result = await client.query(
@@ -59,17 +59,11 @@ export const handleNhiemKy = async (client: any, ngayKetThucCu: Date, lyDo: stri
 }
 
 export const insertNhiemKy = async (client: any, vienChucId: number, chucDanhId: number, ngayHieuLuc: Date, thoiHan: number, ngaySinh: Date, gioiTinh: number, qdBNId: number) => {
-    const tuoiNghiHuu = gioiTinh === 1 ? 60 : 55; // Giả sử nam nghỉ hưu ở 60 tuổi, nữ ở 55 tuổi
-    const ngayNghiHuu = dayjs(ngaySinh).add(tuoiNghiHuu, 'year');
-    const ngayKetThucNhiemKy = dayjs(ngayHieuLuc).add(thoiHan, 'month');
-    const ngayKetThuc = ngayKetThucNhiemKy.isBefore(ngayNghiHuu) ? ngayKetThucNhiemKy.toDate() : ngayNghiHuu.toDate();
-    console.log('ngaySinh:', ngaySinh);
-    console.log('gioiTinh:', gioiTinh);
-    console.log('thoiHan:', thoiHan);
+    const ngayKetThucNK = TinhNgayKetThuc(ngayHieuLuc, thoiHan, ngaySinh, gioiTinh);
     await client.query(
         `INSERT INTO nhiem_ky_chuc_vu (vien_chuc_id, chuc_danh_id, ngay_bat_dau, ngay_ket_thuc, trang_thai, qd_bo_nhiem_id)
          VALUES ($1, $2, $3, $4, 1, $5)`,
-        [vienChucId, chucDanhId, ngayHieuLuc, ngayKetThuc, qdBNId]
+        [vienChucId, chucDanhId, ngayHieuLuc, ngayKetThucNK, qdBNId]
     );
 }
 

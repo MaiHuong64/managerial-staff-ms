@@ -10,7 +10,7 @@ export const nextBatchCode = async (client: any) => {
     return "PCT" + nextId.toString().padStart(3, '0');
 }
 
-export const getAllPlanning = async () => {
+export const getAllPhieuChuTruong = async () => {
     const result = await pool.query(
         `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
         FROM phieu_chu_truong ptc
@@ -23,7 +23,7 @@ export const getAllPlanning = async () => {
 }
 
 
-export const getById = async (id: number) => {
+export const getPhieuChuTruongById = async (id: number) => {
     const result = await pool.query(
         `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
          FROM phieu_chu_truong ptc
@@ -35,7 +35,7 @@ export const getById = async (id: number) => {
     );
     return result.rows[0] ?? null;
 }
-export const getDetailForPosition = async (id: number) => {
+export const getPhieuChuTruongByDonViId = async (id: number) => {
     const result = await pool.query(
         `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh
         FROM phieu_chu_truong ptc   
@@ -83,8 +83,8 @@ export const submitPhieuChuTruong = async (client: any, id: number) => {
     )
     return result.rows[0];
 }
-export const getCandidatesForPA = async (client: any) => {
-    const result = await pool.query(
+export const getVienChucForPANS = async (client: any) => {
+    const result = await client.query(
         `SELECT ctbn.id AS chi_tiet_bn_id,
                 vc.ho_va_ten, vc.ma_vien_chuc,
                 cd.ten_chuc_danh,

@@ -1,11 +1,10 @@
 import { Router } from "express";
-import { loginUser, registerUser, logoutUser } from "./auth.controller";
-import { checkRole } from "../../middleware/role.middleware";
+import * as AuthController from "./auth.controller";
 import { verifyToken } from "../../middleware/auth.middleware";
 const router = Router();
 
-router.post("/login", loginUser);
-router.post("/register", registerUser);
-router.post("/logout", verifyToken, logoutUser);
+router.post("/login", AuthController.loginUser);
+router.post("/register", AuthController.registerUser);
+router.post("/logout", verifyToken, AuthController.logoutUser);
 
 export default router;

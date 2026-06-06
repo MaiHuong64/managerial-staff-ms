@@ -1,17 +1,17 @@
 import { PoolClient } from "pg";
 import pool from "../../config/db";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
-import { ChucDanhDTO, CreateChucDanhDTO, UpdateChucDanhDTO } from "./chucDanh.dto";
+import * as ChucDanhDTO from "./chucDanh.dto";
 
-export const findAll = async (): Promise<ChucDanhDTO[]> => {
+export const getAllChucDanh = async (): Promise<ChucDanhDTO.ChucDanhDTO[]> => {
     const result = await pool.query(
         `SELECT * FROM chuc_danh_quan_ly WHERE trang_thai = 1
          ORDER BY id`
     );
-    return mapArrayToCamel<ChucDanhDTO>(result.rows);
+    return mapArrayToCamel<ChucDanhDTO.ChucDanhDTO>(result.rows);
 };
 
-export const findById = async (id: number): Promise<ChucDanhDTO | null> => {
+export const getChucDanhById = async (id: number): Promise<ChucDanhDTO.ChucDanhDTO | null> => {
     const result = await pool.query(
         `SELECT id, ma_chuc_danh, ten_chuc_danh, thoi_han_giu_chuc_vu, he_so_phu_cap 
          FROM chuc_danh_quan_ly WHERE id = $1 AND trang_thai = 1`,
@@ -20,7 +20,7 @@ export const findById = async (id: number): Promise<ChucDanhDTO | null> => {
     return mapToCamel(result.rows[0] ?? null);
 };
 
-export const getNextCode = async (): Promise<string> => {
+export const getNextMaCD = async (): Promise<string> => {
     const result = await pool.query(
         `SELECT COALESCE(MAX(id), 0) AS max FROM chuc_danh_quan_ly`
     );
@@ -28,8 +28,8 @@ export const getNextCode = async (): Promise<string> => {
     return `CD${nextId.toString().padStart(3, '0')}`;
 };
 
-export const insertChucDanh = async (client: PoolClient, payload: CreateChucDanhDTO): Promise<ChucDanhDTO> => {
-    const maChucDanh = await getNextCode();
+export const insertChucDanh = async (client: PoolClient, payload: ChucDanhDTO.CreateChucDanhDTO): Promise<ChucDanhDTO.ChucDanhDTO> => {
+    const maChucDanh = await getNextMaCD();
     const result = await client.query(
         `INSERT INTO chuc_danh_quan_ly (ma_chuc_danh, ten_chuc_danh, thoi_han_giu_chuc_vu, he_so_phu_cap, trang_thai)
          VALUES ($1, $2, $3, $4, 1)
@@ -39,7 +39,7 @@ export const insertChucDanh = async (client: PoolClient, payload: CreateChucDanh
     return mapToCamel(result.rows[0]);
 };
 
-export const updateChucDanh = async (client: PoolClient, id: number, payload: UpdateChucDanhDTO): Promise<ChucDanhDTO | null> => {
+export const updateChucDanh = async (client: PoolClient, id: number, payload: ChucDanhDTO.UpdateChucDanhDTO): Promise<ChucDanhDTO.ChucDanhDTO | null> => {
     const result = await client.query(
         `UPDATE chuc_danh_quan_ly SET
             ten_chuc_danh = $1,

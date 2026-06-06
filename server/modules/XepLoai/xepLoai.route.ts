@@ -1,26 +1,24 @@
 import { Router } from "express";
 import { verifyToken } from "../../middleware/auth.middleware";
-import { createXepLoaiDangVienController, createXepLoaiVCController, deleteXepLoaiDangVienController, deleteXepLoaiVCController, getAllXepLoaiDangVienController, getAllXepLoaiVCController, getXepLoaiDangVienByVienChucIdController, getXepLoaiVCByVienChucIdController } from "./xepLoai.controller";
+import * as XepLoaiController from "./xepLoai.controller";
 
 const router = Router();
 
 // router.use(verifyToken);
 
 // Xếp loại viên chức
-router.get("/vien-chuc", getAllXepLoaiVCController);
-router.get("/vien-chuc/:vienChucId", getXepLoaiVCByVienChucIdController);
-router.post("/vien-chuc", createXepLoaiVCController);
-// router.put("/vien-chuc/:id", updateXepLoaiVCController);
-router.delete("/vien-chuc/:id", deleteXepLoaiVCController);
+router.get("/vien-chuc", XepLoaiController.getAllXepLoaiVCController);
+router.get("/vien-chuc/:vienChucId", XepLoaiController.getXepLoaiVCByVienChucIdController);
+router.post("/vien-chuc", XepLoaiController.createXepLoaiVCController);
+// router.put("/vien-chuc/:id", XepLoaiController.updateXepLoaiVCController);
+router.delete("/vien-chuc/:id", XepLoaiController.deleteXepLoaiVCController);
 
 // Xếp loại đảng viên
-router.get("/dang-vien", getAllXepLoaiDangVienController);
-router.get("/dang-vien/:vienChucId", getXepLoaiDangVienByVienChucIdController);
-router.post("/dang-vien", createXepLoaiDangVienController);
-// router.put("/dang-vien/:id", updateXepLoaiDangVienController);
-router.delete("/dang-vien/:id", deleteXepLoaiDangVienController);
+router.get("/dang-vien", XepLoaiController.getAllXepLoaiDangVienController);
+router.get("/dang-vien/:vienChucId", XepLoaiController.getXepLoaiDangVienByVienChucIdController);
+router.post("/dang-vien", XepLoaiController.createXepLoaiDangVienController);
+// router.put("/dang-vien/:id", XepLoaiController.updateXepLoaiDangVienController);
+router.delete("/dang-vien/:id", XepLoaiController.deleteXepLoaiDangVienController);
 
-// Check điều kiện
-// router.get("/check-dieu-kien/:vienChucId", checkDieuKienQuyHoachController);
 
 export default router;

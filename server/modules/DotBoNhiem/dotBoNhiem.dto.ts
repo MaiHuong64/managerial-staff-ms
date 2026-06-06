@@ -1,6 +1,6 @@
 import { BuocHoiNghi } from "./dotBoNhiem.type";
 
-export interface CreateAppointmentBatchDTO {
+export interface CreateDotBoNhiemDTO {
     tenDotBoNhiem: string;
     ngayBatDau?: Date;
     ngayKetThuc?: Date;
@@ -10,7 +10,7 @@ export interface CreateAppointmentBatchDTO {
     phieuChuTruong: number[];
 }
 
-export interface UpdateAppointmentBatchDTO {
+export interface UpdateDotBoNhiemDTO {
     tenDotBoNhiem?: string;
     ngayBatDau?: Date;
     ngayKetThuc?: Date;
@@ -36,12 +36,12 @@ export interface KetQuaHoiNghi {
     ketQuaUngVien: PhieuBau[];
 }
 
-export interface AppointmentBatch {
+export interface DotBoNhiem {
     id: number;
     maDotBoNhiem: string;
     tenDotBoNhiem: string;
 }
-export interface AppointmentDetail {
+export interface ChiTietDotBoNhiem {
     id: number;
     dotBoNhiemId: number;
     phieuChuTruongId: number;

@@ -1,6 +1,5 @@
 import { BuocHoiNghiQH_169, KetQuaHoiNghiQH, KetQuaPhieuBauQH} from "./dotQuyHoach.validate.type";
-import { checkBatchDone, getBuocHienTaiByDot, getUngVienByDotAndBuoc, insertKetQuaQuyHoach, updateBuocHienTaiById, updateStatusBatch, upsertKetQuaBuoc2, updateStatusCandidate} from "./dotQuyHoach.validate.repository";
-import pool from "../../config/db";
+import * as DotQuyHoachRepository from "./dotQuyHoach.validate.repository";
 
 export const validateVoteInput = (data: KetQuaHoiNghiQH) => {
     if(!data.dotQHId || !data.buocHoiNghi) 
@@ -10,8 +9,8 @@ export const validateVoteInput = (data: KetQuaHoiNghiQH) => {
 }
 export const processStep2 = async (client: any, data: KetQuaHoiNghiQH) => {
     for(const uv of data.ketQuaUngVien){
-        await upsertKetQuaBuoc2(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap, data.soNguoiCoMat])
-        await updateBuocHienTaiById(client, BuocHoiNghiQH_169.HoiNghiCBChuChot, uv.chiTietQHId)
+        await DotQuyHoachRepository.upsertKetQuaBuoc2(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap, data.soNguoiCoMat])
+        await DotQuyHoachRepository.updateBuocHienTaiById(client, BuocHoiNghiQH_169.HoiNghiCBChuChot, uv.chiTietQHId)
     }
 }
 
@@ -23,15 +22,15 @@ export const processStep3 = async (client: any, data: KetQuaHoiNghiQH) => {
             throw new Error(`Ứng viên ${uv.chiTietQHId}: tổng phiếu không khớp`);
         const ketQua = uv.soPhieuDongY >= nguong ? KetQuaPhieuBauQH.Dat : KetQuaPhieuBauQH.KhongDat
 
-        await insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap, data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
+        await DotQuyHoachRepository.insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap, data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
             data.soPhieuHopLe, uv.soPhieuDongY, uv.soPhieuKhongDongY, ketQua
         ])
         const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH_169.HoiNghiLanhDaoMoRong : 0
-        await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+        await DotQuyHoachRepository.updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
         
         // Cap nhat trang thai cho ung vien
         if(ketQua === KetQuaPhieuBauQH.KhongDat)
-            await updateStatusCandidate(client, uv.chiTietQHId, 0);
+            await DotQuyHoachRepository.updateStatusCandidate(client, uv.chiTietQHId, 0);
     }
 }
 
@@ -42,14 +41,14 @@ const processStep4  = async (client: any, data: KetQuaHoiNghiQH) => {
         if(uv.soPhieuDongY + uv.soPhieuKhongDongY !== data.soPhieuHopLe)
             throw new Error (`Ứng viên ${uv.chiTietQHId}: tổng số phiếu không khớp`)
         const ketQua = uv.soPhieuDongY > nguong ? KetQuaPhieuBauQH.Dat : KetQuaPhieuBauQH.KhongDat
-        await insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap, data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
+        await DotQuyHoachRepository.insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap, data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
             data.soPhieuHopLe, uv.soPhieuDongY, uv.soPhieuKhongDongY, ketQua
         ])
         const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH_169.HoiNghiLanhDaoLan2 : 0
-        await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+        await DotQuyHoachRepository.updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
 
         if(ketQua === KetQuaPhieuBauQH.KhongDat)
-            await updateStatusCandidate(client, uv.chiTietQHId, 0);
+            await DotQuyHoachRepository.updateStatusCandidate(client, uv.chiTietQHId, 0);
     }
 }
 //Bước 5: HN lãnh đạo lần 2 — phiếu kín, ngưỡng > 50% triệu tập
@@ -59,34 +58,34 @@ const processStep5 = async (client: any, data: KetQuaHoiNghiQH) => {
             throw new Error (`Ứng viên ${uv.chiTietQHId}: tổng số phiếu không khớp`)
         const tiLe = data.soNguoiTrieuTap > 0 ? uv.soPhieuDongY / data.soNguoiTrieuTap : 0
         const ketQua = tiLe > 0.5 ? KetQuaPhieuBauQH.Dat : KetQuaPhieuBauQH.KhongDat
-        await insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap, data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
+        await DotQuyHoachRepository.insertKetQuaQuyHoach(client, [uv.chiTietQHId, data.buocHoiNghi, data.soNguoiTrieuTap, data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
             data.soPhieuHopLe, uv.soPhieuDongY, uv.soPhieuKhongDongY, ketQua
         ])
         const nextStep = ketQua === KetQuaPhieuBauQH.Dat ? BuocHoiNghiQH_169.HoanThanh : 0
-        await updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
+        await DotQuyHoachRepository.updateBuocHienTaiById(client, nextStep, uv.chiTietQHId);
         
         if(ketQua === KetQuaPhieuBauQH.Dat)
-            await updateStatusCandidate(client, uv.chiTietQHId, 1)
+            await DotQuyHoachRepository.updateStatusCandidate(client, uv.chiTietQHId, 1)
         else
-            await updateStatusCandidate(client, uv.chiTietQHId, 0);
+            await DotQuyHoachRepository.updateStatusCandidate(client, uv.chiTietQHId, 0);
     }
 };
 
-export const submitVoteResult_QT169 = async (data: KetQuaHoiNghiQH) => {
+export const submitVoteResult_QT169 = async (client: any, data: KetQuaHoiNghiQH) => {
     validateVoteInput(data);
-    const client = await pool.connect();
+    // const client = await pool.connect();
 
     try {
         await client.query("BEGIN");
-        const current = await getBuocHienTaiByDot(client, data.dotQHId);
+        const current = await DotQuyHoachRepository.getBuocHienTaiByDot(client, data.dotQHId);
         console.log('current:', current); 
         if (!current?.buoc_hien_tai)
             throw new Error("Đợt quy hoạch không có ứng viên đang xử lý");
 
         const currentStep = Number(current.buoc_hien_tai);
-        const loaiQuyHoach = Number(current.loai_quy_hoach);
+        // const loaiQuyHoach = Number(current.loai_quy_hoach);
     
-        const ungVien = await getUngVienByDotAndBuoc(client, data.dotQHId, currentStep);
+        const ungVien = await DotQuyHoachRepository.getUngVienByDotAndBuoc(client, data.dotQHId, currentStep);
         if (data.ketQuaUngVien.length !== ungVien.length)
             throw new Error(`Số ứng viên không khớp: gửi ${data.ketQuaUngVien.length}, DB có ${ungVien.length}`);
         switch (currentStep) {
@@ -102,10 +101,9 @@ export const submitVoteResult_QT169 = async (data: KetQuaHoiNghiQH) => {
                 throw new Error("Bước không hợp lệ");
         }
 
-        const isDone = await checkBatchDone(client, data.dotQHId);
-        if (isDone) await updateStatusBatch(client, data.dotQHId);
+        const isDone = await DotQuyHoachRepository.checkBatchDone(client, data.dotQHId);
+        if (isDone) await DotQuyHoachRepository.updateStatusBatch(client, data.dotQHId);
         await client.query("COMMIT");
-        console.log('=== COMMIT done ===');
     } catch (error) {
         await client.query("ROLLBACK");
         throw error;

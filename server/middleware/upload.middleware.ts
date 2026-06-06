@@ -36,3 +36,6 @@ export const upload = multer({
     fileFilter,
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
+export const uploadExcel = multer ({
+    storage: multer.memoryStorage(),
+})

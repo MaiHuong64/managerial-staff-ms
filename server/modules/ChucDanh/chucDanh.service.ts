@@ -1,14 +1,14 @@
 import pool from "../../config/db";
-import { deleteChucDanh, findAll, insertChucDanh, updateChucDanh } from "./chucDanh.repository";
+import * as ChucDanhRepository from "./chucDanh.repository";
 
 export const getAllChucDanh = async () => {
-    return findAll();
+    return ChucDanhRepository.getAllChucDanh();
 };
-export const createChucDanhService = async (payload: any) => {
+export const createChucDanh = async (payload: any) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        const newChucDanh = await insertChucDanh(client, payload);
+        const newChucDanh = await ChucDanhRepository.insertChucDanh(client, payload);
         await client.query('COMMIT');
         return newChucDanh;
     } catch (error) {
@@ -18,11 +18,11 @@ export const createChucDanhService = async (payload: any) => {
         client.release();
     }
 }
-export const updateChucDanhService = async (id: number, payload: any) => {
+export const updateChucDanh = async (id: number, payload: any) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        const updatedChucDanh = await updateChucDanh(client, id, payload);
+        const updatedChucDanh = await ChucDanhRepository.updateChucDanh(client, id, payload);
         await client.query('COMMIT');
         return updatedChucDanh;
     } catch (error) {
@@ -33,6 +33,6 @@ export const updateChucDanhService = async (id: number, payload: any) => {
     }
 }
 
-export const deleteChucDanhService = async (id: number) => {
-    return await deleteChucDanh(id);
+export const deleteChucDanh = async (id: number) => {
+    return await ChucDanhRepository.deleteChucDanh(id);
 }

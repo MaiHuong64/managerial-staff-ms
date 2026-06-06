@@ -11,8 +11,8 @@ import { StatCard } from "../../components/common/StatCard";
 import { AddCandidateQT170 } from "./AddNewCandidateModal";
 
 
-const formatDate = (date: string) =>
-    date ? new Date(date).toLocaleDateString("vi-VN") : "—";
+// const formatDate = (date: string) =>
+//     date ? new Date(date).toLocaleDateString("vi-VN") : "—";
 
 export const PlanningDetailPage: React.FC = () => {
     const { id } = useParams();
@@ -111,12 +111,12 @@ export const PlanningDetailPage: React.FC = () => {
                 return <Tag color={item.color} icon={item.icon} className="rounded-full px-3 border-0">{item.label}</Tag>;
             }
         },
-        {
-            title: "Ngày vào QH",
-            dataIndex: "ngayVaoQH",
-            width: 120,
-            render: (val: string) => <span className="text-xs text-slate-500">{val ? formatDate(val) : "—"}</span>,
-        },
+        // {
+        //     title: "Ngày vào QH",
+        //     dataIndex: "ngayVaoQH",
+        //     width: 120,
+        //     render: (val: string) => <span className="text-xs text-slate-500">{val ? formatDate(val) : "—"}</span>,
+        // },
         {
             title: "Trạng thái",
             key: "trangThai",

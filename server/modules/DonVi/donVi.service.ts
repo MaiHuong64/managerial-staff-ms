@@ -1,20 +1,20 @@
 import pool from "../../config/db";
-import { createDonViRepository, deleteDonViRepository, getAllDonViRepository, getDonViByIdRepository, updateDonViRepository } from "./donVi.repository";
+import * as DonViRepo from "./donVi.repository";
 
-export const getAllDonViService = async () => {
-    return getAllDonViRepository();
+export const getAllDonVi = async () => {
+    return DonViRepo.getAllDonVi();
 };
 
-export const getDonViByIdService = async (id: number) => {
-    const donVi = await getDonViByIdRepository(id);
+export const getDonViById = async (id: number) => {
+    const donVi = await DonViRepo.getDonViById(id);
     if (!donVi) throw new Error(`Không tìm thấy đơn vị với id = ${id}`);
     return donVi;
 };
-export const createDonViService = async (payload: any) => {
+export const createDonVi = async (payload: any) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        const newDonVi = await createDonViRepository(client, payload);
+        const newDonVi = await DonViRepo.createDonVi(client, payload);
         await client.query('COMMIT');
         return newDonVi;
     } catch (error) {
@@ -24,11 +24,11 @@ export const createDonViService = async (payload: any) => {
         client.release();
     }
 }
-export const updateDonViService = async (id: number, payload: any) => {
+export const updateDonVi = async (id: number, payload: any) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        const updatedDonVi = await updateDonViRepository(client, id, payload);
+        const updatedDonVi = await DonViRepo.updateDonVi(client, id, payload);
         await client.query('COMMIT');
         return updatedDonVi;
     } catch (error) {
@@ -39,11 +39,11 @@ export const updateDonViService = async (id: number, payload: any) => {
     }
 }
 
-export const deleteDonViService = async (id: number) => {
+export const deleteDonVi = async (id: number) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        const updatedDonVi = await deleteDonViRepository(client, id);
+        const updatedDonVi = await DonViRepo.deleteDonVi(client, id);
         await client.query('COMMIT');
         return updatedDonVi;
     } catch (error) {
