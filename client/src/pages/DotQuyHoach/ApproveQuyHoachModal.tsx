@@ -11,13 +11,7 @@ interface ApproveQuyHoachModalProps {
     tenQuyHoach: string;
 }
 
-export const ApproveQuyHoachModal: React.FC<ApproveQuyHoachModalProps> = ({
-    visible,
-    onCancel,
-    onSuccess,
-    dotQuyHoachId,
-    tenQuyHoach,
-}) => {
+export const ApproveQuyHoachModal: React.FC<ApproveQuyHoachModalProps> = ({ visible, onCancel, onSuccess, dotQuyHoachId,tenQuyHoach,}) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
 

@@ -20,18 +20,9 @@ export const createDotQuyHoach = async (req: Request, res: Response) => {
     }
 }
 export const addBulkVienChuc = async (req: Request, res: Response) => {
-    const id = Number(req.params.id)
+    // const id = Number(req.params.id)
     try {
-        for(const item of req.body) {
-            const payload: DotQuyHoachDTO.ChiTietDotQuyHoachDTO = {
-                dotQuyHoachId: id,
-                chucDanhId: item.chucDanhId,
-                vienChucId: item.vienChucId,
-                donViId: item.donViId
-            }
-            await DotQuyHoachService.addBulkChiTietDotQuyHoach(payload);
-        }
-        
+            await DotQuyHoachService.addUngVien_QT169(req.body);        
         return res.status(201).json({ success: true, message: "Thêm viên chức thành công" });
     } catch (error) {
         console.error("ERROR:", error);
@@ -122,7 +113,7 @@ export const addUngVien = async (req:Request, res: Response) => {
             donViId: Number(req.body.donViId),
             ngayVaoQH: new Date(req.body.ngayVaoQH)
         }
-        const data = await DotQuyHoachService.addBulkChiTietDotQuyHoach(payload);
+        const data = await DotQuyHoachService.addUngVien_QT170(payload);
         return res.status(201).json({message: "Thêm ứng viên thành công", data: data, });
     } catch (error: any) {
         console.log(error)

@@ -2,25 +2,25 @@ import { Request, Response } from "express";
 import * as PhuongAnNhanSuService from "./phuongAnNhanSu.service";
 import { TrangThaiPANS } from "./phuongAnNhanSu.type";
 
-export const getAll = async (req: Request, res: Response) => {
+export const getAllPANS = async (req: Request, res: Response) => {
     try {
-        const data = await PhuongAnNhanSuService.getAll();
+        const data = await PhuongAnNhanSuService.getAllPANS();
         return res.status(200).json({ success: true, data });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 }
-export const getById = async (req: Request, res: Response) => {
+export const getPANSById = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
-        const data = await PhuongAnNhanSuService.getById(id);
+        const data = await PhuongAnNhanSuService.getPANSById(id);
         return res.status(200).json({ success: true, data });
     } catch (error: any) {
         return res.status(404).json({ success: false, message: error.message });
     }
 }
 
-export const create = async (req: Request, res: Response) => {
+export const createPANS = async (req: Request, res: Response) => {
     try {
         const data = await PhuongAnNhanSuService.createPANS(req.body);
         res.status(201).json({ success: true, message: "Tạo phương án nhân sự thành công", data });
@@ -28,7 +28,7 @@ export const create = async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: error.message });
     }
 }
-export const submit = async (req: Request, res: Response) => {
+export const submitPANS = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     try {
         await PhuongAnNhanSuService.submitPANS(id);
@@ -37,29 +37,29 @@ export const submit = async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: error.message });
     }
 }
-export const approve = async (req: Request, res: Response) => {
+export const approvePANS = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const { yKienBGH } = req.body;
     try {
-        await PhuongAnNhanSuService.updateStatusPANS(id, TrangThaiPANS.daPheDuyet, yKienBGH);
+        await PhuongAnNhanSuService.approvePANS(id, yKienBGH);
         res.status(200).json({ success: true, message: "Phê duyệt thành công" });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
 }
-export const reject = async (req: Request, res: Response) => {
+export const rejectPANS = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const { yKienBGH } = req.body;
     try {
-        await PhuongAnNhanSuService.updateStatusPANS(id, TrangThaiPANS.tuChoi, yKienBGH);
+        await PhuongAnNhanSuService.rejectPANS(id, yKienBGH);
         res.status(200).json({ success: true, message: "Từ chối thành công" });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
 }
-export const getCandidates = async (req: Request, res: Response) => {
+export const getVienChucChoPANS = async (req: Request, res: Response) => {
     try {
-        const data = await PhuongAnNhanSuService.getCandidatesList();
+        const data = await PhuongAnNhanSuService.getVienChucChoPANS();
         return res.status(200).json({ success: true, data });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });

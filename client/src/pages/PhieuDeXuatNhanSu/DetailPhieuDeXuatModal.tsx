@@ -1,10 +1,10 @@
-import { Button, Descriptions, Form, Input, message, Modal, Select, Space, Table, Tag } from "antd";
+import { Button, Descriptions, Form, Input, message, Modal, Select, Table, Tag } from "antd";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hook/useAuth";
 import { approvePhieuDeXuatNhanSu, getPhieuDeXuatNhanSuById, guiPhieuDeXuatNhanSu, rejectPhieuDeXuatNhanSu} from "../../api/phieuDeXuat.api";
 import { DU_DIEU_KIEN, TRANG_THAI_PHIEU_DE_XUAT, type ChiTietPhieuDeXuat, type PhieuDeXuatNhanSuChiTiet } from "../../types/PhieuDeXuatNhanSu";
 import dayjs from "dayjs";
-import { getDotQuyHoachList } from "../../api/dotQuyHoach.api";
+import { getDanhSachDotQuyHoach } from "../../api/dotQuyHoach.api";
 import type { DotQuyHoach } from "../../types/QuyHoach";
 import { EyeOutlined } from "@ant-design/icons";
 import XemHoSoNhanSu from "./XemHoSoNhanSu";
@@ -29,12 +29,7 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
     const [rejectForm] = Form.useForm();
 
     const [openHoSoVienChuc, setOpenHoSoVienChuc] = useState<number | null>(null);
-     const [selectedUngVien, setSelectedUngVien] = useState<ChiTietPhieuDeXuat | null>(null);
-
-    // const [auditModalVisible, setAuditModalVisible] = useState(false);
-    // const [auditCandidate, setAuditCandidate] = useState<ChiTietPhieuDeXuat | null>(null);
-    // const [auditForm] = Form.useForm();
-    // const [auditing, setAuditing] = useState(false);
+    const [selectedUngVien, setSelectedUngVien] = useState<ChiTietPhieuDeXuat | null>(null);
 
     const fetchDetail = () => {
         if (!id) return;
@@ -51,7 +46,7 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
     // Load danh sách đợt quy hoạch khi mở approve modal
     const handleOpenApprove = async () => {
         try {
-            const res = await getDotQuyHoachList();
+            const res = await getDanhSachDotQuyHoach();
             setDotQHList(res.data?.data ?? []);
         } catch {
             message.error("Không thể tải danh sách đợt quy hoạch");

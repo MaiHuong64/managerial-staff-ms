@@ -13,9 +13,10 @@ export const submitVoteService = async(data: KetQuaHoiNghiQH) => {
             throw new Error("Đợt quy hoạch không có ứng viên đang xử lý");
         // const currStep = Number(currrent.buoc_hien_tai);
         const loaiQuyHoach = Number(currrent.loai_quy_hoach);
-        if(loaiQuyHoach === 1) return await submitVoteResult_QT169(client, data)
-        if(loaiQuyHoach === 2) return await submitVoteResult_QT170(client, data)
-        throw new Error("Loại quy hoạch không hợp lệ")
+        if(loaiQuyHoach === 1) await submitVoteResult_QT169(client, data)
+        else if(loaiQuyHoach === 2) await submitVoteResult_QT170(client, data)
+        else throw new Error("Loại quy hoạch không hợp lệ")
+        await client.query("COMMIT");
     
     } catch (error) {
         await client.query("ROLLBACK");
