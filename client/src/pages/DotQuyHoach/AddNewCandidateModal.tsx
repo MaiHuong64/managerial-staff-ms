@@ -3,7 +3,7 @@ import { type VienChuc } from "../VienChuc/LichSuNhiemKy";
 import { type ChucDanh } from "../../types/ChucDanh";
 import { getChucDanhList } from "../../api/chucDanh.api";
 import { DatePicker, Form, message, Modal, Select } from "antd";
-import { addNewCandidate170, filterCandidatesHandler } from "../../api/dotQuyHoach.api";
+import { addUngVien_QT170, filterUngVien } from "../../api/dotQuyHoach.api";
 import { type DonVi } from "../../types/DonVi";
 import dayjs from "dayjs"
 import { getDonViList } from "../../api/donVi.api";
@@ -34,14 +34,14 @@ export const AddCandidateQT170: React.FC<Props> =({visible, onCancel, onSuccess,
 
     const handelDonVi = async(donViId: number) => {
         form.setFieldsValue({vienChucId: undefined});
-        const res = await filterCandidatesHandler(donViId, dotQuyHoachId);
+        const res = await filterUngVien(donViId, dotQuyHoachId);
         setDanhSachVienChuc(res.data.data);
     }
     const handleSubmit = async () => {
         try {
             const values = form.getFieldsValue();
             // setLoading(true);
-            await addNewCandidate170(dotQuyHoachId, {
+            await addUngVien_QT170(dotQuyHoachId, {
                 vienChucId: values.vienChucId,
                 chucDanhId: values.chucDanhId,
                 donViId: values.donViId,

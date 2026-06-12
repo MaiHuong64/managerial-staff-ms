@@ -1,11 +1,11 @@
-import dayjs from "dayjs";
 import pool from "../../config/db";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
 import { CreateQDBoNhiemDTO } from "./quyetDinhBoNhiem.dto";
 import { NhiemKy, QuyetDinhBoNhiem } from "./quyetDinhBoNhiem.type";
-import { getTuoiNghHuu, TinhNgayKetThuc } from "./quyetDinhBoNhiem.rule";
+import { TinhNgayKetThuc } from "./quyetDinhBoNhiem.rule";
+import { PoolClient } from "pg";
 
-export const generateQDBNCode = async (client: any) => {
+export const generateQDBNCode = async (client: PoolClient) => {
     const result = await client.query(
         `SELECT CONCAT('QD', LPAD((COALESCE(MAX(id), 0) + 1)::text, 3, '0')) AS ma_bo_nhiem
          FROM qd_bo_nhiem`
@@ -13,7 +13,7 @@ export const generateQDBNCode = async (client: any) => {
     return result.rows[0].ma_bo_nhiem;
 }
 
-export const insertQuyetDinh = async (client: any, maBN: string, payload: CreateQDBoNhiemDTO, hoSoBNId: number): Promise<QuyetDinhBoNhiem> => {
+export const insertQuyetDinhBoNhiem = async (client: PoolClient, maBN: string, payload: CreateQDBoNhiemDTO, hoSoBNId: number): Promise<QuyetDinhBoNhiem> => {
     const result = await client.query(
         `INSERT INTO qd_bo_nhiem (ma_bo_nhiem, so_quyet_dinh, ngay_quyet_dinh, ngay_co_hieu_luc, thoi_han, loai_bo_nhiem, nguoi_phe_duyet, chuc_vu, ho_so_bn_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
@@ -22,14 +22,14 @@ export const insertQuyetDinh = async (client: any, maBN: string, payload: Create
     return mapToCamel(result.rows[0]);
 }
 
-export const updateHoSoStatus = async (client: any, hoSoId: number) => {
+export const updateTrangThaiHoSoBoNhiem = async (client: PoolClient, hoSoId: number) => {
     await client.query(
         `UPDATE ho_so_bo_nhiem SET trang_thai = 3 WHERE id = $1`,
         [hoSoId]
     );
 }
 
-export const getInforFromHS = async (client: any, hoSoId: number): Promise<NhiemKy> => {
+export const getThongTinNhiemKyByHoSoId = async (client: PoolClient, hoSoId: number): Promise<NhiemKy> => {
     const result = await client.query(
         `SELECT
             vc.id AS vien_chuc_id, vc.gioi_tinh, vc.ngay_sinh,
@@ -49,7 +49,7 @@ export const getInforFromHS = async (client: any, hoSoId: number): Promise<Nhiem
     return mapToCamel(result.rows[0]);
 }
 
-export const handleNhiemKy = async (client: any, ngayKetThucCu: Date, lyDo: string, vienChucId: number) => {
+export const insertNhiemKyChucVu = async (client: PoolClient, ngayKetThucCu: Date, lyDo: string, vienChucId: number) => {
     await client.query(
         `UPDATE nhiem_ky_chuc_vu 
          SET trang_thai = 0, ngay_ket_thuc = $1, ly_do_ket_thuc = $2 
@@ -58,7 +58,7 @@ export const handleNhiemKy = async (client: any, ngayKetThucCu: Date, lyDo: stri
     );  
 }
 
-export const insertNhiemKy = async (client: any, vienChucId: number, chucDanhId: number, ngayHieuLuc: Date, thoiHan: number, ngaySinh: Date, gioiTinh: number, qdBNId: number) => {
+export const updateNhiemKyChucVu = async (client: PoolClient, vienChucId: number, chucDanhId: number, ngayHieuLuc: Date, thoiHan: number, ngaySinh: Date, gioiTinh: number, qdBNId: number) => {
     const ngayKetThucNK = TinhNgayKetThuc(ngayHieuLuc, thoiHan, ngaySinh, gioiTinh);
     await client.query(
         `INSERT INTO nhiem_ky_chuc_vu (vien_chuc_id, chuc_danh_id, ngay_bat_dau, ngay_ket_thuc, trang_thai, qd_bo_nhiem_id)
@@ -67,7 +67,7 @@ export const insertNhiemKy = async (client: any, vienChucId: number, chucDanhId:
     );
 }
 
-export const getDetail = async (id: number) => {
+export const getQuyetDinhBoNhiemDetailById = async (id: number) => {
     const result = await pool.query(
         `SELECT
             qd.id, qd.ma_bo_nhiem, qd.so_quyet_dinh, qd.ngay_quyet_dinh,
@@ -94,7 +94,7 @@ export const getDetail = async (id: number) => {
     return mapArrayToCamel(result.rows);
 }
 
-export const getHoSoInfoForQD = async (hoSoId: number) => {
+export const getThongTinHoSoChoQuyetDinh = async (hoSoId: number) => {
     const result = await pool.query(
         `SELECT
             vc.id AS vien_chuc_id, vc.ho_va_ten, vc.ma_vien_chuc,

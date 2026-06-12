@@ -88,11 +88,11 @@ export const getVienChucChoPANS = async () => {
     return mapArrayToCamel(result.rows); 
 };
 
-export const updateTrangThaiPANS = async (client: PoolClient, pansId: number, trangThai: number, yKienBGH?: string): Promise<void> => {
+export const updateTrangThaiPANS = async (client: PoolClient, pansId: number, trangThai: number, yKienBGH?: string, ngayPheDuyet?: Date): Promise<void> => {
     await client.query(
         `UPDATE phuong_an_nhan_su
          SET trang_thai = $1, ngay_phe_duyet = $2, y_kien_bgh = $3
          WHERE id = $4`, 
-        [trangThai, new Date(), yKienBGH || null, pansId]
+        [trangThai, ngayPheDuyet, yKienBGH || null, pansId]
     );
 };
