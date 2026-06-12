@@ -38,18 +38,20 @@ export const createDotQuyHoach = async(payload: DotQuyHoachDTO.CreateDotQuyHoach
         client.release();
     }
 }   
-export const addBulkChiTietDotQuyHoach = async(payload: DotQuyHoachDTO.ChiTietDotQuyHoachDTO) => {
+
+export const addUngVien_QT169 = async(payload: DotQuyHoachDTO.ChiTietDotQuyHoachDTO) => {
     const client = await pool.connect();
+    const dotQHId = await DotQuyHoachRepository.getDotQuyHoachById(payload.dotQuyHoachId);
+    if(!dotQHId) throw new Error(`Không tìm thấy đợt quy hoạch với id: ${payload.dotQuyHoachId}`);
+
     try {
         await client.query("BEGIN");
-        const loaiQH = await DotQuyHoachRepository.getLoaiQuyHoach(client, payload.dotQuyHoachId);
-        const buocBatDau = loaiQH === 2 ? 1 : 2; // Loại 2 (rà soát) bắt đầu từ bước 2, loại 1 từ bước 1
-        const result = await DotQuyHoachRepository.insertChiTietDQH(client, payload, buocBatDau);
+        for (const vienChucId of payload.vienChucId)
+            await DotQuyHoachRepository.insertUngVien_QT169(client, payload.dotQuyHoachId, vienChucId, payload.chucDanhId, payload.donViId, 2);
         await client.query("COMMIT");
-        return result;
     } catch (error) {
-        await client.query('ROLLBACK');
-        throw error;  
+        await client.query("ROLLBACK");
+        throw error;
     } finally {
         client.release();
     }
@@ -72,15 +74,15 @@ export const approveDotQuyHoach = async (dotQuyHoachId: number, payload: DotQuyH
         throw new Error("Chỉ có thể phê duyệt đợt quy hoạch đã hoàn thành");
     }
 
-    const result = await DotQuyHoachRepository.updatePheDuyetDQH(dotQuyHoachId, payload.soQdPheDuyet, payload.ngayQdPheDuyet);
+    const result = await DotQuyHoachRepository.updatePheDuyetDotQuyHoach(dotQuyHoachId, payload.soQdPheDuyet, payload.ngayQdPheDuyet);
     return result;
 }
 
-export const createUngVien = async (payload: DotQuyHoachDTO.CreateUngVienDTO) => {
+export const addUngVien_QT170 = async (payload: DotQuyHoachDTO.CreateUngVienDTO) => {
     const client = await pool.connect();
     try {
        await client.query("BEGIN");
-       const result =  await DotQuyHoachRepository.insertNewCandidates(client, payload);
+       const result =  await DotQuyHoachRepository.insertUngVien_QT170(client, payload);
        await client.query("COMMIT");
        return result;
     } catch (error) {

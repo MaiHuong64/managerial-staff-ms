@@ -11,7 +11,7 @@ export const getAllPhieuDeXuatNhanSu = async (req: AuthRequest, res: Response) =
     }
 }
 
-export const gePhieuDeXuatNhanSutById = async (req: AuthRequest, res: Response) => {
+export const getPhieuDeXuatNhanSutById = async (req: AuthRequest, res: Response) => {
     try {
         const id = Number(req.params.id);
         const data = await PhieuDeXuatService.getDetail(id);
