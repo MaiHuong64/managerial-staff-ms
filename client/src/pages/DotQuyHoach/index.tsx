@@ -4,7 +4,7 @@ import {PlusOutlined, SearchOutlined, FundProjectionScreenOutlined, CheckCircleO
 import { Button, Input, Table, Tag } from "antd";
 import { useNavigate } from "react-router-dom";
 import { PlanningModal } from "./PlanningModal";
-import { getDotQuyHoachList } from "../../api/dotQuyHoach.api";
+import { getDanhSachDotQuyHoach } from "../../api/dotQuyHoach.api";
 import { PageHeader } from "../../components/common/PageHeader";
 import { StatCard } from "../../components/common/StatCard";
 
@@ -18,7 +18,7 @@ export const PlanningPage: React.FC = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await getDotQuyHoachList();
+            const res = await getDanhSachDotQuyHoach();
             setPlanningList(res.data.data); 
             console.log(res.data.data);
             

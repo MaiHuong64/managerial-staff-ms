@@ -1,6 +1,6 @@
 import axiosClient from "../utils/AxiosClient";
 
-export const getDotQuyHoachList = () =>
+export const getDanhSachDotQuyHoach = () =>
     axiosClient.get("/quy-hoach");
 
 export const getRoot = () =>
@@ -11,7 +11,7 @@ export const getDotQuyHoachDetailById = (id: number) =>
 export const createDotQuyHoach = (data: unknown) =>
     axiosClient.post("/quy-hoach", data);
 
-export const addCandidates = (id: number, data: unknown) =>
+export const addUngVien_QT169 = (id: number, data: unknown) =>
     axiosClient.post(`/quy-hoach/${id}/chi-tiet`, data);
 
 export const getPlanningCandidates = (chucDanhId: number) =>
@@ -23,8 +23,8 @@ export const submitVoteQuyHoach = (data: unknown) =>
 export const approveQuyHoach = (dotQuyHoachId: number, data: { soQdPheDuyet: string; ngayQdPheDuyet: Date }) =>
     axiosClient.patch(`/quy-hoach/${dotQuyHoachId}/phe-duyet`, data);
 
-export const filterCandidatesHandler = (donViId: number, dotQuyHoachId: number) => {
+export const filterUngVien = (donViId: number, dotQuyHoachId: number) => {
     return axiosClient.get(`/quy-hoach/filter/`, {params: {donViId, dotQuyHoachId}});
 }
-export const addNewCandidate170 = (id: number, data: unknown) => 
+export const addUngVien_QT170 = (id: number, data: unknown) => 
     axiosClient.post(`/quy-hoach/${id}/chi-tiet/170`, data)
