@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Table, Tag, Spin, Steps } from "antd";
+import { Button, Table, Tag, Spin, Steps, message } from "antd";
 import type { ChiTietQuyHoach, DotQuyHoach } from "../../types/QuyHoach";
 import type { ColumnsType } from "antd/es/table";
-import { ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined, UserOutlined, HomeOutlined, FormOutlined, SafetyOutlined, UserAddOutlined} from "@ant-design/icons";
+import { ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined, UserOutlined, HomeOutlined, FormOutlined, SafetyOutlined, UserAddOutlined, FileExcelFilled} from "@ant-design/icons";
 import VoteQuyHoachModal from "./VoteQuyHoachModal";
 import { ApproveQuyHoachModal } from "./ApproveQuyHoachModal";
-import { getDotQuyHoachDetailById } from "../../api/dotQuyHoach.api";
+import { exportExcelFile, getDotQuyHoachDetailById } from "../../api/dotQuyHoach.api";
 import { StatCard } from "../../components/common/StatCard";
 import { AddCandidateQT170 } from "./AddNewCandidateModal";
 
 
-// const formatDate = (date: string) =>
-//     date ? new Date(date).toLocaleDateString("vi-VN") : "—";
+const formatDate = (date: string) =>
+    date ? new Date(date).toLocaleDateString("vi-VN") : "—";
 
 export const PlanningDetailPage: React.FC = () => {
     const { id } = useParams();
@@ -26,13 +26,15 @@ export const PlanningDetailPage: React.FC = () => {
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [addNewCandidateModal, setAddNewCandidateModal] = useState(false);
 
-
+    
     const fetchData = async () => {
         setLoading(true);
         try {
             const result = await getDotQuyHoachDetailById(Number(id));
             const { planning, staff } = result.data.data;
             setPlanning(planning);
+         
+            
             setStaffList(staff);
         } catch (err) {
             console.error(err);
@@ -54,6 +56,26 @@ export const PlanningDetailPage: React.FC = () => {
         
     }, [staffList, planning]);
 
+    const handleExportExcel = async () => {
+        if(!planning) return;
+        try {
+            const response = await exportExcelFile(planning.id);
+             const blob = new Blob([response.data], { type: response.headers["content-type"] ||
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `danh-sach-quy-hoach${planning.id}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error: any) {
+            message.error(error?.response?.data?.message || "Xuất Excel thất bại");
+        }
+    };
+
     const canVote = currentStep !== null && (planning?.loaiQuyHoach === 1 ? [2, 3, 4, 5].includes(currentStep) : [1, 2, 3, 4].includes(currentStep));
 
     // Với QT170: cho phép thêm ứng viên mới sau bước 1 (khi không còn ứng viên nào ở bước 1)
@@ -62,7 +84,6 @@ export const PlanningDetailPage: React.FC = () => {
 
     const stats = useMemo(() => ({
         total: staffList.length,
-        // active: staffList.filter(s => s.buocHienTai > 0 && s.buocHienTai !== 6).length,
         done: staffList.filter(s => s.buocHienTai === 6).length,
         exited: staffList.filter(s => s.buocHienTai === 0).length,
     }), [staffList]);
@@ -111,12 +132,12 @@ export const PlanningDetailPage: React.FC = () => {
                 return <Tag color={item.color} icon={item.icon} className="rounded-full px-3 border-0">{item.label}</Tag>;
             }
         },
-        // {
-        //     title: "Ngày vào QH",
-        //     dataIndex: "ngayVaoQH",
-        //     width: 120,
-        //     render: (val: string) => <span className="text-xs text-slate-500">{val ? formatDate(val) : "—"}</span>,
-        // },
+        {
+            title: "Ngày vào QH",
+            dataIndex: "ngayVaoQH",
+            width: 120,
+            render: (val: string) => <span className="text-xs text-slate-500">{val ? formatDate(val) : "—"}</span>,
+        },
         {
             title: "Trạng thái",
             key: "trangThai",
@@ -166,6 +187,11 @@ export const PlanningDetailPage: React.FC = () => {
                                 Ghi nhận kết quả HN
                             </Button>
                         )}
+                        <Button 
+                            type="default"
+                            icon={<FileExcelFilled />}
+                            onClick={handleExportExcel}
+                            >Xuất file excel</Button>
                         {canAddCandidate && (
                             <Button type="primary" icon={<UserAddOutlined />} onClick={() => setAddNewCandidateModal(true)}>
                                 Thêm ứng viên

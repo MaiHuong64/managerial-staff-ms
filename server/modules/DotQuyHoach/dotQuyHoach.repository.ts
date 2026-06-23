@@ -1,7 +1,7 @@
 import { toCamel } from "snake-camel";
 import pool from "../../config/db";
 import * as DotQuyHoachDTO from "./dotQuyHoach.dto";
-import { mapToCamel } from "../../utils/mapper";
+import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
 import { PoolClient } from "pg";
 
 export const getNextMaDQH = async (client: PoolClient) => {
@@ -27,6 +27,18 @@ export const getAllDotQuyHoach = async () => {
     )
     return result.rows.map(toCamel);
 }
+
+export const getDotQuyHoachbyCurrentYear = async (year: number) => {
+    const result = await pool.query(`
+        SELECT *
+        FROM dot_quy_hoach
+        WHERE nam_thuc_hien = $1 AND trang_thai = 0
+        ORDER BY dqh.id DESC
+        LIMIT 1
+    `, [year])
+    return mapToCamel(result.rows[0]);
+}
+
 export const getChiTietDotQuyHoach = async (id: number) => {
     const result = await pool.query(
         `SELECT
@@ -101,11 +113,41 @@ export const updatePheDuyetDotQuyHoach = async (dotQuyHoachId: number, soQdPheDu
     );
     return mapToCamel<DotQuyHoachDTO.DotQuyHoachDTO>(result.rows[0]);
 }
+
+// lấy danh sách nhân sự đủ điều kiện quy hoạch
+export const getDanhSachNhanSu = async(dotQuyHoachId: number) => {
+    const result = await pool.query(
+        `SELECT vc.ho_va_ten,
+            dv.ten_don_vi AS don_vi_cong_tac,
+            cd_ht.ten_chuc_danh AS chuc_danh_hien_tai,
+            cd_qh.ten_chuc_danh AS chuc_danh_quy_hoach
+        FROM chi_tiet_quy_hoach ct
+        JOIN vien_chuc vc ON ct.vien_chuc_id = vc.id
+        JOIN don_vi dv ON dv.id = vc.don_vi_id
+        LEFT JOIN nhiem_ky_chuc_vu nk ON nk.vien_chuc_id = vc.id AND nk.trang_thai = 1
+        LEFT JOIN chuc_danh_quan_ly cd_ht ON cd_ht.id = nk.chuc_danh_id
+        JOIN chuc_danh_quan_ly cd_qh ON ct.chuc_danh_id = cd_qh.id
+        WHERE ct.dot_quy_hoach_id = $1
+        ORDER BY vc.ho_va_ten`,
+        [dotQuyHoachId]
+    )
+    return result.rows.map(toCamel)
+}
+export const getThongTinDotQH = async(dotQuyHoachId: number):Promise<DotQuyHoachDTO.ThongTinDotQH> => {
+    const result = await pool.query(
+        `SELECT ten_quy_hoach
+        FROM dot_quy_hoach
+        WHERE id = $1
+        `, [dotQuyHoachId]
+    )
+    return mapToCamel(result.rows[0]);
+}
+
 // ====================QT169=============================
 export const insertUngVien_QT169 = async (client: PoolClient, dotQuyHoachId: number, vienChucId: number, chucDanhId: number, donViId: number, buocBatDau: number) => {
         await client.query(
             `INSERT INTO chi_tiet_quy_hoach (dot_quy_hoach_id, vien_chuc_id, chuc_danh_id, don_vi_id, ngay_vao_qh, buoc_hien_tai, trang_thai)
-             VALUES ($1, $2, $3, $4, CURRENT_DATE, $5, 1)`,
+             VALUES ($1, $2, $3, $4, CURRENT_DATE, $5, 2)`,
             [dotQuyHoachId, vienChucId, chucDanhId, donViId, buocBatDau]
         );
 }
@@ -144,3 +186,4 @@ export const insertUngVien_QT170 = async (client: PoolClient, payload: DotQuyHoa
     )
     return mapToCamel<DotQuyHoachDTO.CreateUngVienDTO>(result.rows[0]);
 }
+

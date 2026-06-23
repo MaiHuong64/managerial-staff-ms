@@ -1,7 +1,9 @@
-import {Request, Response } from "express";
+import {NextFunction, Request, Response } from "express";
 import * as DotQuyHoachService from "./dotQuyHoach.service";
 import * as DotQuyHoachDTO from "./dotQuyHoach.dto";
 import { submitVoteService } from "./dotQuyHoach.validate.service";
+import pool from "../../config/db";
+import { nextBatchCode } from "../PhieuChuTruong/phieuChuTruong.repository";
 
 export const createDotQuyHoach = async (req: Request, res: Response) => {
     try {
@@ -9,16 +11,13 @@ export const createDotQuyHoach = async (req: Request, res: Response) => {
                 soQdPheDuyet, ngayQdPheDuyet, dotGocId } = req.body;
         const payload = { tenQuyHoach, loaiQuyHoach, namThucHien, nhiemKy, soQdPheDuyet, ngayQdPheDuyet, dotGocId, };
         const data = await DotQuyHoachService.createDotQuyHoach(payload);
-        return res.status(201).json({
-            success: true,
-            message: "Tạo đợt quy hoạch thành công",
-            data
-        });
+        return res.status(201).json({ success: true, message: "Tạo đợt quy hoạch thành công", data });
     } catch (error: any) {
         console.error("Create planning error:", error);
         return res.status(500).json({ success: false, message: error.message });
     }
 }
+
 export const addBulkVienChuc = async (req: Request, res: Response) => {
     // const id = Number(req.params.id)
     try {
@@ -29,6 +28,7 @@ export const addBulkVienChuc = async (req: Request, res: Response) => {
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 }
+
 export const getDotQuyHoachById = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
@@ -39,6 +39,7 @@ export const getDotQuyHoachById = async (req: Request, res: Response) => {
         return res.status(400).json({success: false, message: error.message})
     }
 }
+
 export const getAllDotQuyHoach = async (req: Request, res: Response) => {
     try {
         const data = await DotQuyHoachService.fetchAllDotQuyHoach();
@@ -47,6 +48,7 @@ export const getAllDotQuyHoach = async (req: Request, res: Response) => {
         return res.status(500).json({success: false, message: "Lỗi server"});
     }
 }
+
 export const getDotQuyHoachGoc = async (req: Request, res: Response) => {
     try {
         const data = await DotQuyHoachService.fetchDotQuyHoachGoc();
@@ -55,6 +57,7 @@ export const getDotQuyHoachGoc = async (req: Request, res: Response) => {
         return res.status(500).json({success: false, message: "Lỗi server"});
     }
 }
+
 export const getVienChucByChucDanh  = async (req: Request, res: Response) => {
     try {
         const chucDanhId = Number(req.params.chucDanhId);
@@ -65,6 +68,7 @@ export const getVienChucByChucDanh  = async (req: Request, res: Response) => {
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }   
 }
+
 export const filterVienChuc = async (req: Request, res: Response) => {
     try {        
         const donViId = Number(req.query.donViId);
@@ -118,5 +122,26 @@ export const addUngVien = async (req:Request, res: Response) => {
     } catch (error: any) {
         console.log(error)
         return res.status(400).json({ message: error.message || "Thêm ứng viên thất bại" });
+    }
+}
+
+export const getDotQuyHoachHienTai = async (req: Request, res: Response) => {
+    try {
+        const data = await DotQuyHoachService.getDotQuyHoachHienTai();
+        return res.status(200).json({success: true, data});
+    } catch (error: any) {
+        console.error("getDotQuyHoachHienTai error:", error.message);
+        return res.status(500).json({success: false, message: "Lỗi server"});
+    }
+}
+export const exportExcelDSNhanSu = async (req: Request, res: Response, next: NextFunction ) => {
+    try {
+        const dotQuyHoachId = Number(req.params.id);
+        const buffer = await DotQuyHoachService.exportDanhSachExcel(dotQuyHoachId);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=danh-sach-quy-hoach-${dotQuyHoachId}.xlsx`);
+        res.send(buffer);
+    } catch (error) {
+        next(error)
     }
 }

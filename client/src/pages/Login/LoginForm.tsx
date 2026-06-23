@@ -18,7 +18,7 @@ const LoginForm: React.FC = () => {
       
         try {
             const response = await loginApi(values.tenDangNhap, values.matKhau);
-            console.log(values.tenDangNhap, values.matKhau);
+    
             const { token, ...userData } = response.data.data;
             localStorage.setItem('token', token);
         

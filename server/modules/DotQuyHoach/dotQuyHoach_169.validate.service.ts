@@ -79,6 +79,7 @@ export const submitVoteResult_QT169 = async (client: PoolClient, data: KetQuaHoi
             throw new Error("Đợt quy hoạch không có ứng viên đang xử lý");
 
         const currentStep = Number(current.buoc_hien_tai);
+        // console.log(`Bước hiện tại: ${currentStep}, loại quy hoạch: ${current.loai_quy_hoach}`);
         // const loaiQuyHoach = Number(current.loai_quy_hoach);
     
         const ungVien = await DotQuyHoachRepository.getChiTietByDotAndBuoc(client, data.dotQHId, currentStep);
@@ -97,8 +98,12 @@ export const submitVoteResult_QT169 = async (client: PoolClient, data: KetQuaHoi
                 throw new Error("Bước không hợp lệ");
         }
 
+
         const isDone = await DotQuyHoachRepository.checkDQH_QT169(client, data.dotQHId);
         if (isDone) await DotQuyHoachRepository.updateTrangThaiDQH(client, data.dotQHId);
+        // const trangThai = await DotQuyHoachRepository.getTrangThaiDotQuyHoach(client, data.dotQHId);
+        // console.log(trangThai.id);
+        // if (trangThai) await DotQuyHoachRepository.updateTrangThaiDQH(client, data.dotQHId);
 }
 
 

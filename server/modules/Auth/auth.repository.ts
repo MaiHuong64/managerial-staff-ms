@@ -10,7 +10,7 @@ export const findByUsername = async (username: string) => {
         WHERE t.ten_dang_nhap = $1`;
     
     const result = await pool.query(query, [username]);
-    console.log(result.rows[0]);
+    
     return mapToCamel<any>(result.rows[0]);
 };
 
