@@ -125,11 +125,8 @@ export const VoteModal: React.FC<VoteModalProps> = ({visible, onCancel, onSucces
             };
 
             const res = await submitVote(payload);
-            console.log("Backend response:", res.data);
 
             if(res.data.hoa){
-                console.log("Tie detected! Setting tieMode to true");
-                console.log("Tied candidates:", res.data.tieCandidates);
                 setTieMode(true);
                 message.warning("Có ứng viên hòa, vui lòng chọn ứng viên được đi tiếp!");
                 setTieCandidates(res.data.tieCandidates.map((c: UngVien) => c.chiTietBnId));

@@ -9,14 +9,14 @@ export interface AuthRequest extends Request {
 
 export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
     const header = req.headers.authorization;
-    // console.log("Headers:", header);
+ 
     const token = header?.split(" ")[1];
     if(!token){
         return res.status(401).json({ success: false, message: "Access denied. No token provided." });
     }
     try {
         const decode = jwt.verify(token, secretKey as string) as AuthRequest["user"]
-        // console.log("Decode: ", decode);
+      
         req.user = decode;
       
         next();
