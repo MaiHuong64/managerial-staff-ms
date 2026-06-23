@@ -13,6 +13,7 @@ export const submitVoteService = async(data: KetQuaHoiNghiQH) => {
             throw new Error("Đợt quy hoạch không có ứng viên đang xử lý");
         // const currStep = Number(currrent.buoc_hien_tai);
         const loaiQuyHoach = Number(currrent.loai_quy_hoach);
+        console.log(`Bước hiện tại: ${currrent.buoc_hien_tai}, loại quy hoạch: ${loaiQuyHoach}`);
         if(loaiQuyHoach === 1) await submitVoteResult_QT169(client, data)
         else if(loaiQuyHoach === 2) await submitVoteResult_QT170(client, data)
         else throw new Error("Loại quy hoạch không hợp lệ")

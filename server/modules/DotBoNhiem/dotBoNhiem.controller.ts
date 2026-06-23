@@ -42,7 +42,6 @@ export const submitVoteDotBoNhiem = async (req: Request, res: Response) => {
 
         // Nếu có hòa phiếu, trả về thông tin để frontend xử lý
         if (result && result.isTie) {
-            console.log("Tie detected! Result:", JSON.stringify(result, null, 2));
             return res.status(200).json({
                 success: true,
                 hoa: true,

@@ -26,7 +26,6 @@ export const AddCandidateQT170: React.FC<Props> =({visible, onCancel, onSuccess,
         if(!visible) return;
         getChucDanhList().then(res => setDanhSachChucDanh(res.data.data));
         getDonViList().then(res => {
-            console.log(res);
             setDanhSachDonVi(res.data.data);
         });
         getVienChucList().then(res => setDanhSachVienChuc(res.data.data));

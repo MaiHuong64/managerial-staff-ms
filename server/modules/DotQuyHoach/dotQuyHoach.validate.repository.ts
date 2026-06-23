@@ -1,3 +1,5 @@
+import { PoolClient } from "pg"
+
 export const insertKetQuaQuyHoach = async (client: any, params: any[]) => {
     await client.query(
         `INSERT INTO ket_qua_quy_hoach
@@ -28,7 +30,9 @@ export const getBuocHienTaiByDotId = async (client: any, dotQhId: number) => {
     const result = await client.query(
         `SELECT MIN(buoc_hien_tai) AS buoc_hien_tai, d.loai_quy_hoach 
          FROM chi_tiet_quy_hoach ct JOIN dot_quy_hoach d ON ct.dot_quy_hoach_id = d.id
-         WHERE ct.dot_quy_hoach_id = $1 AND ct.buoc_hien_tai BETWEEN 1 AND 5 AND ct.buoc_hien_tai != 6
+         WHERE ct.dot_quy_hoach_id = $1 AND
+         (d.loai_quy_hoach = 1 AND ct.buoc_hien_tai BETWEEN 1 AND 5 AND ct.buoc_hien_tai != 6
+         OR d.loai_quy_hoach = 2 AND ct.buoc_hien_tai BETWEEN 2 AND 5 AND ct.buoc_hien_tai != 6) 
          GROUP BY  d.loai_quy_hoach `,
         [dotQhId]
     );
@@ -63,6 +67,14 @@ export const checkDQH_QT169 = async (client: any, dotQuyHoachId: number ) => {
     return Number(count.rows[0].con_active) === 0;
 }
 
+export const getTrangThaiDotQuyHoach = async (client: PoolClient, dotQuyHoachId: number) => {
+    const result = await client.query(
+        `SELECT id
+        FROM dot_quy_hoach
+        WHERE id = $1 AND trang_thai = 1`,[dotQuyHoachId]
+    )
+    return result.rows[0].id ?? null
+}
 // Kiểm tra ứng viên mới (loai_nguon = 1) đã vote xong chưa - dùng cho QT170
 export const checkDQH_QT170 = async (client: any, dotQuyHoachId: number) => {
     const count = await client.query(
@@ -77,7 +89,7 @@ export const updateTrangThaiDQH = async (client: any, dotQuyHoachId: number) => 
         `UPDATE dot_quy_hoach SET trang_thai = 1 WHERE id = $1`, [dotQuyHoachId]
     )
 }
-
+// update trang thai chi tiet quy hoach (ung vien)  1: dat, 0: khong dat
 export const updateTrangThaiChiTietDQH = async (client: any, chiTietQhId: number, trangThai: number) => {
     await client.query(
         `UPDATE chi_tiet_quy_hoach SET trang_thai = $1 WHERE id = $2`,[trangThai, chiTietQhId]

@@ -18,10 +18,7 @@ export const loginUser = async (req: Request, res: Response) => {
     try {
         const { tenDangNhap, matKhau } = req.body;
 
-        const data = await AuthService.login(
-            tenDangNhap,
-            matKhau
-        );
+        const data = await AuthService.login(tenDangNhap, matKhau);
 
         return res.json({ success: true, message: "Login successful", data });
     } catch (err: any) {

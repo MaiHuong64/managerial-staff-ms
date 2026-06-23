@@ -8,7 +8,7 @@ router.use(verifyToken);
 router.get("/candidates/:chucDanhId", DotQuyHoachController.getVienChucByChucDanh);
 router.get("/filter", DotQuyHoachController.filterVienChuc);
 router.get("/root", DotQuyHoachController.getDotQuyHoachGoc);
-
+router.get('/hien-tai', DotQuyHoachController.getDotQuyHoachHienTai);
 
 router.post("/submit", DotQuyHoachController.submitVoteDotQuyHoach);
 router.post("/", DotQuyHoachController.createDotQuyHoach);
@@ -19,5 +19,6 @@ router.patch("/:id/phe-duyet", DotQuyHoachController.approveDotQuyHoach);
 
 router.get("/", DotQuyHoachController.getAllDotQuyHoach);       // list
 router.get("/:id", DotQuyHoachController.getDotQuyHoachById);   // detail
+router.get("/:id/export-excel", DotQuyHoachController.exportExcelDSNhanSu);
 
 export default router;

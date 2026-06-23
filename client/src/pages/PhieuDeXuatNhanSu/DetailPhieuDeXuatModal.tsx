@@ -4,7 +4,7 @@ import { useAuth } from "../../hook/useAuth";
 import { approvePhieuDeXuatNhanSu, getPhieuDeXuatNhanSuById, guiPhieuDeXuatNhanSu, rejectPhieuDeXuatNhanSu} from "../../api/phieuDeXuat.api";
 import { DU_DIEU_KIEN, TRANG_THAI_PHIEU_DE_XUAT, type ChiTietPhieuDeXuat, type PhieuDeXuatNhanSuChiTiet } from "../../types/PhieuDeXuatNhanSu";
 import dayjs from "dayjs";
-import { getDanhSachDotQuyHoach } from "../../api/dotQuyHoach.api";
+import { getDotQuyHoachHienTai } from "../../api/dotQuyHoach.api";
 import type { DotQuyHoach } from "../../types/QuyHoach";
 import { EyeOutlined } from "@ant-design/icons";
 import XemHoSoNhanSu from "./XemHoSoNhanSu";
@@ -46,8 +46,10 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
     // Load danh sách đợt quy hoạch khi mở approve modal
     const handleOpenApprove = async () => {
         try {
-            const res = await getDanhSachDotQuyHoach();
-            setDotQHList(res.data?.data ?? []);
+            const res = await getDotQuyHoachHienTai();
+            const dotQH = res.data.data;
+            setDotQHList(dotQH ? [dotQH] : []);
+            console.log("Danh sách đợt quy hoạch hiện tại:", dotQH);
         } catch {
             message.error("Không thể tải danh sách đợt quy hoạch");
             return;
@@ -105,31 +107,6 @@ export const DetailPhieuDeXuatModal: React.FC<Props> = ({ id, onClose, onSuccess
             setSubmitting(false);
         }
     };
-
-    // const handleOpenAudit = (ungVien: ChiTietPhieuDeXuat, duDieuKien: number) => {
-    //     setAuditCandidate(ungVien);
-    //     auditForm.setFieldsValue({
-    //         duDieuKien, lyDoKhongDu: ungVien.lyDoKhongDu || ""
-    //     })
-    //     setAuditModalVisible(true);
-    // }
-    // const hanleAudit = async () => {
-    //     if(!id || !auditCandidate) return;
-    //     try {
-    //         const values = await auditForm.validateFields();
-    //         setAuditing(true);
-    //         await auditPhieuDeXuatCandidate(auditCandidate.id, {duDieuKien: values.duDieuKien, lyDo: values.lyDoKhongDu ?? ""});
-    //         message.success("Đã cập nhật xét duyệt");
-    //         setAuditCandidate(null);
-    //         setAuditModalVisible(false);
-    //         fetchDetail();
-    //     }  catch (error: any) {
-    //         if (error.errorFields) return;
-    //         message.error(error?.response?.data?.message || "Xét duyệt thất bại");
-    //     } finally {
-    //         setAuditing(false);
-    //     }
-    // }
     const trangThai = data ? TRANG_THAI_PHIEU_DE_XUAT[data.trangThai] : null;
     const guiPhieu = data?.trangThai === -1 && user?.vaiTro === 'VCQL';
     const duyetPhieu = data?.trangThai === 0 && user?.vaiTro === 'PTCCT';

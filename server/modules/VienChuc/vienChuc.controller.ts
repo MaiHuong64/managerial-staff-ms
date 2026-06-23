@@ -77,7 +77,6 @@ export const remove = async (req: AuthRequest, res: Response) => {
 export const getByDonVi = async (req: AuthRequest, res: Response) => {
     try {
         const donviId = req.user!.donViId;
-         console.log("donViId:", donviId);
         const data = await VienChucService.getStaffbyDepartment(donviId);
         return res.status(200).json({success: true, data})
     } catch (error) {
