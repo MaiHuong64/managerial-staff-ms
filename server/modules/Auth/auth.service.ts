@@ -17,7 +17,6 @@ export const register = async (username: string, password: string, role: string,
 
 export const login = async (username: string, password: string) => {
     const user = await AuthRepository.findByUsername(username);
-    console.log(user);
     if (!user) throw new Error("Invalid credentials");
 
     const validPass = await bcrypt.compare(password, user.matKhau);

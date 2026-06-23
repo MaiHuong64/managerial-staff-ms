@@ -47,11 +47,8 @@ const kiemTraXepLoai3Nam = (xepLoai: XepLoaiVC[]) => {
 const CheckItem = ({ label, checked, detail }: { label: string; checked: boolean; detail: string }) => (
     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
         <div className="flex items-center gap-3">
-            {checked ? (
-                <CheckCircleOutlined className="text-green-500 text-lg" />
-            ) : (
-                <CloseCircleOutlined className="text-red-500 text-lg" />
-            )}
+            {checked ? (<CheckCircleOutlined className="text-green-500 text-lg" />) : 
+            (<CloseCircleOutlined className="text-red-500 text-lg" />)}
             <span className={checked ? 'text-gray-700' : 'text-gray-400'}>{label}</span>
         </div>
         <Tag color={checked ? 'green' : 'red'}>{detail}</Tag>

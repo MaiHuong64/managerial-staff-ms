@@ -5,6 +5,7 @@ export const getDanhSachDotQuyHoach = () =>
 
 export const getRoot = () =>
     axiosClient.get("/quy-hoach/root");
+
 export const getDotQuyHoachDetailById = (id: number) =>
     axiosClient.get(`/quy-hoach/${id}`);
 
@@ -28,3 +29,10 @@ export const filterUngVien = (donViId: number, dotQuyHoachId: number) => {
 }
 export const addUngVien_QT170 = (id: number, data: unknown) => 
     axiosClient.post(`/quy-hoach/${id}/chi-tiet/170`, data)
+
+export const getDotQuyHoachHienTai = () =>
+    axiosClient.get("/quy-hoach/hien-tai");
+
+export const exportExcelFile = (id: number) => {
+    return axiosClient.get(`/quy-hoach/${id}/export-excel`, {responseType: "blob"})
+}

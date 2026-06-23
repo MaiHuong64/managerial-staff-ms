@@ -39,3 +39,6 @@ export interface CreateUngVienDTO {
     ngayVaoQH: Date;
     // loaiNguon: number; // 1: ứng viên mới, 2: copy từ đợt gốc
 }
+export interface ThongTinDotQH {
+    tenQuyHoach: string;
+}

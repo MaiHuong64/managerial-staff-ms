@@ -1,5 +1,4 @@
 export enum BuocHoiNghiQH_169 {
-    RaSoatDuaRa = 1,  
     HoiNghiLanhDao = 2,
     HoiNghiCBChuChot = 3,
     HoiNghiLanhDaoMoRong = 4,
