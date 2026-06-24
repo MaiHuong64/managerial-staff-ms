@@ -105,10 +105,6 @@ export const exportDanhSachExcel = async (dotQuyHoachId:  number) => {
     if(!dotQH)
         throw new Error ("Không tìm thấy đợt quy hoạch");
     const danhSachNhanSu = await DotQuyHoachRepository.getDanhSachNhanSu(dotQuyHoachId);
-    
-    console.log('data: ', danhSachNhanSu);
-    console.log('so luong: ', danhSachNhanSu.length);
-    console.log('firs data: ', danhSachNhanSu[0]);
 
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Danh sách')
@@ -121,20 +117,40 @@ export const exportDanhSachExcel = async (dotQuyHoachId:  number) => {
         {key: "ghiChu", width: 20} 
     ]
 
-    sheet.mergeCells('A1:F1');
-    const cell = sheet.getCell('A1');
-    cell.value = "TÊN ĐƠN VỊ";
-    cell.font = {bold: true, size: 13};
-    cell.alignment = {horizontal: "center"};
+    sheet.getRow(1).height = 22;
 
-    sheet.mergeCells('A2:F2');
-    const cellTitle = sheet.getCell('A2');
+    sheet.mergeCells('A1:C1');
+    const cellTenDH = sheet.getCell('A1');
+    cellTenDH.value = "ĐẠI HỌC QUỐC GIA TP.HCM";
+    cellTenDH.font = {bold: false, size: 13, name: "Times New Roman"};
+    cellTenDH.alignment = {horizontal: "center"};
+
+    sheet.mergeCells('A2:C2');
+    const cellTenTruong = sheet.getCell('A2');
+    cellTenTruong.value = "TRƯỜNG ĐẠI HỌC AN GIANG";
+    cellTenTruong.font = {bold: true, size: 13, name: "Times New Roman"};
+    cellTenTruong.alignment = {horizontal: "center"};
+
+    sheet.mergeCells('D1:F1');
+    const cellQuocHieu = sheet.getCell('D1');
+    cellQuocHieu.value = "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM";
+    cellQuocHieu.font = {bold: true, size: 13, name: "Times New Roman"};
+    cellQuocHieu.alignment = {horizontal: "center", vertical: "middle"}
+    
+    sheet.mergeCells('D2:F2');
+    const cellTieuNgu = sheet.getCell('D2');
+    cellTieuNgu.value = "Độc lập - Tự do - Hạnh phúc";
+    cellTieuNgu.font = {bold: true, size: 12, name: "Times New Roman", underline:"single"};
+    cellTieuNgu.alignment = {horizontal: "center", vertical:  "middle"}
+
+    sheet.mergeCells('A4:F4');
+    const cellTitle = sheet.getCell('A4');
     cellTitle.value = "DANH SÁCH NHÂN SỰ ĐỀ XUẤT NGUỒN QUY HOẠCH CÁN BỘ QUẢN LÝ";
     cellTitle.font = {bold: true, size: 15, name:"Times New Roman"};
     cellTitle.alignment = {horizontal: "center", vertical: "middle"};
 
-    sheet.mergeCells('A3:F3');
-    const cellDotQH = sheet.getCell('A3');
+    sheet.mergeCells('A5:F5');
+    const cellDotQH = sheet.getCell('A5');
     cellDotQH.value = `Đợt ${dotQH.tenQuyHoach}`
     cellDotQH.alignment = {horizontal: 'center'};
 
