@@ -94,11 +94,13 @@ export const AppointmentDetailView: React.FC = () => {
 
     const stateInfo = STATE_MAP[batchInfo.trangThai];
     const stepIndex = selectedChucDanh?.buocHienTai == null ? 6 : (STEP_INDEX[selectedChucDanh.buocHienTai] ?? 0);
+    console.log("Selected chuc danh:", selectedChucDanh, "Step index:", stepIndex);
     // const canStartVoting = batchInfo.trangThai === 1;
     const canVote = selectedChucDanh !== null && [2, 3, 4, 5].includes(selectedChucDanh.buocHienTai);
 
     const totalAllChucDanh = (batchInfo.chucDanhList ?? [])
     .reduce((sum, cd) => sum + Number(cd.soUngVien), 0);
+    console.log("Total all chuc danh:", totalAllChucDanh, batchInfo.chucDanhList);
     const validCandidates = candidates.filter(c => c.trangThai === 1);
     const passedCandidates = candidates.filter(c => c.trangThai === 3);
     const failedCandidates = candidates.filter(c => c.trangThai === 2);
@@ -225,7 +227,7 @@ export const AppointmentDetailView: React.FC = () => {
                         <InfoField label="Ngày kết thúc" value={batchInfo.ngayKetThuc ? new Date(batchInfo.ngayKetThuc).toLocaleDateString("vi-VN") : null} />
                         <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-3">
                             <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                {/* <div className="text-xl font-bold text-indigo-600">{batchInfo.chucDanhList.length}</div> */}
+                                <div className="text-xl font-bold text-indigo-600">{batchInfo.chucDanhList.length}</div>
                                 <div className="text-xs text-slate-500 mt-0.5">Chức danh</div>
                             </div>
                             <div className="text-center p-3 bg-sky-50 rounded-lg">

@@ -34,14 +34,14 @@ export const getChiTietDotBoNhiem = async (client: any, id: number) => {
 
 export const getBuocHienTai = async (client: any, chiTietDotBoNhiemId: number) => {
     const result = await client.query(
-        `SELECT MIN(ctbn.buoc_hoi_nghi) 
-                FILTER (WHERE ctbn.buoc_hoi_nghi NOT IN (0, 6)) AS min_step
-         FROM chi_tiet_bo_nhiem ctbn
-         WHERE ctbn.chi_tiet_dot_bo_nhiem_id = $1`,
+        `SELECT buoc_hien_tai 
+         FROM chi_tiet_dot_bo_nhiem 
+         WHERE id = $1`,
         [chiTietDotBoNhiemId]
     );
-    return result.rows[0].min_step;
+    return result.rows[0].buoc_hien_tai;
 }
+
 export const checkDotBoNhiemHoanThanh = async (client: any, dotBoNhiemId: number) => {
       const result = await client.query(
         `SELECT
@@ -53,12 +53,6 @@ export const checkDotBoNhiemHoanThanh = async (client: any, dotBoNhiemId: number
     );
     return result.rows[0];
 
-}
-export const updateBuocHienTaiChiTietBoNhiem = async (client: any, buoc: number, chiTietBnId: number) => {
-    await client.query(
-        `UPDATE chi_tiet_bo_nhiem SET buoc_hoi_nghi = $1 WHERE id = $2`,
-        [buoc, chiTietBnId]
-    )
 }
 
 export const updateTrangThaiDotBoNhiem = async (client: any, dotBoNhiemId: number, trangThai: number) => {
@@ -94,4 +88,19 @@ export const getUngVienHoa = async (client: any, danhSachUngVien: number[]) => {
         JOIN vien_chuc vc ON ctbn.vien_chuc_id = vc.id
         WHERE ctbn.id = ANY($1)`, danhSachUngVien)
     return result.rows
+}
+export const updateBuocUngVien = async (client: any, buoc: number, chiTietBnId: number) => {
+    await client.query(
+        `UPDATE chi_tiet_bo_nhiem SET buoc_hoi_nghi = $1 WHERE id = $2`,
+        [buoc, chiTietBnId]
+    )
+}
+
+export const updateBuocChucDanh = async (client: any, buocHoiNghi: number, chiTietBnId: number) => {
+    await client.query(
+        `UPDATE chi_tiet_dot_bo_nhiem
+        SET buoc_hien_tai = $1
+        WHERE id = $2
+        `, [buocHoiNghi, chiTietBnId]
+    )
 }

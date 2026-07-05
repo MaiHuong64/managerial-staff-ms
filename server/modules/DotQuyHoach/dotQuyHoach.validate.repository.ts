@@ -31,8 +31,8 @@ export const getBuocHienTaiByDotId = async (client: any, dotQhId: number) => {
         `SELECT MIN(buoc_hien_tai) AS buoc_hien_tai, d.loai_quy_hoach 
          FROM chi_tiet_quy_hoach ct JOIN dot_quy_hoach d ON ct.dot_quy_hoach_id = d.id
          WHERE ct.dot_quy_hoach_id = $1 AND
-         (d.loai_quy_hoach = 1 AND ct.buoc_hien_tai BETWEEN 1 AND 5 AND ct.buoc_hien_tai != 6
-         OR d.loai_quy_hoach = 2 AND ct.buoc_hien_tai BETWEEN 2 AND 5 AND ct.buoc_hien_tai != 6) 
+         (d.loai_quy_hoach = 1 AND ct.buoc_hien_tai BETWEEN 2 AND 5 AND ct.buoc_hien_tai != 6
+         OR d.loai_quy_hoach = 2 AND ct.buoc_hien_tai BETWEEN 1 AND 4 AND ct.buoc_hien_tai != 6) 
          GROUP BY  d.loai_quy_hoach `,
         [dotQhId]
     );
