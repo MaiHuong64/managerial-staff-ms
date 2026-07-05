@@ -187,11 +187,9 @@ export const PlanningDetailPage: React.FC = () => {
                                 Ghi nhận kết quả HN
                             </Button>
                         )}
-                        <Button 
-                            type="default"
-                            icon={<FileExcelFilled />}
-                            onClick={handleExportExcel}
-                            >Xuất file excel</Button>
+                        <Button type="default" icon={<FileExcelFilled />} onClick={handleExportExcel} >
+                            Xuất file excel
+                        </Button>
                         {canAddCandidate && (
                             <Button type="primary" icon={<UserAddOutlined />} onClick={() => setAddNewCandidateModal(true)}>
                                 Thêm ứng viên

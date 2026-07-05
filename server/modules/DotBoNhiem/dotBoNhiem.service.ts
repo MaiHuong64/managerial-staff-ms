@@ -3,35 +3,16 @@ import { CreateDotBoNhiemDTO, UngVienQuyHoach } from "./dotBoNhiem.dto";
 import * as DotBoNhiemRepo from "./dotBoNhiem.repository"
 
 export const fetchAllAppointmentBatch = async () => {
-    const data = await DotBoNhiemRepo.getAllDotBoNhiem();
+    const data = await DotBoNhiemRepo.getThongTinDotBoNhiem();
     return data;
 }
 export const findAppointmentBatchById = async (id: number) => {
-    const rows = await DotBoNhiemRepo.getDotBoNhiemById(id);
-    if(!rows.length) throw new Error("Không tìm thấy đợt bổ nhiệm");
-    
-    const firstRow: any = rows[0];
-    const chucDanhList = rows
-        .filter((r: any) => r.chiTietDotId)
-        .map((r: any) => ({
-            chiTietDotId: r.chiTietDotId,
-            phieuChuTruongId: r.phieuChuTruongId,
-            tenChucDanh: r.tenChucDanh,
-            soLuongDeXuat: r.soLuongDeXuat,
-            tenDonVi: r.tenDonVi,
-            soUngVien: r.soUngVien,
-            buocHienTai: r.buocHienTai
-        }));
-    return { 
-        id: firstRow.id, 
-        maDotBoNhiem: firstRow.maDotBoNhiem, 
-        tenDotBoNhiem: firstRow.tenDotBoNhiem, 
-        ngayBatDau: firstRow.ngayBatDau, 
-        ngayKetThuc: firstRow.ngayKetThuc, 
-        soQuyetDinh: firstRow.soQuyetDinh, 
-        trangThai: firstRow.trangThai, 
-        chucDanhList
-    };
+    const dotBoNhiem = await DotBoNhiemRepo.getThongTinDotBoNhiemById(id);
+    if(!dotBoNhiem){
+        throw new Error(`Không tìm thấy đợt bổ nhiệm với id: ${id}`);
+    }
+    const chucDanhList  = await DotBoNhiemRepo.getThongTinChucDanh(dotBoNhiem.id);
+    return {...dotBoNhiem, chucDanhList};
 }
 export const createAppointmentBatch = async (payload: CreateDotBoNhiemDTO) => {
     const client = await pool.connect();
@@ -41,8 +22,8 @@ export const createAppointmentBatch = async (payload: CreateDotBoNhiemDTO) => {
         for (const pctId of payload.phieuChuTruong) {
             const chiTiet = await DotBoNhiemRepo.insertChiTietDotBoNhiem(client, dotBoNhiem.id, pctId);
             const ungVien = await DotBoNhiemRepo.getUngVienTuQuyHoach(pctId);
-            console.log(`phieuChuTruongId: ${pctId}`);
-             console.log(`ungVien found: ${ungVien.length}`, ungVien);
+            // console.log(`phieuChuTruongId: ${pctId}`);s
+            //  console.log(`ungVien found: ${ungVien.length}`, ungVien);
     
             for (const uv of ungVien as UngVienQuyHoach[]) {
                 await DotBoNhiemRepo.insertUngVien(client, chiTiet.id, uv.id, uv.vienChucId);

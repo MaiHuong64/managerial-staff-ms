@@ -231,7 +231,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({visible, onCancel, onSucces
             key: "tieBreak",
             width: 120,
             render: (_: unknown, record: Candidate) => {
-                console.log("Rendering tieBreak column:", { tieMode, tieCandidates, recordId: record.chiTietBnId });
+                // console.log("Rendering tieBreak column:", { tieMode, tieCandidates, recordId: record.chiTietBnId });
                 if (!tieMode || !tieCandidates.includes(record.chiTietBnId)) {
                     return null;
                 }

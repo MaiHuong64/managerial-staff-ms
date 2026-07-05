@@ -26,24 +26,40 @@ export const getAllDotBoNhiem = async () => {
     `);
     return mapArrayToCamel(result.rows);
 }
+export const getThongTinDotBoNhiem = async () => {
+    const result = await pool.query(`
+        SELECT dbn.id, dbn.ten_dot_bo_nhiem, dbn.ngay_bat_dau, dbn.ngay_ket_thuc, dbn.trang_thai, count(ct.phieu_chu_truong_id) as chuc_danh
+        FROM dot_bo_nhiem dbn inner join chi_tiet_dot_bo_nhiem ct on dbn.id = ct.dot_bo_nhiem_id
+        GROUP BY dbn.id, dbn.ten_dot_bo_nhiem, dbn.ngay_bat_dau, dbn.ngay_ket_thuc, dbn.trang_thai
+        ORDER BY dbn.ngay_bat_dau
 
-export const getDotBoNhiemById = async (dotBoNhiemId: number) => {
+    `)
+    return mapArrayToCamel(result.rows);
+}
+export const getThongTinDotBoNhiemById = async (dotBoNhiemId: number) => {
+    const result = await pool.query
+    (
+        `SELECT * FROM dot_bo_nhiem
+        WHERE id = $1`, [dotBoNhiemId]
+    )
+    return mapToCamel<DotBoNhiemDTO.DotBoNhiem>(result.rows[0]);
+}
+export const getThongTinChucDanh = async (dotBoNhiemId: number) => {
     const result = await pool.query(
-        `SELECT dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem, dbn.ngay_bat_dau, dbn.ngay_ket_thuc, dbn.trang_thai,
-                ctdbn.id AS chi_tiet_dot_id,
-                pct.id AS phieu_chu_truong_id, pct.so_luong_de_xuat,
-                cd.ten_chuc_danh,
-                dv.ten_don_vi,
-                COUNT(ctbn.id) AS so_ung_vien,
-                MIN(ctbn.buoc_hoi_nghi) FILTER (WHERE ctbn.buoc_hoi_nghi BETWEEN 2 AND 5) AS buoc_hien_tai
-        FROM dot_bo_nhiem dbn
-        LEFT JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.dot_bo_nhiem_id = dbn.id
-        LEFT JOIN phieu_chu_truong pct ON pct.id = ctdbn.phieu_chu_truong_id
-        LEFT JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
-        LEFT JOIN don_vi dv ON dv.id = pct.don_vi_id
-        LEFT JOIN chi_tiet_bo_nhiem ctbn ON ctbn.chi_tiet_dot_bo_nhiem_id = ctdbn.id
-        WHERE dbn.id = $1
-        GROUP BY dbn.id, ctdbn.id, pct.id, cd.ten_chuc_danh, dv.ten_don_vi`, [dotBoNhiemId]);
+        `
+        select  ct.id AS chi_tiet_dot_id, ct.phieu_chu_truong_id, ct.buoc_hien_tai, COUNT(ctbn.id) AS so_ung_vien, 
+                cd.ten_chuc_danh, 
+                pct.so_luong_de_xuat, 
+                dv.ten_don_vi
+        from chi_tiet_dot_bo_nhiem ct
+            left join phieu_chu_truong pct on ct.phieu_chu_truong_id = pct.id
+            left join chuc_danh_quan_ly cd on pct.chuc_danh_id = cd.id
+            left join don_vi dv on dv.id = pct.don_vi_id
+            left join chi_tiet_bo_nhiem ctbn on ctbn.chi_tiet_dot_bo_nhiem_id = ct.id  
+        where ct.dot_bo_nhiem_id = $1
+        group by ct.id, ct.phieu_chu_truong_id, cd.ten_chuc_danh, pct.so_luong_de_xuat, dv.ten_don_vi, ct.buoc_hien_tai
+        `, [dotBoNhiemId]
+    )
     return mapArrayToCamel(result.rows) ?? [];
 }
 
