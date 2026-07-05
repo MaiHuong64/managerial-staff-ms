@@ -62,11 +62,7 @@ export const AppointmentPage: React.FC = () => {
                 title="Đợt bổ nhiệm viên chức"
                 description="Quản lý và theo dõi quy trình bổ nhiệm"
                 action={
-                    <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        size="large"
-                        onClick={() => setCreateModalVisible(true)}>
+                    <Button type="primary" icon={<PlusOutlined />} size="large" onClick={() => setCreateModalVisible(true)}>
                         Tạo đợt mới
                     </Button>
                 }

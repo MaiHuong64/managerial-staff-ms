@@ -9,6 +9,9 @@ interface Props {
     loading: boolean;
 }
 
+const formatDate = (date: string) => 
+    date ? new Date (date).toLocaleDateString("vi-VN") : "-"
+
 export const  AppoinmentTable: React.FC<Props> = ({ data, loading }) => {
     const navigate = useNavigate();
 
@@ -25,40 +28,50 @@ export const  AppoinmentTable: React.FC<Props> = ({ data, loading }) => {
             ),
         },
         {
-            title: "Số phiếu",
-            dataIndex: "soPhieu",
-            key: "soPhieu",
-            width: 110,
-            align: "center" as const,
-            render: (value: number) => (
-                <div className="text-center">
-                    <span className="text-base font-bold text-indigo-600">{value || 0}</span>
-                    <span className="text-xs text-slate-400 ml-1">phiếu</span>
-                </div>
-            ),
+            title: "Ngày Bắt Đầu",
+            dataIndex: "ngayBatDau",
+            key: "ngayBatDau",
+            width: 126,
+            align: "center",
+            render: (value: string) => <span>{formatDate(value)}</span>
         },
-      {
-    title: "Trạng thái",
-    dataIndex: "trangThai",
-    key: "trangThai",
-    width: 220,
-    render: (val: number | null) => {
-        const map: Record<number, { label: string; color: string }> = {
-            1: { label: "Chưa bắt đầu", color: "default" },
-            2: { label: "Đang thực hiện", color: "processing" },
-            6: { label: "Hoàn thành", color: "success" },
-            0: { label: "Đã dừng", color: "error" },
-        };
-        if (val == null) return <Badge status="default" text={<span className="text-slate-400 text-xs">—</span>} />;
-        const state = map[val];
-        if (!state) return <Tag>—</Tag>;
-        return (
-            <Tag color={state.color} className="rounded-full px-3 py-0.5 text-xs font-medium border-0">
-                {state.label}
-            </Tag>
-        );
-    },
-},
+        {
+            title: "Ngày Kết Thúc",
+            dataIndex: "ngayKetThuc",
+            key: "ngayKetThuc",
+            width: 126,
+            align: "center",
+            render: (value: string) => <span>{formatDate(value)}</span>
+        },
+        {
+            title: "Chức Danh Bổ Nhiệm",
+            dataIndex: "tenChucDanh",
+            key: "tenChucDanh",
+            width: 180,
+            align: "center" as const,
+        },
+        {
+            title: "Trạng thái",
+            dataIndex: "trangThai",
+            key: "trangThai",
+            width: 220,
+            render: (val: number | null) => {
+                const map: Record<number, { label: string; color: string }> = {
+                    1: { label: "Chưa bắt đầu", color: "default" },
+                    2: { label: "Đang thực hiện", color: "processing" },
+                    6: { label: "Hoàn thành", color: "success" },
+                    0: { label: "Đã dừng", color: "error" },
+                };
+                if (val == null) return <Badge status="default" text={<span className="text-slate-400 text-xs">—</span>} />;
+                const state = map[val];
+                if (!state) return <Tag>—</Tag>;
+                return (
+                    <Tag color={state.color} className="rounded-full px-3 py-0.5 text-xs font-medium border-0">
+                        {state.label}
+                    </Tag>
+                );
+            },
+        },
         {
             title: "",
             key: "action",

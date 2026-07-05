@@ -33,7 +33,7 @@ export const getDotQuyHoachbyCurrentYear = async (year: number) => {
         SELECT *
         FROM dot_quy_hoach
         WHERE nam_thuc_hien = $1 AND trang_thai = 0
-        ORDER BY dqh.id DESC
+        ORDER BY id DESC
         LIMIT 1
     `, [year])
     return mapToCamel(result.rows[0]);
