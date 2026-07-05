@@ -51,3 +51,21 @@ export interface UngVienQuyHoach {
     id: number;
     vienChucId: number;
 }
+export interface ChucDanhTrongDot { 
+    chiTietDotBoNhiem: number;
+    phieuChuTruongId: number;
+    tenChucDanh: string;
+    soLuongDeXuat: number;
+    tenDonVi: string;
+    soUngVien: number;
+    buocHienTai: number;
+}
+export interface ThongTinBoNhiem {
+    maDotBoNhiem: string;
+    tenDotBoNhiem: string;
+    ngayBatDau: Date;
+    ngayKetThuc: Date;
+    soQuyetDinh: string;
+    trangThai: number;
+    chucDanhBoNhiem: ChucDanhTrongDot[];
+}

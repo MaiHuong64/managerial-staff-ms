@@ -19,7 +19,7 @@ export const processStep2 = async (client: any, data: KetQuaHoiNghi) => {
     for(const uv of data.ketQuaUngVien){
         await DBNRepo.upsertKetQuaBuoc2(client, [uv.chiTietBnId, data.buocHoiNghi,
             data.soNguoiTrieuTap, data.soNguoiCoMat])
-        await DBNRepo.updateBuocHienTaiChiTietBoNhiem(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVong2, uv.chiTietBnId);
+        await DBNRepo.updateBuocUngVien(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVong2, uv.chiTietBnId);
         await DBNRepo.updateTrangThaiDotBoNhiem(client, data.chiTietDotBoNhiemId, 2);
     }
 }
@@ -43,7 +43,7 @@ export const processStep3 = async (client: any, data: KetQuaHoiNghi) => {
             data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
             data.soPhieuHopLe, r.soPhieuDongY, r.soPhieuKhongDongY, ketQua]);
         if(!isTie){
-            await DBNRepo.updateBuocHienTaiChiTietBoNhiem(client, isWinner ? DBNType.BuocHoiNghi.HoiNghiCanBoChuChot : 0, r.chiTietBnId)
+            await DBNRepo.updateBuocUngVien(client, isWinner ? DBNType.BuocHoiNghi.HoiNghiCanBoChuChot : 0, r.chiTietBnId)
             if(!isWinner){
                 await DBNRepo.updateTrangThaiUngVien(client, r.chiTietBnId, DBNType.KetQuaPhieuBau.KhongDat);
             }
@@ -80,7 +80,7 @@ const processStep4  = async (client: any, data: KetQuaHoiNghi) => {
         data.soNguoiCoMat, data.soPhieuPhatRa, data.soPhieuThuVe,
         data.soPhieuHopLe, uv.soPhieuDongY, uv.soPhieuKhongDongY, null
     ]);
-    await DBNRepo.updateBuocHienTaiChiTietBoNhiem(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVongCuoi, uv.chiTietBnId);
+    await DBNRepo.updateBuocUngVien(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVongCuoi, uv.chiTietBnId);
 }
 // Bước 5: 1 ứng viên — biểu quyết cuối, > 50% triệu tập
 const processStep5 = async (client: any, data: KetQuaHoiNghi, chiTietDotId: number, dotBoNhiemId: number) => {
@@ -97,7 +97,7 @@ const processStep5 = async (client: any, data: KetQuaHoiNghi, chiTietDotId: numb
     ]);
 
     if(ketQua === DBNType.KetQuaPhieuBau.Dat) {
-        await DBNRepo.updateBuocHienTaiChiTietBoNhiem(client, DBNType.BuocHoiNghi.HoanThanhBoPhieu, uv.chiTietBnId);
+        await DBNRepo.updateBuocUngVien(client, DBNType.BuocHoiNghi.HoanThanhBoPhieu, uv.chiTietBnId);
         await DBNRepo.updateTrangThaiUngVien(client, uv.chiTietBnId, 3);
         await DBNRepo.updateTrangThaiChiTietDotBoNhiem(client, chiTietDotId, 0);
 
@@ -117,19 +117,27 @@ export const submitVoteResult = async (data: KetQuaHoiNghi) => {
         const chiTiet = await DBNRepo.getChiTietDotBoNhiem(client, data.chiTietDotBoNhiemId);
 
         const currentStep = await DBNRepo.getBuocHienTai(client, data.chiTietDotBoNhiemId)
+        console.log(`Current step: ${currentStep}, Data step: ${data.buocHoiNghi}`);
         if(currentStep !== data.buocHoiNghi)
             throw new Error(`Bước hiện tại đang ở ${currentStep}`);
-
-        let result = null;
+        let result; 
         switch (data.buocHoiNghi) {
             case DBNType.BuocHoiNghi.HoiNghiLanhDaoVong1:
-                await processStep2(client, data); break;
+                await processStep2(client, data); 
+                await DBNRepo.updateBuocChucDanh(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVong2, data.chiTietDotBoNhiemId);
+                break;
             case DBNType.BuocHoiNghi.HoiNghiLanhDaoVong2:
-                result = await processStep3(client, data); break;
+                result = await processStep3(client, data);
+                await DBNRepo.updateBuocChucDanh(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, data.chiTietDotBoNhiemId);
+                break;
             case DBNType.BuocHoiNghi.HoiNghiCanBoChuChot:
-                await processStep4(client, data); break;
+                await processStep4(client, data);
+                await DBNRepo.updateBuocChucDanh(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVongCuoi, data.chiTietDotBoNhiemId);
+                break;
             case DBNType.BuocHoiNghi.HoiNghiLanhDaoVongCuoi:
-                await processStep5(client, data, data.chiTietDotBoNhiemId, chiTiet.dot_bo_nhiem_id); break;
+                await processStep5(client, data, data.chiTietDotBoNhiemId, chiTiet.dot_bo_nhiem_id); 
+                await DBNRepo.updateBuocChucDanh(client, DBNType.BuocHoiNghi.HoanThanhBoPhieu, data.chiTietDotBoNhiemId);
+                break;
             default: throw new Error("Bước không hợp lệ");
         }
 
@@ -149,12 +157,11 @@ export const resolveVoteTieService = async (chiTietBnId: number, tieCandidates: 
         for (const id of tieCandidates) {
             if(id === chiTietBnId){
                 await DBNRepo.updateTrangThaiUngVien(client, id, DBNType.KetQuaPhieuBau.Dat);
-                await DBNRepo.updateBuocHienTaiChiTietBoNhiem(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, id);
+                await DBNRepo.updateBuocUngVien(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, id);
             } else {
                 await DBNRepo.updateTrangThaiUngVien(client, id, DBNType.KetQuaPhieuBau.KhongDat);
-                await DBNRepo.updateBuocHienTaiChiTietBoNhiem(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVong1, id);
+                await DBNRepo.updateBuocUngVien(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVong1, id);
             }
-           
         }
       
     } catch (error) {
