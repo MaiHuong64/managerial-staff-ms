@@ -69,8 +69,8 @@ export const getUngVienByChiTietDotId = async (req: Request, res: Response) => {
 
 export const resolveHoaPhieuBoNhiem = async (req: Request, res: Response) => {
     try {
-        const { chiTietBnId, tieCandidates } = req.body;
-        await resolveVoteTieService(chiTietBnId, tieCandidates);
+        const { chiTietBnId, tieCandidates, chiTietDotBoNhiemId } = req.body;
+        await resolveVoteTieService(chiTietBnId, tieCandidates, chiTietDotBoNhiemId);
         return res.status(200).json({ success: true, message: "Đã cập nhật kết quả ứng viên hòa!" });
     } catch (error: any) {
         return res.status(400).json({ success: false, message: error.message });
