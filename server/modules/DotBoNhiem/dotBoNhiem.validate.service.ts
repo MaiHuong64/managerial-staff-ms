@@ -150,7 +150,7 @@ export const submitVoteResult = async (data: KetQuaHoiNghi) => {
         client.release();
     }
 }
-export const resolveVoteTieService = async (chiTietBnId: number, tieCandidates: number[]) => {
+export const resolveVoteTieService = async (chiTietBnId: number, tieCandidates: number[], chiTietDotBoNhiemId: number) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
@@ -158,12 +158,14 @@ export const resolveVoteTieService = async (chiTietBnId: number, tieCandidates: 
             if(id === chiTietBnId){
                 await DBNRepo.updateTrangThaiUngVien(client, id, DBNType.KetQuaPhieuBau.Dat);
                 await DBNRepo.updateBuocUngVien(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, id);
+                await DBNRepo.updateBuocChucDanh(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, chiTietDotBoNhiemId);
             } else {
                 await DBNRepo.updateTrangThaiUngVien(client, id, DBNType.KetQuaPhieuBau.KhongDat);
                 await DBNRepo.updateBuocUngVien(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVong1, id);
+                await DBNRepo.updateBuocChucDanh(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, chiTietDotBoNhiemId);
             }
         }
-      
+        await client.query("COMMIT");
     } catch (error) {
         await client.query("ROLLBACK");
         throw error;

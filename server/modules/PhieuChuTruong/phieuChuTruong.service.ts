@@ -29,9 +29,6 @@ export const createPhieuChuTruong = async (payload: CreatePhieuChuTruongDTO, use
 export const approvePCT = async (id: number, user: any) =>{
     const client = await pool.connect();
     try {
-        await client.query("BEGIN");
-        if(user.vaiTro !== "BGH")
-            throw new Error("Không có quyền duyệt phiếu");
         const result = await PhieuChuTruongRepo.approvePhieuChuTruong(client, id, user.hoVaTen);
         await client.query("COMMIT");
         return result;
@@ -46,8 +43,6 @@ export const rejectPCT = async (id: number, user: any, lyDoTuChoi: string) =>{
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        if(user.vaiTro !== "BGH")
-            throw new Error("Không có quyền duyệt phiếu");
         const result = await PhieuChuTruongRepo.rejectPhieuChuTruong(client, id, user.hoVaTen, lyDoTuChoi);
         await client.query("COMMIT");
         return result;
