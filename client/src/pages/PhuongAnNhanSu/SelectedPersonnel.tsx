@@ -33,7 +33,7 @@ const SelectCandidateModal: React.FC<SelectPersonnelModalProps> = ({ isOpen, onC
     const fetchDanhSachDat = async () => {
         setIsLoading(true);
         try {
-            const res = await axiosClient.get('/phuong-an-nhan-su/candidates');
+            const res = await axiosClient.get('/phuong-an-nhan-su/ung-vien');
             
             if (res.data.success) {
                 setDanhSachDat(res.data.data);
