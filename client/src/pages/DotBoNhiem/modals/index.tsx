@@ -43,7 +43,7 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
         const fetchPCT = async () => {
             try {
                 const pctRes = await getPhieuChuTruongList();
-                setPctList((pctRes.data?.data ?? []).filter((p: PCT) => p.trangThai === 2));
+                setPctList(pctRes.data?.data ?? [])
             } catch {
                 message.error("Lỗi khi tải danh mục Phiếu chủ trương!");
             }

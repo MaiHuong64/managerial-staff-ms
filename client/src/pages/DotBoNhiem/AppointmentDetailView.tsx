@@ -227,11 +227,11 @@ export const AppointmentDetailView: React.FC = () => {
                         <InfoField label="Ngày kết thúc" value={batchInfo.ngayKetThuc ? new Date(batchInfo.ngayKetThuc).toLocaleDateString("vi-VN") : null} />
                         <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-3">
                             <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                <div className="text-xl font-bold text-indigo-600">{batchInfo.chucDanhList.length}</div>
+                                <div className="text-xl font-bold text-indigo-600">{batchInfo.chucDanhList.length ?? 0}</div>
                                 <div className="text-xs text-slate-500 mt-0.5">Chức danh</div>
                             </div>
                             <div className="text-center p-3 bg-sky-50 rounded-lg">
-                                <div className="text-xl font-bold text-sky-600">{totalAllChucDanh}</div>
+                                <div className="text-xl font-bold text-sky-600">{totalAllChucDanh ?? 0}</div>
                                 <div className="text-xs text-slate-500 mt-0.5">Ứng viên</div>
                             </div>
                         </div>

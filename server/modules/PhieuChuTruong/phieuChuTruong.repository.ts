@@ -12,12 +12,14 @@ export const nextBatchCode = async (client: any) => {
 
 export const getAllPhieuChuTruong = async () => {
     const result = await pool.query(
-        `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
-        FROM phieu_chu_truong ptc
-        LEFT JOIN don_vi dv ON ptc.don_vi_id = dv.id
-        LEFT JOIN chuc_danh_quan_ly cd ON cd.id = ptc.chuc_danh_id
-        LEFT JOIN dot_quy_hoach dqt ON dqt.id = ptc.dot_quy_hoach_id
-        LEFT JOIN vien_chuc vc ON vc.id = ptc.vien_chuc_id`
+        `SELECT pct.id, pct.tieu_de, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc, cd.id AS chuc_danh_id
+        FROM phieu_chu_truong pct
+        LEFT JOIN don_vi dv ON pct.don_vi_id = dv.id
+        LEFT JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+        LEFT JOIN vien_chuc vc ON vc.id = pct.vien_chuc_id
+        where pct.trang_thai = 2 and pct.id NOT IN (
+        SELECT ct.phieu_chu_truong_id
+                FROM chi_tiet_dot_bo_nhiem ct)`
     )
     return result.rows.map(toCamel);
 }
@@ -35,15 +37,29 @@ export const getPhieuChuTruongById = async (id: number) => {
     );
     return result.rows[0] ?? null;
 }
-export const getPhieuChuTruongByDonViId = async (id: number) => {
+/*
+SELECT pct.tieu_de, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
+        FROM phieu_chu_truong pct
+        LEFT JOIN don_vi dv ON pct.don_vi_id = dv.id
+        LEFT JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+        LEFT JOIN vien_chuc vc ON vc.id = pct.vien_chuc_id
+        where pct.trang_thai = 2 AND NOT EXISTS (
+        SELECT 1
+        FROM chi_tiet_dot_bo_nhiem ct
+        WHERE ct.phieu_chu_truong_id = pct.id
+*/
+export const getPhieuChuTruongByDonViId = async (donViId: number) => {
     const result = await pool.query(
-        `SELECT ptc.*, dv.ten_don_vi, cd.ten_chuc_danh
-        FROM phieu_chu_truong ptc   
-        LEFT JOIN don_vi dv ON ptc.don_vi_id = dv.id
-        LEFT JOIN chuc_danh_quan_ly cd ON cd.id = ptc.chuc_danh_id
-        LEFT JOIN dot_quy_hoach dqt ON dqt.id = ptc.dot_quy_hoach_id
-        WHERE ptc.don_vi_id = $1
-        ORDER BY ptc.id DESC`
+        `SELECT pct.tieu_de, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
+        FROM phieu_chu_truong pct
+        LEFT JOIN don_vi dv ON pct.don_vi_id = dv.id
+        LEFT JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+        LEFT JOIN vien_chuc vc ON vc.id = pct.vien_chuc_id
+        where dv.id = $1 and pct.trang_thai = 2 and pct.id NOT IN (
+        SELECT ct.phieu_chu_truong_id
+                FROM chi_tiet_dot_bo_nhiem ct
+        )
+        `, [donViId]
     )
     return result.rows;
 }
