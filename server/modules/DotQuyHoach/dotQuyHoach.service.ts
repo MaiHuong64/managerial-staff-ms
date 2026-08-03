@@ -1,4 +1,3 @@
-import { PoolClient } from "pg";
 import pool from "../../config/db";
 import ExcelJS from 'exceljs';
 import * as DotQuyHoachDTO from "./dotQuyHoach.dto";

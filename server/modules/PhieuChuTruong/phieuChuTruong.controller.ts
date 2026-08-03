@@ -11,6 +11,26 @@ export const getAllPhieuChuTruong = async (req: Request, res: Response) => {
         return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     }
 }
+export const getPhieuChuTruongFollowingAppointment = async (req: Request, res: Response) => {
+    try {
+        const data = await PhieuChuTruongService.getPhieuChuTruongFollowingAppointment();
+        return res.status(200).json({ success: true, data: data.map(toCamel) });
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+}
+export const getPhieuChuTruongByDonViId = async (req: Request, res: Response) => {
+    try {
+        const donViId = Number(req.params.donViId);
+        const data = await PhieuChuTruongService.getPhieuChuTruongByDonViId(donViId);
+        return res.status(200).json({ success: true, data: data.map(toCamel) });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    }
+}
 export const getPhieuChuTruongById = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);

@@ -2,8 +2,6 @@ import {NextFunction, Request, Response } from "express";
 import * as DotQuyHoachService from "./dotQuyHoach.service";
 import * as DotQuyHoachDTO from "./dotQuyHoach.dto";
 import { submitVoteService } from "./dotQuyHoach.validate.service";
-import pool from "../../config/db";
-import { nextBatchCode } from "../PhieuChuTruong/phieuChuTruong.repository";
 
 export const createDotQuyHoach = async (req: Request, res: Response) => {
     try {

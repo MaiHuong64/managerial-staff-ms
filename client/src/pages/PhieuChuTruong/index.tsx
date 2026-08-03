@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../hook/useAuth"
 import type { PhieuChuTruong } from "../../types/PhieuChuTruong";
-import { Button, Card, Col, Input, message, Row, Statistic, Table, Tag } from "antd";
+import { Button, Card, Col, Dropdown, Input, message, Row, Statistic, Table, Tag } from "antd";
 import dayjs from "dayjs";
 import { PlusOutlined } from "@ant-design/icons";
 import { CreatePhieuChuTruongModal } from "./CreatePhieuChuTruongModal";
-import { getPhieuChuTruongList } from "../../api/phieuChuTruong.api";
+import { getPhieuChuTruongByDonViId, getPhieuChuTruongList } from "../../api/phieuChuTruong.api";
 import { DetailPhieuChuTruongModal } from "./DetailPhieuChuTruongModal";
 
 export const PhieuChuTruongPage: React.FC = () => {
@@ -13,12 +13,15 @@ export const PhieuChuTruongPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [phieuChuTruong, setPhieuChuTruong] = useState<PhieuChuTruong[]>([]);
     const [searchText, setSearchText] = useState("");
+    const [donViFilter, setDonViFilter] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [detailId, setDetailId] = useState<number | null>(null);
+    
     const fetchData = async () => {
         try {
             setLoading(true);
-            const response = await getPhieuChuTruongList();
+            const response = user?.vaiTro === 'VCQL' ? await getPhieuChuTruongByDonViId(user.donViId) : await getPhieuChuTruongList();
+            console.log("Fetched PhieuChuTruong:", response.data.data);
             setPhieuChuTruong(response.data.data);
         } catch {
             message.error("Không thể tải dữ liệu phiếu chủ trương");
@@ -35,13 +38,22 @@ export const PhieuChuTruongPage: React.FC = () => {
     }), [phieuChuTruong]);
 
     const filteredData = useMemo(() => {
-        if (!searchText) return phieuChuTruong;
+        let result = phieuChuTruong;
+        if (donViFilter) {
+            result = result.filter(item => item.tenDonVi === donViFilter);
+        }
+        if (!searchText) return result;
         const lower = searchText.toLowerCase();
-        return phieuChuTruong.filter(item =>
+        return result.filter(item =>
             item.soToTrinhChuTruong?.toLowerCase().includes(lower) ||
             item.tenChucDanh?.toLowerCase().includes(lower)
         );
-    }, [phieuChuTruong, searchText]);
+    }, [phieuChuTruong, searchText, donViFilter]);
+
+    const DonViFilter = useMemo(() => {
+        const donViSet = new Set(phieuChuTruong.map(item => item.tenDonVi));
+        return Array.from(donViSet).map(tenDonVi => ({ key: tenDonVi, label: tenDonVi }));
+    }, [phieuChuTruong]);
 
     const trangThaiTag = (trangThai: number) => {
         if (trangThai === 1) return <Tag color="gold">Chờ duyệt</Tag>;
@@ -106,7 +118,15 @@ export const PhieuChuTruongPage: React.FC = () => {
                         onChange={(e) => setSearchText(e.target.value)}
                         style={{ width: 320 }}
                     />
-                    {user?.vaiTro === 'VCQL' && (
+                    <Dropdown 
+                        menu={{
+                            items: DonViFilter,
+                            onClick: ({ key }) => setDonViFilter(key === donViFilter ? null : key)
+                        }}
+                    >
+                        <Button>Lọc theo đơn vị</Button>
+                    </Dropdown>
+                        {user?.vaiTro === 'VCQL' && (
                         <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
                             Lập Tờ trình đề xuất
                         </Button>
