@@ -1,4 +1,6 @@
-export const insertKetQuaBoNhiem = async (client: any, params: any[]) => {
+import { PoolClient } from "pg"
+
+export const insertKetQuaBoNhiem = async (client: PoolClient, params: any[]) => {
     await client.query(
         `INSERT INTO ket_qua_bo_nhiem
             (chi_tiet_bn_id, buoc_hoi_nghi, so_nguoi_trieu_tap, so_nguoi_co_mat,
@@ -8,7 +10,7 @@ export const insertKetQuaBoNhiem = async (client: any, params: any[]) => {
     )
 }
 
-export const upsertKetQuaBuoc2 = async (client: any, params: any[]) => {
+export const upsertKetQuaBuoc2 = async (client: PoolClient, params: any[]) => {
     await client.query( 
         `INSERT INTO ket_qua_bo_nhiem
          (chi_tiet_bn_id, buoc_hoi_nghi, so_nguoi_trieu_tap, so_nguoi_co_mat,
@@ -23,7 +25,7 @@ export const upsertKetQuaBuoc2 = async (client: any, params: any[]) => {
     )
 }
 
-export const getChiTietDotBoNhiem = async (client: any, id: number) => {
+export const getChiTietDotBoNhiem = async (client: PoolClient, id: number) => {
     const result = await client.query (
        `SELECT ctdbn.dot_bo_nhiem_id
         FROM chi_tiet_dot_bo_nhiem ctdbn
@@ -32,7 +34,7 @@ export const getChiTietDotBoNhiem = async (client: any, id: number) => {
     return result.rows[0];
 }
 
-export const getBuocHienTai = async (client: any, chiTietDotBoNhiemId: number) => {
+export const getBuocHienTai = async (client: PoolClient, chiTietDotBoNhiemId: number) => {
     const result = await client.query(
         `SELECT buoc_hien_tai 
          FROM chi_tiet_dot_bo_nhiem 
@@ -42,11 +44,11 @@ export const getBuocHienTai = async (client: any, chiTietDotBoNhiemId: number) =
     return result.rows[0].buoc_hien_tai;
 }
 
-export const checkDotBoNhiemHoanThanh = async (client: any, dotBoNhiemId: number) => {
+export const checkDotBoNhiemHoanThanh = async (client: PoolClient, dotBoNhiemId: number) => {
       const result = await client.query(
         `SELECT
-            COUNT(*) FILTER (WHERE buoc_hoi_nghi BETWEEN 2 AND 5) AS dang_xu_ly,
-            COUNT(*) FILTER (WHERE buoc_hoi_nghi = 0) AS so_dung
+            COUNT(*) FILTER (WHERE ctbn.buoc_hoi_nghi BETWEEN 2 AND 5 AND ctbn.trang_thai = 1) AS dang_xu_ly,
+            COUNT(*) FILTER (WHERE ctbn.trang_thai = 1) AS so_dung
          FROM chi_tiet_bo_nhiem ctbn JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctbn.chi_tiet_dot_bo_nhiem_id = ctdbn.id
          WHERE ctdbn.dot_bo_nhiem_id = $1`,
         [dotBoNhiemId]
@@ -55,19 +57,19 @@ export const checkDotBoNhiemHoanThanh = async (client: any, dotBoNhiemId: number
 
 }
 
-export const updateTrangThaiDotBoNhiem = async (client: any, dotBoNhiemId: number, trangThai: number) => {
+export const updateTrangThaiDotBoNhiem = async (client: PoolClient, dotBoNhiemId: number, trangThai: number) => {
     await client.query(
         `UPDATE dot_bo_nhiem SET trang_thai = $1 WHERE id = $2`,
         [trangThai, dotBoNhiemId]
     );
 }
-export const updateTrangThaiChiTietDotBoNhiem = async (client: any, chiTietDotId: number, trangThai: number) => {
+export const updateTrangThaiChiTietDotBoNhiem = async (client: PoolClient, chiTietDotId: number, trangThai: number) => {
     await client.query(
         `UPDATE chi_tiet_dot_bo_nhiem SET trang_thai = $1 WHERE id = $2`,
         [trangThai, chiTietDotId]
     );
 }
-export const updateBuocHienTaiChiTietDotBoNhiem = async (client: any, buoc: number, chiTIetDottId: number) => {
+export const updateBuocHienTaiChiTietDotBoNhiem = async (client: PoolClient, buoc: number, chiTIetDottId: number) => {
     await client.query (
         `UPDATE chi_tiet_dot_bo_nhiem
          SET buoc_hien_tai = $1
@@ -75,28 +77,28 @@ export const updateBuocHienTaiChiTietDotBoNhiem = async (client: any, buoc: numb
         [buoc, chiTIetDottId]
     )
 }
-export const updateTrangThaiUngVien = async (client: any, chiTietBnId: number, trangThai: number) => {
+export const updateTrangThaiUngVien = async (client: PoolClient, chiTietBnId: number, trangThai: number) => {
     await client.query(
         `UPDATE chi_tiet_bo_nhiem SET trang_thai = $1 WHERE id = $2`,
         [trangThai, chiTietBnId]
     );
 }
-export const getUngVienHoa = async (client: any, danhSachUngVien: number[]) => {
+export const getUngVienHoa = async (client: PoolClient, danhSachUngVien: number[]) => {
     const result = await client.query(
         `SELECT ctbn.id as chi_tiet_bn_id, vc.ho_va_ten
         FROM chi_tiet_bo_nhiem ctbn
         JOIN vien_chuc vc ON ctbn.vien_chuc_id = vc.id
-        WHERE ctbn.id = ANY($1)`, danhSachUngVien)
+        WHERE ctbn.id = ANY($1)`, [danhSachUngVien])
     return result.rows
 }
-export const updateBuocUngVien = async (client: any, buoc: number, chiTietBnId: number) => {
+export const updateBuocUngVien = async (client: PoolClient, buoc: number, chiTietBnId: number) => {
     await client.query(
         `UPDATE chi_tiet_bo_nhiem SET buoc_hoi_nghi = $1 WHERE id = $2`,
         [buoc, chiTietBnId]
     )
 }
 
-export const updateBuocChucDanh = async (client: any, buocHoiNghi: number, chiTietBnId: number) => {
+export const updateBuocChucDanh = async (client: PoolClient, buocHoiNghi: number, chiTietBnId: number) => {
     await client.query(
         `UPDATE chi_tiet_dot_bo_nhiem
         SET buoc_hien_tai = $1

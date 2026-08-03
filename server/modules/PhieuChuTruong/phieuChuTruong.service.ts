@@ -5,6 +5,12 @@ import * as PhieuChuTruongRepo from "./phieuChuTruong.repository";
 export const getAllPhieuChuTruong = async () => {
     return PhieuChuTruongRepo.getAllPhieuChuTruong();
 }
+export const getPhieuChuTruongByDonViId = async (donViId: number) => {
+    return PhieuChuTruongRepo.getPhieuChuTruongByDonViId(donViId);
+}
+export const getPhieuChuTruongFollowingAppointment = async () => {
+    return PhieuChuTruongRepo.getPhieuChuTruongFollowingAppointment();
+}
 export const getPhieuChuTruongById = async (id: number) => {
     const data = await PhieuChuTruongRepo.getPhieuChuTruongById(id);
     if (!data) throw new Error("Không tìm thấy phiếu chủ trương");

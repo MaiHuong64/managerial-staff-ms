@@ -1,7 +1,21 @@
+import { PoolClient } from "pg";
 import pool from "../../config/db";
 import { KetQuaHoiNghi } from "./dotBoNhiem.dto";
 import * as DBNType from "./dotBoNhiem.type";
 import * as DBNRepo from "./dotBoNhiem.validate.repository";
+import { updateBuocUngVien, updateTrangThaiUngVien } from "./dotBoNhiem.validate.repository";
+
+// const sovleCandidateTie = async (client: PoolClient, tieCandidates: number[], idWinner: number) => {
+//     for(const id of tieCandidates){
+//         if(id === idWinner){
+//             await updateTrangThaiUngVien(client, id, DBNType.KetQuaPhieuBau.Dat);
+//             await updateBuocUngVien(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, id);
+//         }
+//         await updateTrangThaiUngVien(client, id, DBNType.KetQuaPhieuBau.KhongDat);
+//         await updateBuocUngVien(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVong1, id);
+//     }
+//     await DBNRepo.updateBuocChucDanh(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, idWinner);
+// }
 
 export const validateVoteInput = (data: KetQuaHoiNghi) => {
     if(!data.chiTietDotBoNhiemId || !data.buocHoiNghi)
@@ -52,18 +66,19 @@ export const processStep3 = async (client: any, data: KetQuaHoiNghi) => {
 
     if (isTie) {
         const chiTietBnIds = qualified.map(q => q.chiTietBnId);
+        // console.log("Tie candidates:", chiTietBnIds);
         const candidateInfo = await DBNRepo.getUngVienHoa(client, chiTietBnIds);
+        // console.log("Candidate info:", candidateInfo);
 
         const danhSachHoa = qualified.map(q => {
-            const info = candidateInfo.rows.find((c: any) => c.chi_tiet_bn_id === q.chiTietBnId);
             return {
                 chiTietBnId: q.chiTietBnId,
-                hoVaTen: info?.ho_va_ten || '',
                 soPhieuDongY: q.soPhieuDongY
             };
         });
-
-        console.log("Final danhSachHoa:", JSON.stringify(danhSachHoa, null, 2));
+        // console.log("Danh sách hòa:", danhSachHoa);
+        
+        // console.log("Final danhSachHoa:", JSON.stringify(danhSachHoa, null, 2));
         return { isTie: true, danhSachHoa };
     }
 
@@ -158,13 +173,13 @@ export const resolveVoteTieService = async (chiTietBnId: number, tieCandidates: 
             if(id === chiTietBnId){
                 await DBNRepo.updateTrangThaiUngVien(client, id, DBNType.KetQuaPhieuBau.Dat);
                 await DBNRepo.updateBuocUngVien(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, id);
-                await DBNRepo.updateBuocChucDanh(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, chiTietDotBoNhiemId);
             } else {
                 await DBNRepo.updateTrangThaiUngVien(client, id, DBNType.KetQuaPhieuBau.KhongDat);
                 await DBNRepo.updateBuocUngVien(client, DBNType.BuocHoiNghi.HoiNghiLanhDaoVong1, id);
-                await DBNRepo.updateBuocChucDanh(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, chiTietDotBoNhiemId);
+                
             }
         }
+        await DBNRepo.updateBuocChucDanh(client, DBNType.BuocHoiNghi.HoiNghiCanBoChuChot, chiTietDotBoNhiemId);
         await client.query("COMMIT");
     } catch (error) {
         await client.query("ROLLBACK");

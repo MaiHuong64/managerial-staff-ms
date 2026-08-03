@@ -9,7 +9,7 @@ import { BatchInfo } from "./batchInfo";
 import { getPlanningCandidates } from "../../../api/dotQuyHoach.api";
 import { createDotBoNhiem } from "../../../api/dotBoNhiem.api";
 import { useAuth } from "../../../hook/useAuth";
-import { getPhieuChuTruongList } from "../../../api/phieuChuTruong.api";
+import { getPhieuChuTruongFollowingAppointment } from "../../../api/phieuChuTruong.api";
 
 interface CreateBatchModalProps {
     visible: boolean;
@@ -42,8 +42,9 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
         setChucDanhList([]);
         const fetchPCT = async () => {
             try {
-                const pctRes = await getPhieuChuTruongList();
-                setPctList(pctRes.data?.data ?? [])
+                const pctRes = await getPhieuChuTruongFollowingAppointment();
+                setPctList(pctRes.data?.data ?? []);
+                console.log("PCT List:", pctRes.data?.data ?? []);
             } catch {
                 message.error("Lỗi khi tải danh mục Phiếu chủ trương!");
             }
@@ -61,6 +62,8 @@ export const CreateBatchModal: React.FC<CreateBatchModalProps> = ({ visible, onC
         setAddingPct(true);
         try {
             const res = await getPlanningCandidates(pct.chucDanhId);
+            console.log("Id chức danh:", pct.chucDanhId, "Ứng viên quy hoạch:", res.data?.data ?? []);
+            console.log("PCT:", res.data?.data ?? []);
             const planningCandidates: VienChuc[] = res.data?.data ?? [];
 
             setChucDanhList(prev => [...prev, {

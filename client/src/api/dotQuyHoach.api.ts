@@ -15,7 +15,7 @@ export const createDotQuyHoach = (data: unknown) =>
 export const addUngVien_QT169 = (id: number, data: unknown) =>
     axiosClient.post(`/quy-hoach/${id}/chi-tiet`, data);
 
-export const getPlanningCandidates = (chucDanhId: number) =>
+export const getPlanningCandidates = (chucDanhId: number) => 
     axiosClient.get(`/quy-hoach/candidates/${chucDanhId}`);
 
 export const submitVoteQuyHoach = (data: unknown) =>

@@ -16,7 +16,7 @@ router.post("/", checkRole(["PTCCT"]), DotQuyHoachController.createDotQuyHoach);
 router.post("/:id/chi-tiet", checkRole(["PTCCT"]), DotQuyHoachController.addBulkVienChuc);
 router.post("/:id/chi-tiet/170", checkRole(["PTCCT"]), DotQuyHoachController.addUngVien);
 
-router.patch("/:id/phe-duyet", checkRole(["BGH"]), DotQuyHoachController.approveDotQuyHoach);
+router.patch("/:id/phe-duyet", checkRole(["BGH", "PTCCT"]), DotQuyHoachController.approveDotQuyHoach);
 
 router.get("/", checkRole(["PTCCT"]), DotQuyHoachController.getAllDotQuyHoach);       // list
 router.get("/:id", checkRole(["PTCCT"]), DotQuyHoachController.getDotQuyHoachById);   // detail
