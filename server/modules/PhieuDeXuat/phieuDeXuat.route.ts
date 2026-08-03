@@ -4,9 +4,7 @@ import * as PhieuDeXuatController from "./phieuDeXuat.controller";
 import { checkRole } from "../../middleware/role.middleware";
 
 const router = Router();
-
 router.use(verifyToken);
-
 router.get("/", PhieuDeXuatController.getAllPhieuDeXuatNhanSu);
 router.get("/:id", PhieuDeXuatController.getPhieuDeXuatNhanSutById);
 router.post("/", checkRole(['VCQL']), PhieuDeXuatController.createPhieuDeXuatNhanSu);
