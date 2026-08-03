@@ -10,22 +10,6 @@ export const getNextBatchCode = async (client: any) =>{
     return 'DBN' + nextId.toString().padStart(3, '0');
 }
 
-export const getAllDotBoNhiem = async () => {
-    const result = await pool.query(`
-        SELECT dbn.id, dbn.ma_dot_bo_nhiem, dbn.ten_dot_bo_nhiem,
-               dbn.ngay_bat_dau, dbn.ngay_ket_thuc, dbn.so_quyet_dinh,
-               dbn.trang_thai,
-               COUNT(ctdbn.id) AS so_phieu,
-               MIN(ctbn.buoc_hoi_nghi) FILTER (
-                   WHERE ctbn.buoc_hoi_nghi BETWEEN 2 AND 5
-               ) AS buoc_hien_tai
-        FROM dot_bo_nhiem dbn
-        LEFT JOIN chi_tiet_dot_bo_nhiem ctdbn ON ctdbn.dot_bo_nhiem_id = dbn.id
-        LEFT JOIN chi_tiet_bo_nhiem ctbn ON ctbn.chi_tiet_dot_bo_nhiem_id = ctdbn.id
-        GROUP BY dbn.id
-    `);
-    return mapArrayToCamel(result.rows);
-}
 export const getThongTinDotBoNhiem = async () => {
     const result = await pool.query(`
         SELECT dbn.id, dbn.ten_dot_bo_nhiem, dbn.ngay_bat_dau, dbn.ngay_ket_thuc, dbn.trang_thai, count(ct.phieu_chu_truong_id) as chuc_danh

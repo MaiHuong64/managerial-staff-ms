@@ -76,17 +76,21 @@ export const getLoaiQuyHoach = async (client: PoolClient, dotQuyHoachId: number)
         `SELECT loai_quy_hoach FROM dot_quy_hoach WHERE id = $1`,
         [dotQuyHoachId]
     );
-    return dotQH.rows[0]?.loai_quy_hoach;
+    return dotQH.rows[0]?.loai_quy_hoach; 
 
 }
 
 export const getVienChucByChucDanhId = async (chucDanhId: number) => {
     const result = await pool.query (
-        `SELECT vc.id, vc.ma_vien_chuc, vc.ho_va_ten, dv.ten_don_vi, ctqh.id AS chi_tiet_qh_id
-        FROM chi_tiet_quy_hoach ctqh
-        JOIN vien_chuc vc ON vc.id = ctqh.vien_chuc_id
-        JOIN don_vi dv ON dv.id = ctqh.don_vi_id
-        WHERE ctqh.chuc_danh_id = $1 AND ctqh.trang_thai = 1
+        `SELECT vc.id, vc.ma_vien_chuc, vc.ho_va_ten, ctqh.id AS chi_tiet_qh_id
+        from chi_tiet_quy_hoach ctqh 
+        join dot_quy_hoach dqh on ctqh.dot_quy_hoach_id = dqh.id
+        join vien_chuc vc on ctqh.vien_chuc_id = vc.id
+        where ctqh.chuc_danh_id = $1 and dqh.trang_thai = 2 and exists (
+        select 1 from phieu_chu_truong pct
+        join chuc_danh_quan_ly cd on pct.chuc_danh_id = cd.id
+        join don_vi dv on dv.id = pct.don_vi_id
+        )
         `, [chucDanhId]
     )
     return result.rows.map(toCamel);

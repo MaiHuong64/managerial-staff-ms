@@ -1,6 +1,10 @@
 import axiosClient from "../utils/AxiosClient";
 export const getPhieuChuTruongList = () =>
     axiosClient.get("/phieu-chu-truong");
+export const getPhieuChuTruongByDonViId = (donViId: number) =>
+    axiosClient.get(`/phieu-chu-truong/don-vi/${donViId}`);
+export const getPhieuChuTruongFollowingAppointment = () =>
+    axiosClient.get("/phieu-chu-truong/following-appointment");
 export const getPhieuChuTruongById = (id: number) =>
     axiosClient.get(`/phieu-chu-truong/${id}`);
 export const createPhieuChuTruong = (data: unknown) =>

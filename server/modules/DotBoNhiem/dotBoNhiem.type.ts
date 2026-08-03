@@ -1,3 +1,5 @@
+// Source of truth: chi_tiet_dot_bo_nhiem.buoc_hien_tai (dùng để render + validate)
+// chi_tiet_bo_nhiem.buoc_hoi_nghi chỉ lưu lịch sử ứng viên bị loại ở bước nào
 export enum BuocHoiNghi {
     HoiNghiLanhDaoVong1 = 2,
     HoiNghiLanhDaoVong2 = 3,

@@ -21,7 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
 
     { section: 'Quy hoạch', roles: ['VCQL','PTCCT'] }, 
     { icon: <FileTextOutlined />,  label: 'Phiếu Đề Xuất', path: '/phieu-de-xuat', roles: ['VCQL','PTCCT'] },
-    { icon: <BarChartOutlined />,  label: 'Đợt Quy Hoạch', path: '/dot-quy-hoach', roles: ['PTCCT'] },
+    { icon: <BarChartOutlined />,  label: 'Đợt Quy Hoạch', path: '/dot-quy-hoach', roles: ['PTCCT', 'BGH'] },
  
     { section: 'Bổ nhiệm', roles: ['VCQL','BGH','PTCCT'] }, 
     { icon: <FileTextOutlined />,  label: 'Phiếu Chủ Trương', path: '/phieu-chu-truong', roles: ['VCQL','BGH'] },

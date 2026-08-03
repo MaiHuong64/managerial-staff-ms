@@ -9,17 +9,15 @@ export const nextBatchCode = async (client: any) => {
     const nextId = Number(result.rows[0].max) + 1;
     return "PCT" + nextId.toString().padStart(3, '0');
 }
+ 
 
 export const getAllPhieuChuTruong = async () => {
     const result = await pool.query(
-        `SELECT pct.id, pct.tieu_de, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc, cd.id AS chuc_danh_id
+        `SELECT pct.id, pct.tieu_de, pct.trang_thai, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc, cd.id AS chuc_danh_id
         FROM phieu_chu_truong pct
         LEFT JOIN don_vi dv ON pct.don_vi_id = dv.id
         LEFT JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
-        LEFT JOIN vien_chuc vc ON vc.id = pct.vien_chuc_id
-        where pct.trang_thai = 2 and pct.id NOT IN (
-        SELECT ct.phieu_chu_truong_id
-                FROM chi_tiet_dot_bo_nhiem ct)`
+        LEFT JOIN vien_chuc vc ON vc.id = pct.vien_chuc_id`
     )
     return result.rows.map(toCamel);
 }
@@ -37,31 +35,32 @@ export const getPhieuChuTruongById = async (id: number) => {
     );
     return result.rows[0] ?? null;
 }
-/*
-SELECT pct.tieu_de, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
-        FROM phieu_chu_truong pct
-        LEFT JOIN don_vi dv ON pct.don_vi_id = dv.id
-        LEFT JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
-        LEFT JOIN vien_chuc vc ON vc.id = pct.vien_chuc_id
-        where pct.trang_thai = 2 AND NOT EXISTS (
-        SELECT 1
-        FROM chi_tiet_dot_bo_nhiem ct
-        WHERE ct.phieu_chu_truong_id = pct.id
-*/
+
 export const getPhieuChuTruongByDonViId = async (donViId: number) => {
     const result = await pool.query(
-        `SELECT pct.tieu_de, dv.ten_don_vi, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
+        `SELECT pct.tieu_de, dv.ten_don_vi, cd.id as chuc_danh_id, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
         FROM phieu_chu_truong pct
         LEFT JOIN don_vi dv ON pct.don_vi_id = dv.id
         LEFT JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
         LEFT JOIN vien_chuc vc ON vc.id = pct.vien_chuc_id
-        where dv.id = $1 and pct.trang_thai = 2 and pct.id NOT IN (
-        SELECT ct.phieu_chu_truong_id
-                FROM chi_tiet_dot_bo_nhiem ct
-        )
-        `, [donViId]
+        WHERE dv.id = $1`, [donViId]
     )
     return result.rows;
+}
+export const getPhieuChuTruongFollowingAppointment = async() => {
+    const reulst = await pool.query(
+        `SELECT pct.id, pct.tieu_de, dv.ten_don_vi, cd.id as chuc_danh_id, cd.ten_chuc_danh, vc.ho_va_ten, vc.ma_vien_chuc
+        FROM phieu_chu_truong pct
+        LEFT JOIN don_vi dv ON pct.don_vi_id = dv.id
+        LEFT JOIN chuc_danh_quan_ly cd ON cd.id = pct.chuc_danh_id
+        LEFT JOIN vien_chuc vc ON vc.id = pct.vien_chuc_id
+        WHERE pct.trang_thai = 2 AND NOT EXISTS (
+            SELECT 1
+            FROM chi_tiet_dot_bo_nhiem ct
+            WHERE ct.phieu_chu_truong_id = pct.id
+        )`
+    )
+    return reulst.rows;
 }
 export const insertPhieuChuTruong = async (client: any, payload: CreatePhieuChuTruongDTO, user: any, maPhieu: string) => {
     const {hoVaTen, donViId} = user

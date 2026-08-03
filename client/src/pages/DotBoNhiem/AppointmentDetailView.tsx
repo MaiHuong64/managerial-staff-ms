@@ -2,11 +2,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Steps, Table, Tag, Button, Empty, Spin, Badge } from "antd";
-import {
-    FormOutlined, UserOutlined, HomeOutlined,
-    ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined,
-    CloseCircleOutlined, StopOutlined,
-} from "@ant-design/icons";
+import {FormOutlined, UserOutlined, HomeOutlined, ArrowLeftOutlined, TeamOutlined, CheckCircleOutlined, CloseCircleOutlined, StopOutlined} from "@ant-design/icons";
 import VoteModal from "./VoteModal";
 import type { ChucDanh, DotBoNhiem, UngVien } from "../../types/ChiTietBoNhiem";
 import { getDotBoNhiemById, getCandidatesByChiTietDot } from "../../api/dotBoNhiem.api";
