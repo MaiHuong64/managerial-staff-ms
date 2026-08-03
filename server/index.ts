@@ -19,6 +19,6 @@ pool.query("SELECT NOW()")
     .then(res => console.log("Database connected:", res.rows[0]))
     .catch(err => console.error("Database connection error:", err));
 
-app.listen(8000, () => {
+app.listen(3000, () => {
   console.log("Server running on port 8000");
 });

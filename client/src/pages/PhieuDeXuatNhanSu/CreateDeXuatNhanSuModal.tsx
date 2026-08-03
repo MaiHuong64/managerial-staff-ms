@@ -46,6 +46,10 @@ export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, 
         try {
             setLoading(true);
             const values = await form.validateFields();
+            
+            if(selectedVienChucIds.length > 3) 
+                throw new Error(`Chức danh này chỉ được đề xuất tối đa 3 ứng viên, hiện đề xuất ${selectedVienChucIds.length}`);
+            
             const payload = {
                 tieuDe: values.tieuDe,
                 noiDung: values.noiDung,
@@ -54,6 +58,8 @@ export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, 
                 ngayLap: new Date(),
                 vienChucList: selectedVienChucIds.map(id => ({ vienChucId: id })),
             };
+            
+            
             await createPhieuDeXuatNhanSu(payload);
             message.success("Lập phiếu đề xuất nhân sự thành công!");
             onSuccess();
@@ -76,6 +82,7 @@ export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, 
             open={isVisible}
             onOk={handleSubmit}
             onCancel={onCancel}
+            okButtonProps={{ disabled: selectedVienChucIds.length === 0 || selectedVienChucIds.length > 3 }}
             confirmLoading={loading}
             okText="Gửi phiếu"
             cancelText="Hủy"
