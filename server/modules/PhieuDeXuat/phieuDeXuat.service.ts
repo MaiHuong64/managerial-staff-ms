@@ -4,11 +4,15 @@ import * as PhieuDeXuatRepo from "./phieuDeXuat.repository";
 
 export const createPhieuDeXuat = async (payload: PhieuDeXuatDTO.CreatePhieuDeXuatDTO, user: any) => {
     const client = await pool.connect();
+    //  console.log('payload nhận được:', JSON.stringify(payload, null, 2));
     try {
-        await client.query('BEGIN');
+        if(payload.vienChucList.length > 3)
+            throw new Error(`Chức danh này chỉ được đề xuất tối đa 3 ứng viên, hiện đề xuất ${payload.vienChucList.length}`);
+
         const maPhieu = await PhieuDeXuatRepo.generatePhieuDeXuatCode(client);
         const phieu = await PhieuDeXuatRepo.insertPhieuDeXuat(client, payload, user, maPhieu);
 
+       
         for(const vc of payload.vienChucList){
             await PhieuDeXuatRepo.insertChiTietPhieu(client, phieu.id, vc)
         }
