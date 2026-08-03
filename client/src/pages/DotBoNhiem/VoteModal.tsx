@@ -3,7 +3,6 @@ import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { Modal, Form, InputNumber, Button, Card, Table, Tag, Alert, message, Radio } from "antd";
 import { resolveVoteTie, submitVote } from "../../api/dotBoNhiem.api";
-import type { UngVien } from "../../types/ChiTietBoNhiem";
 
 interface VoteFormValues {
     soNguoiTrieuTap: number;
@@ -32,16 +31,15 @@ interface VotePayload {
     }[];
 }
 
-interface Candidate {
+interface CandidateInfo {
     chiTietBnId: number;
     maVienChuc: string;
     hoVaTen: string;
     trangThai: number;
 }
 
-interface UngVien {
+interface TieCandidatesResult {
     chiTietBnId: number;
-    hoVaTen: string;
     soPhieuDongY: number;
 }
 
@@ -50,7 +48,7 @@ interface VoteModalProps {
     onCancel: () => void;
     onSuccess: () => void;
     chiTietDotBoNhiemId: number;
-    candidates: Candidate[];
+    candidates: CandidateInfo[];
     currentStep?: number | null;
 }
 const STEP_NAMES: Record<number, string> = {
@@ -129,7 +127,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({visible, onCancel, onSucces
             if(res.data.hoa){
                 setTieMode(true);
                 message.warning("Có ứng viên hòa, vui lòng chọn ứng viên được đi tiếp!");
-                setTieCandidates(res.data.tieCandidates.map((c: UngVien) => c.chiTietBnId));
+                setTieCandidates(res.data.tieCandidates.map((c: TieCandidatesResult) => c.chiTietBnId));
                 return;
             }
             message.success(res.data.message ?? "Ghi nhận kết quả thành công!");
@@ -181,7 +179,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({visible, onCancel, onSucces
         { title: "Họ và tên", dataIndex: "hoVaTen", width: 180 },
         {
             title: "Phiếu đồng ý", key: "dongY", width: 140,
-            render: (_: unknown, record: Candidate) => (
+            render: (_: unknown, record: CandidateInfo) => (
                 <InputNumber
                     min={0} style={{ width: "100%" }}
                     disabled={tieMode}
@@ -192,7 +190,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({visible, onCancel, onSucces
         },
         {
             title: "Phiếu không đồng ý", key: "khong_dong_y", width: 160,
-            render: (_: unknown, record: Candidate) => {
+            render: (_: unknown, record: CandidateInfo) => {
                 const vote = candidateVotes.find(v => v.chiTietBnId === record.chiTietBnId);
                 const kdy = vote?.soPhieuDongY != null ? soPhieuHopLe - vote.soPhieuDongY : null;
                 return (
@@ -204,7 +202,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({visible, onCancel, onSucces
         },
         {
             title: "Kiểm tra", key: "check", width: 110,
-            render: (_: unknown, record: Candidate) => {
+            render: (_: unknown, record: CandidateInfo) => {
                 const v = candidateVotes.find(x => x.chiTietBnId === record.chiTietBnId);
                 const dy = v?.soPhieuDongY;
                 const kdy = dy != null && soPhieuHopLe - dy >= 0 ? soPhieuHopLe - dy : null;
@@ -214,7 +212,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({visible, onCancel, onSucces
         },
         {
             title: "Tỉ lệ", key: "tiLe", width: 140,
-            render: (_: unknown, record: Candidate) => {
+            render: (_: unknown, record: CandidateInfo) => {
                 const v = candidateVotes.find(x => x.chiTietBnId === record.chiTietBnId);
                 if (v?.soPhieuDongY == null || soPhieuHopLe === 0) return <Tag> 0 </Tag>;
                 const ratio = v.soPhieuDongY / soPhieuHopLe;;
@@ -230,7 +228,7 @@ export const VoteModal: React.FC<VoteModalProps> = ({visible, onCancel, onSucces
             title: tieMode ? "Chọn ứng viên" : "",
             key: "tieBreak",
             width: 120,
-            render: (_: unknown, record: Candidate) => {
+            render: (_: unknown, record: CandidateInfo) => {
                 // console.log("Rendering tieBreak column:", { tieMode, tieCandidates, recordId: record.chiTietBnId });
                 if (!tieMode || !tieCandidates.includes(record.chiTietBnId)) {
                     return null;
