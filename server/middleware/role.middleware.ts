@@ -4,7 +4,7 @@ import { AuthRequest } from "./auth.middleware";
 export const checkRole = (roles: string[]) => {
     return (req: AuthRequest, res: Response, next: NextFunction) => {
         const user = req.user;
-        console.log("User role:", user?.vaiTro);
+        // console.log("User role:", user?.vaiTro);
         if (!user) 
             return res.status(401).json({ success: false, message: "Chưa xác thực" });
         
