@@ -64,7 +64,7 @@ export const CreateDeXuatNhanSuModal: React.FC<Props> = ({ isVisible, onCancel, 
             message.success("Lập phiếu đề xuất nhân sự thành công!");
             onSuccess();
         } catch (error: any) {
-            message.error(error?.response?.data?.message || "Lỗi khi tạo phiếu đề xuất!");
+            message.error(error?.response?.data?.message || error?.message || "Lỗi khi tạo phiếu đề xuất!");
         } finally { 
             setLoading(false);
         }

@@ -4,11 +4,18 @@ import * as PhieuDeXuatRepo from "./phieuDeXuat.repository";
 
 export const createPhieuDeXuat = async (payload: PhieuDeXuatDTO.CreatePhieuDeXuatDTO, user: any) => {
     const client = await pool.connect();
-    //  console.log('payload nhận được:', JSON.stringify(payload, null, 2));
+
     try {
+        await client.query("BEGIN");
         if(payload.vienChucList.length > 3)
             throw new Error(`Chức danh này chỉ được đề xuất tối đa 3 ứng viên, hiện đề xuất ${payload.vienChucList.length}`);
-
+        
+        const vienChucIds = payload.vienChucList.map(vc => vc.vienChucId);
+        for(const vcId of vienChucIds){
+            const countChucDanh = await PhieuDeXuatRepo.countChucDanhDeXuatByVienChuc(vcId);
+            if(countChucDanh > 3) throw new Error(`Viên chức có id ${vcId} đã được đề xuất trong phiếu khác, vui lòng kiểm tra lại`);
+        }
+        
         const maPhieu = await PhieuDeXuatRepo.generatePhieuDeXuatCode(client);
         const phieu = await PhieuDeXuatRepo.insertPhieuDeXuat(client, payload, user, maPhieu);
 
