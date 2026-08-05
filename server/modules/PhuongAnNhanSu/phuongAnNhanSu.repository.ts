@@ -19,7 +19,7 @@ export const getAllPANS = async () => {
 export const getChiTietPANSByPANSId = async (pansId: number) => {
     const result = await pool.query(
         `SELECT
-            ctpa.id AS chi_tiet_pa_id, ctpa.loai_phuong_an, ctpa.ghi_chu, ctpa.chi_tiet_bn_id,
+            ctpa.id AS chi_tiet_pa_id, ctpa.loai_phuong_an, ctpa.ghi_chu, ctpa.chi_tiet_bn_id, ctpa.trang_thai,
             vc.ho_va_ten, vc.ma_vien_chuc,  
             cd.ten_chuc_danh,
             dv.ten_don_vi

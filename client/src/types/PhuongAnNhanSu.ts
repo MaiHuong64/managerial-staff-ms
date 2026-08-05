@@ -9,7 +9,6 @@ export interface PhuongAnNhanSu {
     trangThai: number;
     ghiChu: string;
     yKienBGH: string;
-    chiTiet: ChiTietPA[];
 }
 
 export interface ChucDanhWithVienChuc {

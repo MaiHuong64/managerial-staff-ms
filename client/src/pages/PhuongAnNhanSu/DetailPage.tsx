@@ -31,7 +31,8 @@ const PersonnelPlanDetailPage = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const [data, setData] = useState<PhuongAnNhanSu | null>(null);
+    const [paData, setPaData] = useState<PhuongAnNhanSu | null>(null);
+    const [chiTiet, setChitiet] = useState<ChiTietPA[]>([]);
     const [loading, setLoading] = useState(true);
     const [yKien, setYKien] = useState('');
     const [approving, setApproving] = useState(false);
@@ -42,10 +43,13 @@ const PersonnelPlanDetailPage = () => {
     const [creatingHoSoId, setCreatingHoSoId] = useState<number | null>(null);
 
     const fetchData = async () => {
+           console.log("fetchData called");
         try {
             setLoading(true);
             const res = await getPhuongAnById(Number(id));
-            setData(res.data.data);
+            setPaData(res.data.data.pa);
+
+            setChitiet(res.data.data.chiTiet || []);
             setYKien(res.data.data.yKienBGH?? '');
 
             // Fetch danh sách hồ sơ liên quan nếu phương án đã được phê duyệt
@@ -57,7 +61,8 @@ const PersonnelPlanDetailPage = () => {
                     setHoSoMap(newMap);
                 }
             }
-        } catch {
+        } catch (error) {
+            console.error('Error fetching data:', error);
             message.error('Không thể tải dữ liệu phương án');
         } finally {
             setLoading(false);
@@ -129,15 +134,15 @@ const PersonnelPlanDetailPage = () => {
             <Spin size="large" tip="Đang tải dữ liệu..." />
         </div>
     );
-    if (!data) return (
+    if (!paData) return (
         <div className="text-center mt-10 text-red-500">Không tìm thấy phương án!</div>
     );
 
-    const trangThaiInfo = TRANG_THAI_MAP[data.trangThai] ?? { label: '?', color: 'default' };
-    const canSubmit = user?.vaiTro === 'PTCCT' && data.trangThai === 1;
-    const canApprove = user?.vaiTro === 'BGH' && data.trangThai === 2;
-    const boNhiemCount = data.chiTiet.filter((c: ChiTietPA) => c.loaiPhuongAn === 'Bổ nhiệm').length;
-    const boNhiemLaiCount = data.chiTiet.filter((c: ChiTietPA) => c.loaiPhuongAn === 'Bổ nhiệm lại').length;
+    const trangThaiInfo = TRANG_THAI_MAP[paData.trangThai] ?? { label: '?', color: 'default' };
+    const canSubmit = user?.vaiTro === 'PTCCT' && paData.trangThai === 1;
+    const canApprove = user?.vaiTro === 'BGH' && paData.trangThai === 2;
+    const boNhiemCount = chiTiet.filter((c: ChiTietPA) => c.loaiPhuongAn === 'Bổ nhiệm').length;
+    const boNhiemLaiCount = chiTiet.filter((c: ChiTietPA) => c.loaiPhuongAn === 'Bổ nhiệm lại').length;
 
     const cols = [
         {
@@ -166,7 +171,7 @@ const PersonnelPlanDetailPage = () => {
         {
             title: 'Hồ sơ BN', key: 'hoSoBn', width: 150,
             render: (_: unknown, record: ChiTietPA) => {
-                if (data.trangThai !== 3) return <span className="text-gray-300">—</span>;
+                if (paData.trangThai !== 3) return <span className="text-gray-300">—</span>;
 
                 const hoSo = hoSoMap.get(record.chiTietPaId);
                 if (hoSo) {
@@ -191,7 +196,11 @@ const PersonnelPlanDetailPage = () => {
             }
         },
     ];
-
+    console.log('user.vaiTro:', user?.vaiTro);
+    console.log('paData.trangThai:', paData.trangThai, typeof paData.trangThai);
+    console.log('canSubmit:', canSubmit);
+    console.log('canApprove:', canApprove);
+    
     return (
         <div className="p-6 bg-gray-50 min-h-screen space-y-5">
             <div className="flex items-center justify-between">
@@ -216,7 +225,7 @@ const PersonnelPlanDetailPage = () => {
             <Row gutter={16}>
                 <Col span={6}>
                     <Card size="small" bordered={false} className="shadow-sm">
-                        <Statistic title="Tổng nhân sự" value={data.chiTiet.length}
+                        <Statistic title="Tổng nhân sự" value={chiTiet.length}
                             prefix={<TeamOutlined />} valueStyle={{ color: '#1890ff' }} />
                     </Card>
                 </Col>
@@ -247,16 +256,16 @@ const PersonnelPlanDetailPage = () => {
                 </div>
             } className="shadow-sm rounded-xl">
                 <Descriptions bordered column={2} size="small">
-                    <Descriptions.Item label="Mã phương án"><span className="font-mono font-bold text-blue-600">{data.maPhuongAn}</span></Descriptions.Item>
+                    <Descriptions.Item label="Mã phương án"><span className="font-mono font-bold text-blue-600">{paData.maPhuongAn}</span></Descriptions.Item>
                     <Descriptions.Item label="Trạng thái"><Tag color={trangThaiInfo.color}>{trangThaiInfo.label}</Tag></Descriptions.Item>
-                    <Descriptions.Item label="Số tờ trình">{data.soToTrinh ?? '—'}</Descriptions.Item>
-                    <Descriptions.Item label="Ngày lập tờ trình">{data.ngayToTrinh ? dayjs(data.ngayToTrinh).format('DD/MM/YYYY') : '—'}</Descriptions.Item>
-                    <Descriptions.Item label="Ngày lập">{dayjs(data.ngayLap).format('DD/MM/YYYY')}</Descriptions.Item>
-                    <Descriptions.Item label="Ngày duyệt">{data.ngayPheDuyet ? dayjs(data.ngayPheDuyet).format('DD/MM/YYYY') : '—'}</Descriptions.Item>
-                    <Descriptions.Item label="Ghi chú" span={2}>{data.ghiChu || '—'}</Descriptions.Item>
-                    {data.yKienBGH && (
+                    <Descriptions.Item label="Số tờ trình">{paData.soToTrinh ?? '—'}</Descriptions.Item>
+                    <Descriptions.Item label="Ngày lập tờ trình">{paData.ngayToTrinh ? dayjs(paData.ngayToTrinh).format('DD/MM/YYYY') : '—'}</Descriptions.Item>
+                    <Descriptions.Item label="Ngày lập">{dayjs(paData.ngayLap).format('DD/MM/YYYY')}</Descriptions.Item>
+                    <Descriptions.Item label="Ngày duyệt">{paData.ngayPheDuyet ? dayjs(paData.ngayPheDuyet).format('DD/MM/YYYY') : '—'}</Descriptions.Item>
+                    <Descriptions.Item label="Ghi chú" span={2}>{paData.ghiChu || '—'}</Descriptions.Item>
+                    {paData.yKienBGH && (
                         <Descriptions.Item label="Ý kiến BGH" span={2} labelStyle={{ color: '#1d4ed8', fontWeight: 'bold' }}>
-                            <span className="text-blue-700 font-medium">{data.yKienBGH}</span>
+                            <span className="text-blue-700 font-medium">{paData.yKienBGH}</span>
                         </Descriptions.Item>
                     )}
                 </Descriptions>
@@ -271,7 +280,7 @@ const PersonnelPlanDetailPage = () => {
                 <Table
                     rowKey="chiTietPaId"
                     columns={cols}
-                    dataSource={data.chiTiet}
+                    dataSource={chiTiet}
                     pagination={false}
                     size="middle"
                     bordered
