@@ -58,8 +58,6 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
                         loaiBoNhiem: loaiBoNhiem,
                         thoiHan: info.thoiHanGiuChucVu || 60
                     });
-
-                    // Fetch tài khoản của viên chức
                     getTaiKhoanByVienChucId(info.vienChucId)
                         .then(resTK => {
                             if (resTK.data.success) {
