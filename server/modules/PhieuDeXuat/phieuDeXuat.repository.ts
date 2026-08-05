@@ -147,16 +147,14 @@ export const countEligibleCandidates = async (client: any, phieuId: number): Pro
     );
     return Number(result.rows[0].count);
 }
-// đếm số lượng ứng viên theo chức danh trong phiếu đề xuất
-export const countUngVienByChucDanh = async (phieuId: number, chucDanhId: number) => {
+export const countChucDanhDeXuatByVienChuc = async (vienChucId: number) => {
     const result = await pool.query(
-        `SELECT cd.id, cd.ten_chuc_danh, COUNT (ct.id) as so_ung_vien
-        FROM chi_tiet_phieu_de_xuat ct 
-        JOIN phieu_de_xuat_nhan_su_quy_hoach p ON p.id = ct.phieu_de_xuat_id
-        JOIN chuc_danh_quan_ly cd ON cd.id = p.chuc_danh_id 
-        WHERE ct.phieu_de_xuat_id = $1 AND cd.id = $2
-        GROUP BY cd.id, cd.ten_chuc_danh`,
-        [phieuId, chucDanhId]
+        `SELECT vc.id, vc.ho_va_ten, COUNT(DISTINCT p.chuc_danh_id) as so_chuc_danh
+        FROM phieu_de_xuat_nhan_su_quy_hoach p JOIN chi_tiet_phieu_de_xuat ct ON p.id = ct.phieu_de_xuat_id  
+        JOIN vien_chuc vc ON vc.id = ct.vien_chuc_id
+        WHERE vc.id = $1s
+        GROUP BY vc.id, vc.ho_va_ten`,
+        [vienChucId]
     );
-    return Number(result.rows[0]?.so_ung_vien || 0);
+    return Number(mapArrayToCamel(result.rows));
 }
