@@ -79,7 +79,3 @@ cd client
 npm install
 npm run dev
 ```
-
-## Author
-
-Lê Thị Kim Hương — Information Technology, An Giang University (VNU-HCM)
