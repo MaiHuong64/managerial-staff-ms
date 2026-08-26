@@ -39,9 +39,9 @@ export const submitPANS = async (req: Request, res: Response) => {
 }
 export const approvePANS = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const { yKienBGH } = req.body;
+    const { yKienBGH, ngayDuyet } = req.body;
     try {
-        await PhuongAnNhanSuService.approvePANS(id, yKienBGH);
+        await PhuongAnNhanSuService.approvePANS(id, yKienBGH, ngayDuyet);
         res.status(200).json({ success: true, message: "Phê duyệt thành công" });
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });

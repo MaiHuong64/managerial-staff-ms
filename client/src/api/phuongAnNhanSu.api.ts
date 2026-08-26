@@ -12,8 +12,8 @@ export const createPhuongAn = (data: unknown) =>
 export const submitPhuongAn = (id: number) => 
     axiosClient.patch(`/phuong-an-nhan-su/${id}/trinh`);
 
-export const approvePhuongAn = (id: number, yKienBGH?: string) =>
-    axiosClient.patch(`/phuong-an-nhan-su/${id}/duyet`, { yKienBGH });
+export const approvePhuongAn = (id: number, yKienBGH?: string, ngayDuyet?: string) =>
+    axiosClient.patch(`/phuong-an-nhan-su/${id}/duyet`, { yKienBGH, ngayDuyet });
 
 export const rejectPhuongAn = (id: number, yKienBGH?: string) =>
     axiosClient.patch(`/phuong-an-nhan-su/${id}/tu-choi`, { yKienBGH });
