@@ -47,14 +47,14 @@ export const submitPANS = async (id: number) => {
         client.release();
     }
 }
-export const approvePANS = async (id: number, yKienBGH: string) => {
+export const approvePANS = async (id: number, yKienBGH: string, ngayDuyet: string) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         const pa = await PhuongAnNSRepo.getPANSById(id);
         if (!pa) throw new Error("Không tìm thấy phương án nhân sự");
 
-        await PhuongAnNSRepo.updateTrangThaiPANS(client, id, TrangThaiPANS.daPheDuyet, yKienBGH);
+        await PhuongAnNSRepo.updateTrangThaiPANS(client, id, TrangThaiPANS.daPheDuyet, yKienBGH, ngayDuyet);
         await client.query('COMMIT');
     } catch (error) {
         await client.query('ROLLBACK');

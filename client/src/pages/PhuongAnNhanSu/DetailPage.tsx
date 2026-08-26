@@ -35,6 +35,7 @@ const PersonnelPlanDetailPage = () => {
     const [chiTiet, setChitiet] = useState<ChiTietPA[]>([]);
     const [loading, setLoading] = useState(true);
     const [yKien, setYKien] = useState('');
+    const [ngayDuyet, setNgayDuyet] = useState<dayjs.Dayjs | null>(null);
     const [approving, setApproving] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -43,7 +44,6 @@ const PersonnelPlanDetailPage = () => {
     const [creatingHoSoId, setCreatingHoSoId] = useState<number | null>(null);
 
     const fetchData = async () => {
-           console.log("fetchData called");
         try {
             setLoading(true);
             const res = await getPhuongAnById(Number(id));
@@ -51,10 +51,11 @@ const PersonnelPlanDetailPage = () => {
 
             setChitiet(res.data.data.chiTiet || []);
             setYKien(res.data.data.yKienBGH?? '');
-
+            console.log('typeof trangThai:', typeof res.data.data.pa.trangThai, res.data.data.trangThai);
             // Fetch danh sách hồ sơ liên quan nếu phương án đã được phê duyệt
-            if (res.data.data.trangThai === 3) {
+            if (res.data.data.pa.trangThai === 3) {
                 const resHS = await getHoSoByPhuongAn(Number(id));
+                console.log('resHS.data.data:', resHS.data.data); 
                 if (resHS.data.success) {
                     const newMap = new Map();
                     resHS.data.data.forEach((hs: fileHoSo) => newMap.set(hs.chiTietPaId, hs));
@@ -86,8 +87,12 @@ const PersonnelPlanDetailPage = () => {
 
     const handleApprove = async () => {
         try {
+            if(!ngayDuyet) {
+                message.error('Vui lòng nhập ngày duyệt trước khi phê duyệt phương án.');
+                return;
+            }
             setApproving(true);
-            await approvePhuongAn(Number(id), yKien);
+            await approvePhuongAn(Number(id), yKien, ngayDuyet.format('YYYY-MM-DD'));
             message.success("Đã phê duyệt phương án");
             fetchData();
         } catch (err: any) {
@@ -120,6 +125,7 @@ const PersonnelPlanDetailPage = () => {
                 message.success('Đã tạo hồ sơ bổ nhiệm mới');
                 // Lấy ID hồ sơ từ response của server trả về
                 const newHoSoId = res.data.data.id; 
+                console.log('newHoSoId:', newHoSoId);
                 navigate(`/ho-so-bo-nhiem/${newHoSoId}`);
             }
         } catch (err: any) {
@@ -172,16 +178,13 @@ const PersonnelPlanDetailPage = () => {
             title: 'Hồ sơ BN', key: 'hoSoBn', width: 150,
             render: (_: unknown, record: ChiTietPA) => {
                 if (paData.trangThai !== 3) return <span className="text-gray-300">—</span>;
+                console.log ('Trang thai ho so:', paData.trangThai, 'hoSoMap:', hoSoMap);
 
                 const hoSo = hoSoMap.get(record.chiTietPaId);
+                console.log('ChiTietPAId:', record.chiTietPaId, 'HoSo:', hoSo);
                 if (hoSo) {
                     return (
-                        <Button
-                            type="link"
-                            size="small"
-                            icon={<FileSearchOutlined />}
-                            onClick={() => navigate(`/ho-so-bo-nhiem/${hoSo.id}`)}
-                        >
+                        <Button type="link" size="small" icon={<FileSearchOutlined />} onClick={() => navigate(`/ho-so-bo-nhiem/${hoSo.id}`)}>
                             Xem hồ sơ
                         </Button>
                     );
@@ -196,10 +199,10 @@ const PersonnelPlanDetailPage = () => {
             }
         },
     ];
-    console.log('user.vaiTro:', user?.vaiTro);
-    console.log('paData.trangThai:', paData.trangThai, typeof paData.trangThai);
-    console.log('canSubmit:', canSubmit);
-    console.log('canApprove:', canApprove);
+    // console.log('user.vaiTro:', user?.vaiTro);
+    // console.log('paData.trangThai:', paData.trangThai, typeof paData.trangThai);
+    // console.log('canSubmit:', canSubmit);
+    // console.log('canApprove:', canApprove);
     
     return (
         <div className="p-6 bg-gray-50 min-h-screen space-y-5">
@@ -277,25 +280,14 @@ const PersonnelPlanDetailPage = () => {
                     <span className="font-semibold">Chi tiết phương án nhân sự</span>
                 </div>
             } className="shadow-sm rounded-xl overflow-hidden">
-                <Table
-                    rowKey="chiTietPaId"
-                    columns={cols}
-                    dataSource={chiTiet}
-                    pagination={false}
-                    size="middle"
-                    bordered
-                />
+                <Table rowKey="chiTietPaId" columns={cols} dataSource={chiTiet} pagination={false} size="middle"bordered/>
             </Card>
 
             {canApprove && (
                 <Card title="Phê duyệt phương án" className="border-blue-200 shadow-md">
                     <div className="space-y-3">
-                        <Input.TextArea
-                            rows={3}
-                            placeholder="Nhập ý kiến phê duyệt hoặc lý do từ chối..."
-                            value={yKien}
-                            onChange={e => setYKien(e.target.value)}
-                        />
+                        <Input.TextArea rows={3} placeholder="Nhập ý kiến phê duyệt hoặc lý do từ chối..." value={yKien} onChange={e => setYKien(e.target.value)}/>
+                        <Input type="date" value={ngayDuyet ? ngayDuyet.format('YYYY-MM-DD') : ''} onChange={e => setNgayDuyet(dayjs(e.target.value))} />
                         <div className="flex gap-2 justify-end">
                             <Popconfirm title="Xác nhận từ chối?" onConfirm={handleReject} okButtonProps={{ danger: true }}>
                                 <Button danger icon={<CloseCircleOutlined />} loading={approving}>Từ chối</Button>

@@ -42,36 +42,33 @@ const CreateDecisionModal: React.FC<CreateDecisionModalProps> = ({ isOpen, onCan
     const [formValues, setFormValues] = useState<QuyetDinhFormValues | null>(null);
     const [taiKhoan, setTaiKhoan] = useState<TaiKhoan | null>(null);
     const [upgradingRole, setUpgradingRole] = useState(false);
-    useEffect(() => {
-        if (isOpen && dossier) {
-            setLoadingInfo(true);
-            Promise.all([
-                getHoSoInfoForQD(dossier.id),
-            ])
-                .then(([resHoSo]) => {
-                    const info = resHoSo.data.data;
-                    setHoSoInfo(info);
 
-                    const loaiBoNhiem = info.loaiPhuongAn;
+    const fetchHoSoInfo = async () => {
+        if(!isOpen || !dossier) return;
+        setLoadingInfo(true);
+        try {
+            const  res = await getHoSoInfoForQD(dossier.id);
+            console.log('Fetched dossier info:', res.data.data);
+            setHoSoInfo(res.data.data);
+            form.setFieldsValue({
+                loaiBoNhiem: res.data.data.loaiPhuongAn,
+                thoiHan: res.data.data.thoiHanGiuChucVu || 60
+            });
 
-                    form.setFieldsValue({
-                        loaiBoNhiem: loaiBoNhiem,
-                        thoiHan: info.thoiHanGiuChucVu || 60
-                    });
-                    getTaiKhoanByVienChucId(info.vienChucId)
-                        .then(resTK => {
-                            if (resTK.data.success) {
-                                setTaiKhoan(resTK.data.data);
-                            }
-                        })
-                        .catch(() => {
-                            // Không có tài khoản - bỏ qua
-                        });
-                })
-                .catch(() => message.error('Không thể tải thông tin hồ sơ'))
-                .finally(() => setLoadingInfo(false));
+            // const taiKhoan = await getTaiKhoanByVienChucId(res.data.data.vienChucId);
+            // setTaiKhoan(taiKhoan.data.data);
+
         }
-    }, [isOpen, dossier, form]);
+        catch (error) {
+            console.error('Error fetching dossier info:', error);
+            message.error('Không thể tải thông tin hồ sơ');
+        }
+        finally {
+            setLoadingInfo(false);
+        }
+    }
+
+    useEffect(() => { fetchHoSoInfo(); }, [isOpen, dossier, form]);
 
     const next = async () => {
         try {
