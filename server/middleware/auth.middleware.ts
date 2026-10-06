@@ -4,9 +4,17 @@ import jwt from "jsonwebtoken";
 const secretKey = process.env.JWT_SECRET;
 
 export interface AuthRequest extends Request {
-    user?:{id: number, tenDangNhap: string, vaiTro: string, donViId: number, hoVaTen: string}
+    user?:{id: number, vienChucId: number, tenDangNhap: string, vaiTro: string, donViId: number, hoVaTen: string}
 }
 
+export const verifyJWT = (token: string) => {
+    try{
+        return jwt.verify(token, secretKey as string) as AuthRequest["user"];
+    }
+    catch(err){
+        throw new Error("Invalid token");
+    }
+}
 export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
     const header = req.headers.authorization;
  
@@ -15,16 +23,14 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
         return res.status(401).json({ success: false, message: "Access denied. No token provided." });
     }
     try {
-        const decode = jwt.verify(token, secretKey as string) as AuthRequest["user"]
+        
       
-        req.user = decode;
-      
+        req.user = verifyJWT(token);
         next();
     } catch (error) {
         return res.status(403).json({
-            sucess: false,
+            success: false,
             message: "Invalid token"
         })
     }
 };
- 

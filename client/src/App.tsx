@@ -1,5 +1,6 @@
 import {Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import './App.css'
+import "./socket";
 import Login from './pages/Login'
 import { SideBar } from './components/SideBar'
 import { TopBar } from './components/TopBar'

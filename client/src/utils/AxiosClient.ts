@@ -20,11 +20,12 @@ axiosClient.interceptors.response.use(
   },
   function handleError(error){
     const status = error.response?.status;
-    if(status === 401 || status === 403)
+    const isLoginRequest = error.config.url.includes("/login");
+    if(status === 401 && !isLoginRequest)
     {
        localStorage.removeItem("token");
        localStorage.removeItem("user");
-      //  window.location.href = "/login";
+       window.location.href = "/login";
     }
   return Promise.reject(error);
   }
