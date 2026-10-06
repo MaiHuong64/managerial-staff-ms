@@ -3,9 +3,10 @@ import pool from "./config/db";
 import dotenv from "dotenv";
 import cors from "cors";
 import routes from "./routes";
-import path from "path";
-
+import path from "path"; 
+import { initSocket } from "./socket/index.socket";
 dotenv.config();
+
 
 const app = express();
 
@@ -19,6 +20,8 @@ pool.query("SELECT NOW()")
     .then(res => console.log("Database connected:", res.rows[0]))
     .catch(err => console.error("Database connection error:", err));
 
-app.listen(3000, () => {
-  console.log("Server running on port 8000");
+const server = app.listen(3000, () => {
+  console.log("Server running on port 3000");
 });
+  
+initSocket(server);

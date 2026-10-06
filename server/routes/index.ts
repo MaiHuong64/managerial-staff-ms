@@ -15,6 +15,7 @@ import dashboardRouter from "../modules/Dashboard/dashboard.route"
 import xepLoaiRouter from "../modules/XepLoai/xepLoai.route";
 import taiKhoanRouter from "../modules/TaiKhoan/taiKhoan.route";
 import importRouter from "../modules/Import/importXL.route";
+import thongBaoRouter from "../modules/ThongBao/thongBao.route";
 const router = Router();
 
 router.use("/auth", authRouter);
@@ -32,5 +33,6 @@ router.use("/xep-loai", xepLoaiRouter);
 router.use("/dashboard", dashboardRouter)
 router.use("/tai-khoan", taiKhoanRouter);
 router.use ("/import", importRouter)
+router.use("/thong-bao", thongBaoRouter)
 
 export default router;
