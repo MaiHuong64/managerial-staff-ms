@@ -9,7 +9,7 @@ export const notifyVienChuc = async (vcId: number, tieuDe: string, noiDung: stri
     
     return thongBao;
 }
-export const getThongBaoByVcId = async (vcId: number, {unReadOnly = false}) => {
+export const getThongBaoByVcId = async (vcId: number, {unReadOnly = true}) => {
     const [data, count] = await Promise.all([
         repo.findByVcId(vcId),
         repo.countByUSerId(vcId, {unReadOnly})

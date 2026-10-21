@@ -4,6 +4,7 @@ import { UserOutlined, LogoutOutlined } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hook/useAuth";
 import { NAV_ITEMS, ROLE_LABEL, ROLE_AVATAR } from "../SideBar/SideBar";
+import { NoficationBell } from "../Bell/NoficationBell";
 
 const getPageTitle = (pathname: string): string => {
     const matched = NAV_ITEMS.find(item => item.path === pathname);
@@ -53,25 +54,29 @@ export const TopBar = () => {
             <span className="text-sm font-semibold text-gray-700 tracking-wide">
                 {getPageTitle(location.pathname)}
             </span>
+             
+            <div className="flex items-center gap-4">
+                <NoficationBell/>
 
-            <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={["click"]}>
-                <div className="flex items-center gap-2 cursor-pointer select-none group">
-                    <Avatar
-                        className="bg-indigo-600 text-white font-bold"
-                        size={34}
-                    >
-                        {user ? ROLE_AVATAR[user.vaiTro] : "?"}
-                    </Avatar>
-                    <div className="hidden sm:flex flex-col leading-tight">
-                        <span className="text-xs font-semibold text-gray-700 group-hover:text-indigo-600 transition-colors">
-                            {user?.hoVaTen ?? "—"}
-                        </span>
-                        <span className="text-[10px] text-gray-400">
-                            {user ? ROLE_LABEL[user.vaiTro] : ""}
-                        </span>
+                <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={["click"]}>
+                    <div className="flex items-center gap-2 cursor-pointer select-none group">
+                        <Avatar
+                            className="bg-indigo-600 text-white font-bold"
+                            size={34}
+                        >
+                            {user ? ROLE_AVATAR[user.vaiTro] : "?"}
+                        </Avatar>
+                        <div className="hidden sm:flex flex-col leading-tight">
+                            <span className="text-xs font-semibold text-gray-700 group-hover:text-indigo-600 transition-colors">
+                                {user?.hoVaTen ?? "—"}
+                            </span>
+                            <span className="text-[10px] text-gray-400">
+                                {user ? ROLE_LABEL[user.vaiTro] : ""}
+                            </span>
+                        </div>
                     </div>
-                </div>
             </Dropdown>
+            </div>
         </header>
     );
 };

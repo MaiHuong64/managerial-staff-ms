@@ -1,10 +1,10 @@
-import {Request, Response} from "express";
+import {Response} from "express";
 import { AuthRequest } from "../../middleware/auth.middleware";
 import * as service from "./thongBao.service";
 
 export const getThongBaoByVcId = async (req: AuthRequest, res: Response) => {
     try{
-        const data = await service.getThongBaoByVcId(req.user!.vienChucId, {unReadOnly: false});
+        const data = await service.getThongBaoByVcId(req.user!.vienChucId, {unReadOnly: true});
         res.json({success: true, ...data});
     }
     catch (error) {
