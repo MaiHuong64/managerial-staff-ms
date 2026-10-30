@@ -2,6 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
 const secretKey = process.env.JWT_SECRET;
+if(!secretKey){
+    throw new Error("JWT_SECRET is not defined in environment variables");
+}
 
 export interface AuthRequest extends Request {
     user?:{id: number, vienChucId: number, tenDangNhap: string, vaiTro: string, donViId: number, hoVaTen: string}
@@ -23,14 +26,9 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
         return res.status(401).json({ success: false, message: "Access denied. No token provided." });
     }
     try {
-        
-      
         req.user = verifyJWT(token);
         next();
     } catch (error) {
-        return res.status(403).json({
-            success: false,
-            message: "Invalid token"
-        })
+        return res.status(401).json({success: false, message: "Invalid token"});
     }
 };

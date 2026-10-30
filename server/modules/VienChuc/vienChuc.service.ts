@@ -61,3 +61,8 @@ export const getHoSoVienChuc = async (vienChucId: number) => {
     if (!data || !data.profile) throw new Error("Không tìm thấy hồ sơ viên chức");
     return data as StaffProfileResult;
 }
+
+export const getthongBaoVienChuc = async () => {
+    const nguoiNhan: [] = [];
+    
+}

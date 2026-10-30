@@ -75,3 +75,18 @@ export const insertTaiKhoan = async (client: PoolClient, vienChucId: number, maV
     );
     return mapToCamel<any>(result.rows[0]);
 };
+
+export const getVienChucByRole = async (vaiTro: string, donViId?: number) => {
+    const params:(string| number)[] = [vaiTro];
+    let query = `SELECT tk.vien_chuc_id AS id
+                    FROM tai_khoan tk
+                    JOIN vien_chuc vc ON vc.id = tk.vien_chuc_id
+                    WHERE tk.vai_tro = $1 AND tk.trang_thai = 1`
+    if(donViId !== undefined) {
+        params.push(donViId);
+        query += ` AND vc.don_vi_id = $2`;
+    }
+
+    const result = await pool.query(query, params)
+    return result.rows.map((r) => r.id);
+}

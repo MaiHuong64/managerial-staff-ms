@@ -1,13 +1,16 @@
 import pool from "../../config/db";
-export const create = async ( vc_id: number, tieu_de: string, noi_dung: string, loai_tb: string, data: string) => {
+import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
+import { ThongBao } from "./thongBao.type";
+
+export const create = async ( vcId: number, tieuDe: string, noiDung: string, loaiTb: string, data: string) => {
     const query = await pool.query(`INSERT INTO thong_bao (vc_id, tieu_de, noi_dung, loai_tb, data) VALUES ($1, $2, $3, $4, $5) RETURNING *`, 
-        [vc_id, tieu_de, noi_dung, loai_tb, data]);
-    return query.rows[0];
+        [vcId, tieuDe, noiDung, loaiTb, data]);
+    return mapToCamel<ThongBao>(query.rows[0])
 };
 
-export const findByVcId = async (vc_id: number) => {
-    const query = await pool.query(`SELECT * FROM thong_bao WHERE vc_id = $1 ORDER BY created_at DESC LIMIT 10`, [vc_id]);
-    return query.rows;
+export const findByVcId = async (vcId: number) => {
+    const query = await pool.query(`SELECT * FROM thong_bao WHERE vc_id = $1 ORDER BY created_at DESC LIMIT 10`, [vcId]);
+    return mapArrayToCamel<ThongBao>(query.rows);
 };
 
 // if unReadOnly is true, only count unread notifications
@@ -33,4 +36,9 @@ export const markAllAsRead = async (userId: number) => {
         SET is_read = true, updated_at = CURRENT_TIMESTAMP
         WHERE vc_id = $1 AND is_read = false RETURNING *`, [userId]);
     return query.rowCount;
+}
+
+export const countUnread = async (vcId: number) => {
+    const result = await pool.query(`SELECT COUNT(*)::int AS count FROM thong_bao WHERE vc_id = $1 AND is_read = false`,[vcId])
+    return result.rows[0].count;
 }
