@@ -4,8 +4,8 @@ import * as service from "./thongBao.service";
 
 export const getThongBaoByVcId = async (req: AuthRequest, res: Response) => {
     try{
-        const data = await service.getThongBaoByVcId(req.user!.vienChucId, {unReadOnly: true});
-        res.json({success: true, ...data});
+        const data = await service.getThongBaoByVcId(req.user!.vienChucId);
+        res.json({success: true, data});
     }
     catch (error) {
         console.error(error);
@@ -33,19 +33,8 @@ export const readOne = async (req: AuthRequest, res: Response) => {
 }
 export const getMyUnreadCount = async (req: AuthRequest, res: Response) => {
     try {
-        const count = await service.getThongBaoByVcId(req.user!.vienChucId, {unReadOnly: false});
-        res.json({ success: true, count });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Lỗi server" });
-    }
-}
-
-export const testNotify = async (req: AuthRequest, res: Response) => {
-    try {
-        const { tieuDe } = req.body;
-        const thongBao = await service.notifyVienChuc(req.user!.vienChucId, tieuDe, "test real time", "thong-bao", null);
-        res.json({ success: true, thongBao });
+        const count = await service.countUnread(req.user!.vienChucId);
+        res.json({ success: true, count }); 
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: "Lỗi server" });

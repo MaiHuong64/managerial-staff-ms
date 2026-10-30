@@ -1,6 +1,7 @@
 import pool from "../../config/db";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
 import { ThongBao } from "./thongBao.type";
+
 export const create = async ( vcId: number, tieuDe: string, noiDung: string, loaiTb: string, data: string) => {
     const query = await pool.query(`INSERT INTO thong_bao (vc_id, tieu_de, noi_dung, loai_tb, data) VALUES ($1, $2, $3, $4, $5) RETURNING *`, 
         [vcId, tieuDe, noiDung, loaiTb, data]);
@@ -35,4 +36,9 @@ export const markAllAsRead = async (userId: number) => {
         SET is_read = true, updated_at = CURRENT_TIMESTAMP
         WHERE vc_id = $1 AND is_read = false RETURNING *`, [userId]);
     return query.rowCount;
+}
+
+export const countUnread = async (vcId: number) => {
+    const result = await pool.query(`SELECT COUNT(*)::int AS count FROM thong_bao WHERE vc_id = $1 AND is_read = false`,[vcId])
+    return result.rows[0].count;
 }

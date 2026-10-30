@@ -1,7 +1,7 @@
 import { PoolClient } from "pg";
 import pool from "../../config/db";
 import { CreateStaffDTO, UpdateStaffDTO } from "./vienChuc.dto";
-import { mapArrayToCamel, mapToCamel, mapToSnake } from "../../utils/mapper";
+import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
 
 export const findAll = async () => {
     const result = await pool.query(`
@@ -213,3 +213,4 @@ export const findHoSoVienChuc = async (vienChucId: number) => {
         xepLoaiDangVien: mapArrayToCamel(partyEval.rows),
     };
 };
+

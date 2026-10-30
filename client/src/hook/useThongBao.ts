@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ThongBao } from "../types/ThongBao";
-import { getThongBaoList, readAll, readOne } from "../api/thongBao.api";
+import { getMyUnreadCount, getThongBaoList, readAll, readOne } from "../api/thongBao.api";
 import { socket } from "../socket/socket";
 
 export const useThongBao = () => {
@@ -34,15 +34,24 @@ export const useThongBao = () => {
         }
     }
 
+   
+    
     useEffect(() => {
         let active = true;
 
-        getThongBaoList().then((res) => {
-            if (!active) return;
-            setList(res.data.data);
-            console.log(res.data)
-            setUnreadCount(res.data.count);
-        });
+        if(!active) return;
+        const fetchData = async () => {
+            try {
+                const [resList, resCount] = await Promise.all([
+                    getThongBaoList(), getMyUnreadCount()
+                ])
+                setList(resList.data.data);
+                setUnreadCount(resCount.data.count);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        fetchData();
 
         const onNews = (tb: ThongBao) => {
             setList((prev) => [tb, ...prev].slice(0, 10));

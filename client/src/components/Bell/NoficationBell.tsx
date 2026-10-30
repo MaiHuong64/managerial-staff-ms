@@ -4,7 +4,7 @@ import {BellOutlined} from "@ant-design/icons"
 import { Badge, Button, List, Popover } from "antd";
 
 export function NoficationBell() {
-    const { list, unreadCount, markAsRead, markAllAsRead }= useThongBao();
+    const { list, unreadCount, markAsRead, markAllAsRead } = useThongBao();
     const [open, setOpen] = useState(false);
 
     const content = () => (

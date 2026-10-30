@@ -9,5 +9,4 @@ router.get("/unread-count", verifyToken, tb.getMyUnreadCount);
 router.patch("/read-all", verifyToken, tb.readAll);
 router.patch("/:id/read", verifyToken, tb.readOne);
 
-
-export default router; 
+export default router;  

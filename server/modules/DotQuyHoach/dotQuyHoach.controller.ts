@@ -2,6 +2,8 @@ import {NextFunction, Request, Response } from "express";
 import * as DotQuyHoachService from "./dotQuyHoach.service";
 import * as DotQuyHoachDTO from "./dotQuyHoach.dto";
 import { submitVoteService } from "./dotQuyHoach.validate.service";
+import { getVienChucByRole } from "../TaiKhoan/taiKhoan.repository";
+import { createThongBao } from "../ThongBao/thongBao.service";
 
 export const createDotQuyHoach = async (req: Request, res: Response) => {
     try {
@@ -9,6 +11,16 @@ export const createDotQuyHoach = async (req: Request, res: Response) => {
                 soQdPheDuyet, ngayQdPheDuyet, dotGocId } = req.body;
         const payload = { tenQuyHoach, loaiQuyHoach, namThucHien, nhiemKy, soQdPheDuyet, ngayQdPheDuyet, dotGocId, };
         const data = await DotQuyHoachService.createDotQuyHoach(payload);
+        try {
+            const dsVCQL = await getVienChucByRole("VCQL");
+            const noiDung = `Ban hành ${tenQuyHoach} năm ${namThucHien}`;
+
+            await createThongBao(dsVCQL, "Thông báo quy hoạch", noiDung, "QUY_HOACH_MOI", {dotQuyHoach: data.id});
+            
+        } catch (error) {
+            console.log(error);
+        }
+        
         return res.status(201).json({ success: true, message: "Tạo đợt quy hoạch thành công", data });
     } catch (error: any) {
         console.error("Create planning error:", error);
