@@ -53,3 +53,4 @@ export const deleteDonVi = async (id: number) => {
         client.release();
     }
 }
+export const getTenDonVi = async (id: number): Promise<string> => DonViRepo.getTenDonVi(id);

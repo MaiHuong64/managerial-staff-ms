@@ -15,7 +15,7 @@ export const createDotQuyHoach = async (req: Request, res: Response) => {
             const dsVCQL = await getVienChucByRole("VCQL");
             const noiDung = `Ban hành ${tenQuyHoach} năm ${namThucHien}`;
 
-            await createThongBao(dsVCQL, "Thông báo quy hoạch", noiDung, "QUY_HOACH_MOI", {dotQuyHoach: data.id});
+            await createThongBao(dsVCQL, "Thông báo quy hoạch", noiDung, "THONG_TIN", "dot_quy_hoach", data.id);
             
         } catch (error) {
             console.log(error);

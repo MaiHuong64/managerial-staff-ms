@@ -2,15 +2,20 @@ import pool from "../../config/db";
 import { mapArrayToCamel, mapToCamel } from "../../utils/mapper";
 import { ThongBao } from "./thongBao.type";
 
-export const create = async ( vcId: number, tieuDe: string, noiDung: string, loaiTb: string, data: string) => {
+export const insertThongBao = async ( vcId: number, tieuDe: string, noiDung: string, loaiTb: string, data: object) => {
     const query = await pool.query(`INSERT INTO thong_bao (vc_id, tieu_de, noi_dung, loai_tb, data) VALUES ($1, $2, $3, $4, $5) RETURNING *`, 
         [vcId, tieuDe, noiDung, loaiTb, data]);
-    return mapToCamel<ThongBao>(query.rows[0])
+    const result = await pool.query(`SELECT * FROM v_thong_bao WHERE id = $1`, [query.rows[0].id]);
+    return mapToCamel<ThongBao>(result.rows[0])
 };
 
-export const findByVcId = async (vcId: number) => {
-    const query = await pool.query(`SELECT * FROM thong_bao WHERE vc_id = $1 ORDER BY created_at DESC LIMIT 10`, [vcId]);
-    return mapArrayToCamel<ThongBao>(query.rows);
+export const findByVcId = async (vcId: number, loaiTb?: string) => {
+    let query = `SELECT * FROM v_thong_bao WHERE vc_id = $1 ORDER BY created_at DESC LIMIT 10`;
+    if (loaiTb) {
+        query += ` AND loai_tb = $2`;
+    }
+    const result = await pool.query(query, loaiTb ? [vcId, loaiTb] : [vcId]);
+    return mapArrayToCamel<ThongBao>(result.rows);
 };
 
 // if unReadOnly is true, only count unread notifications

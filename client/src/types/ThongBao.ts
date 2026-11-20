@@ -2,7 +2,8 @@ export interface ThongBao {
     id: number;
     tieuDe: string;
     noiDung: string;
-    loaiTB: string;
+    loaiTb: "THONG_TIN" | "CAN_XU_LY";
+    data: {ob: string, obId: number} | null;
     isRead: boolean;
     createdAt: string;
     updatedAt: string;
