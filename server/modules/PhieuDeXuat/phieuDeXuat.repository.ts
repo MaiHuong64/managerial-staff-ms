@@ -152,7 +152,7 @@ export const countChucDanhDeXuatByVienChuc = async (vienChucId: number) => {
         `SELECT vc.id, vc.ho_va_ten, COUNT(DISTINCT p.chuc_danh_id) as so_chuc_danh
         FROM phieu_de_xuat_nhan_su_quy_hoach p JOIN chi_tiet_phieu_de_xuat ct ON p.id = ct.phieu_de_xuat_id  
         JOIN vien_chuc vc ON vc.id = ct.vien_chuc_id
-        WHERE vc.id = $1s
+        WHERE vc.id = $1
         GROUP BY vc.id, vc.ho_va_ten`,
         [vienChucId]
     );

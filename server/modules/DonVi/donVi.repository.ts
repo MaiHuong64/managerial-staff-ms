@@ -85,3 +85,8 @@ export const updateDonVi = async (client: PoolClient, id: number, payload: Creat
 export const deleteDonVi = async (client: PoolClient, id: number) => {
     await client.query(`UPDATE don_vi SET trang_thai = 0 WHERE id = $1`, [id]);
 }
+export const getTenDonVi = async (id: number) => {
+    const result = await pool.query(`SELECT ten_don_vi FROM don_vi WHERE id = $1`, [id]);
+    const row = mapToCamel<{tenDonVi: string}>(result.rows[0]);
+    return row.tenDonVi;
+}

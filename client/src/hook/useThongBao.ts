@@ -2,11 +2,20 @@ import { useEffect, useState } from "react";
 import type { ThongBao } from "../types/ThongBao";
 import { getMyUnreadCount, getThongBaoList, readAll, readOne } from "../api/thongBao.api";
 import { socket } from "../socket/socket";
+import { useNavigate } from "react-router-dom";
+import { getRouteByLoaiTB } from "../config/thongBao.config";
 
 export const useThongBao = () => {
     const [list, setList] = useState<ThongBao[]>([]);
     const [unreadCount, setUnreadCount] = useState<number>(0);
+    const navigate = useNavigate();
 
+    const handleClickThongBao = async (tb: ThongBao) => {
+        await markAsRead(tb.id);
+        const path = getRouteByLoaiTB(tb);
+        if(path) navigate(path);
+    }
+    
     const markAllAsRead = async () => {
         if(unreadCount === 0) return;
         setUnreadCount(0);
@@ -33,8 +42,6 @@ export const useThongBao = () => {
             console.error(`Lỗi khi cập nhật thông báo ${id}:`, error);
         }
     }
-
-   
     
     useEffect(() => {
         let active = true;
@@ -66,5 +73,5 @@ export const useThongBao = () => {
         };
     }, []);
 
-    return { list, unreadCount, markAllAsRead, markAsRead };
+    return { list, unreadCount, markAllAsRead, markAsRead, handleClickThongBao };
 }
